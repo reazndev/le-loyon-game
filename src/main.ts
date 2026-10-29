@@ -1,0 +1,18 @@
+import { installDebugHooks, parseDebugParams } from './game/debug';
+import { Game } from './game/game';
+import { testScene } from './levels/test';
+
+const scenes = [testScene];
+const START_SCENE = 'test';
+
+const params = parseDebugParams(location.search);
+const game = new Game(document.getElementById('frame')!, scenes);
+const hooks = installDebugHooks(game);
+
+await game.start({
+  scene: params.scene ?? START_SCENE,
+  ...(params.pose ? { at: params.pose } : {}),
+  ...(params.time ? { time: params.time } : {}),
+  flags: params.flags,
+});
+hooks.ready = true;
