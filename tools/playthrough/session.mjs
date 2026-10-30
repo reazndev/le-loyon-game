@@ -15,6 +15,8 @@ export class Session {
     this.page = page;
     this.errors = errors;
     this.log = log;
+    /** Every dialogue line `talk` has played, so a stage can check for a line another step played through. */
+    this.heard = new Set();
   }
 
   eval(fn, arg) {
@@ -142,6 +144,7 @@ export class Session {
         continue;
       }
       const { typing, step } = await this.eval(() => ({ typing: window.__game.game.overlay.dialogue.typing, step: window.__game.dialogue() }));
+      if (step.text) this.heard.add(step.text);
       if (typing || step.kind !== 'choice') {
         await this.key('KeyE');
         continue;

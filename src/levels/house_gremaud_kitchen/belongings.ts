@@ -19,8 +19,8 @@ export function buildBelongings(kit: LevelKit): MeshBuilder {
   kit.cylinder({ r: 0.02, h: 0.045, sides: 6 }).color(0x2e1e14).at(PIPE.x + 0.02, TOP + 0.02, PIPE.z);
   kit.box({ w: 0.11, h: 0.012, d: 0.014 }).color(0x1c1410).at(PIPE.x - 0.05, TOP + 0.03, PIPE.z + 0.02).rotY(-25);
 
-  kit.cylinder({ r: 0.07, h: 0.01, sides: 8 }).color(0xc8c2b0).at(HER_CHAIR.x + 0.42, TOP, HER_CHAIR.z - 0.05);
-  kit.cylinder({ r: 0.038, h: 0.07, sides: 6 }).color(0xd0cab8).at(HER_CHAIR.x + 0.42, TOP + 0.01, HER_CHAIR.z - 0.05);
+  kit.cylinder({ r: 0.07, h: 0.01, sides: 8 }).texture('plaster_wall', { tile: 0.3 }).color(0xb0aa98).at(HER_CHAIR.x + 0.42, TOP, HER_CHAIR.z - 0.05);
+  kit.cylinder({ r: 0.038, h: 0.07, sides: 6 }).texture('plaster_wall', { tile: 0.3 }).color(0xb4ae9c).at(HER_CHAIR.x + 0.42, TOP + 0.01, HER_CHAIR.z - 0.05);
 
   return kit.box({ w: 0.09, h: 0.018, d: 0.14 }).color(0x131313).at(DIARY.x, TOP, DIARY.z).rotY(12);
 }

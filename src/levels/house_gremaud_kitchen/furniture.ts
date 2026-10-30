@@ -73,7 +73,7 @@ function dresser(kit: LevelKit): void {
   // Plates standing on the shelves, leaning back; cups along the counter top.
   [1.345, 1.725].forEach((y) =>
     [-0.48, -0.24, 0, 0.24, 0.48].forEach((dz) =>
-      kit.cylinder({ r: 0.1, h: 0.012, sides: 8 }).color(0xd2ccb8).at(WEST + 0.07, y + 0.1, z + dz).object.rotation.set(0, 0, -Math.PI / 2 + 0.12),
+      kit.cylinder({ r: 0.1, h: 0.012, sides: 8 }).texture('plaster_wall', { tile: 0.3 }).color(0xb4ae9c).at(WEST + 0.07, y + 0.1, z + dz).object.rotation.set(0, 0, -Math.PI / 2 + 0.12),
     ),
   );
   [-0.42, -0.2, 0.2, 0.42].forEach((dz) => kit.cylinder({ r: 0.035, h: 0.07, sides: 6 }).color(0xb8b2a0).at(WEST + 0.3, 0.94, z + dz));

@@ -33,11 +33,11 @@ Each stage in `tools/playthrough/runs.mjs` plays one step of the flow in [script
 - Odile's kitchen opens at `odile_talk_2`;
 - each ending's pages, epilogue, and last screen play and return to the title.
 
-Night 2 plays puzzle P5 for real at four times speed. The run digs while Raymond is offstage; when his round comes within 28 m it climbs out, pulls the tarp over the hole, and waits in the ossuary shed with the torch off until he has gone. A dig stage takes 15 s of game time and a refill stage 12 s, so the dig takes about two rounds. On his second round Raymond stops at Marc's grave for 10 s while Bari growls, then moves on. The run waits that out in the shed like any other round.
+Night 2 plays puzzle P5 for real at four times speed. The run digs while Raymond is offstage; when his round comes within 28 m it climbs out, pulls the tarp over the hole, and waits in the ossuary shed with the torch off until he has gone. A dig stage takes 15 s of game time and a refill stage 12 s, so the dig takes about two rounds. On his second round Raymond stops at Marc's grave for 10 s while Bari growls, then moves on. The run waits that out in the shed like any other round. After the last dig stage it waits out one more round, then opens and empties the coffin at normal speed in the quiet minute after it.
 
 ## How it plays
 
-The runner in `tools/playthrough/index.mjs` starts the Vite dev server and Chromium with the same SwiftShader flags as `npm run shot` (`tools/browser.mjs`), and gives each run a fresh page, so saves and settings start empty.
+The runner in `tools/playthrough/index.mjs` starts the Vite dev server and Chromium with the same SwiftShader flags as `npm run shot` (`tools/browser.mjs`), and gives each run a fresh page, so saves and settings start empty. The dev server doesn't watch files or reload the page, so edits made during a run, by you or another agent, don't restart a stage. Start the run again to test them.
 
 `tools/playthrough/session.mjs` holds the moves. Keys go in as real key presses through Playwright: E to interact and confirm, the arrows to walk and pick choices, F, C, and Q for the torch, crouching, and the camera. The 1998 desktop is driven with real key presses: up and down to move between links, E to open, Esc to go back, Tab for the Start menu. Everything else goes through `window.__game`:
 

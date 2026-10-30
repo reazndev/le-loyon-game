@@ -55,11 +55,11 @@ function altar(kit: LevelKit): void {
   kit.box({ w: 1.7, h: 0.62, d: 0.02 }).color(0x4e5e6c).at(0, top + 0.16, z + 0.31);
   kit.box({ w: 0.08, h: 0.42, d: 0.02 }).color(0xa08a50).at(0, top + 0.26, z + 0.33);
   kit.box({ w: 0.3, h: 0.08, d: 0.02 }).color(0xa08a50).at(0, top + 0.56, z + 0.33);
-  kit.box({ w: 2.32, h: 0.03, d: 0.86 }).color(0xcdc9bd).at(0, top + 0.98, z - 0.1);
+  kit.box({ w: 2.32, h: 0.03, d: 0.86 }).texture('plaster_wall', { tile: 0.8 }).color(0xb4ae9e).at(0, top + 0.98, z - 0.1);
   kit.box({ w: 0.5, h: 0.5, d: 0.4 }).color(0x8c7a4c).at(0, top + 1.01, z - 0.3);
   [-0.8, 0.8].forEach((x) => {
     kit.cylinder({ r: 0.05, h: 0.4, sides: 6 }).color(0x8c7a4c).at(x, top + 1.01, z - 0.2);
-    kit.cylinder({ r: 0.025, h: 0.3, sides: 5 }).color(0xd8d2c0).at(x, top + 1.41, z - 0.2);
+    kit.cylinder({ r: 0.025, h: 0.3, sides: 5 }).texture('plaster_wall', { tile: 0.3 }).color(0xbcb4a0).at(x, top + 1.41, z - 0.2);
   });
 
   // Retable: columns, a dark painting of the saint's martyrdom, the cross above.
@@ -90,7 +90,7 @@ function sideAltar(kit: LevelKit, ctx: SceneContext): void {
   const { x, z } = SIDE_ALTAR;
   kit.box({ w: 1.5, h: 2.7, d: 0.04 }).color(0x46566a).at(NAVE.x1 - WALL / 2 - 0.02, 0, z).rotY(90);
   kit.box({ w: 1.4, h: 0.95, d: 0.6 }).texture('church_stone', { tile: 1 }).color(0xa8a49a).at(x, 0, z).rotY(90).collider();
-  kit.box({ w: 1.5, h: 0.03, d: 0.66 }).color(0xcdc9bd).at(x, 0.95, z).rotY(90);
+  kit.box({ w: 1.5, h: 0.03, d: 0.66 }).texture('plaster_wall', { tile: 0.8 }).color(0xb4ae9e).at(x, 0.95, z).rotY(90);
   kit.box({ w: 0.36, h: 0.25, d: 0.3 }).texture('church_stone', { tile: 0.6 }).color(0xb0aca2).at(x + 0.08, 0.98, z);
   kit.cylinder({ r: 0.14, h: 0.8, sides: 8 }).color(0x9eaabb).at(x + 0.08, 1.23, z);
   kit.cylinder({ r: 0.09, h: 0.2, sides: 6 }).color(0xc8ccd4).at(x + 0.08, 1.98, z);
@@ -108,7 +108,7 @@ function sideAltar(kit: LevelKit, ctx: SceneContext): void {
   const cups = [-0.3, -0.15, 0, 0.15, 0.3].flatMap((dz) => [-0.1, 0.02, 0.12].map((dx) => ({ x: rack.x + dx, z: rack.z + dz })));
   const burning = [2, 7, 11];
   cups.forEach((cup, i) => {
-    kit.cylinder({ r: 0.028, h: i % 4 === 0 ? 0.03 : 0.07, sides: 5 }).color(0xcfc8b4).at(cup.x, 0.94, cup.z);
+    kit.cylinder({ r: 0.028, h: i % 4 === 0 ? 0.03 : 0.07, sides: 5 }).texture('plaster_wall', { tile: 0.3 }).color(0xb8ae98).at(cup.x, 0.94, cup.z);
     if (burning.includes(i)) flame(kit, cup.x, 1.03, cup.z);
   });
   // Lit by the player: hidden until `lit_candle` is set.
@@ -216,7 +216,7 @@ function lamps(kit: LevelKit): void {
     for (let i = 0; i < 6; i++) {
       const a = (i / 6) * Math.PI * 2;
       const [bx, bz] = [Math.cos(a) * 0.42, z + Math.sin(a) * 0.42];
-      kit.box({ w: 0.04, h: 0.14, d: 0.04 }).color(0xd8d0bc).at(bx, NAVE.h - 2.2, bz);
+      kit.box({ w: 0.04, h: 0.14, d: 0.04 }).texture('plaster_wall', { tile: 0.3 }).color(0xb8b09c).at(bx, NAVE.h - 2.2, bz);
       kit.box({ w: 0.03, h: 0.05, d: 0.03 }).color(0xffd8a0).unlit().at(bx, NAVE.h - 2.06, bz);
     }
     kit.glow(1.1, 0x4a3820).at(0, NAVE.h - 2.05, z);

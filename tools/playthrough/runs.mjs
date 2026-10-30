@@ -1,4 +1,4 @@
-import { atGrave, climbOut, DIG_SPEED, HOLE, holdAtGrave, inHole, torchOff, whenRaymondIsGone } from './grave.mjs';
+import { afterTheNextRound, atGrave, climbOut, DIG_SPEED, HOLE, holdAtGrave, inHole, torchOff, whenRaymondIsGone } from './grave.mjs';
 import { StageError } from './session.mjs';
 import {
   downToInn,
@@ -281,6 +281,9 @@ const heifer = {
   },
 };
 
+/** In the dormitory, facing the K.P. 3 door once the cupboard has rolled clear of it. */
+const HIDDEN_DOOR_VIEW = { x: 9.4, z: -30.8, yaw: -84 };
+
 const hiddenDoor = {
   name: 'day_2_hidden_door',
   flags: ['bunker_door_open', 'looked_at_dust', 'found_hidden_door', 'found_biscuit_wrapper'],
@@ -289,13 +292,15 @@ const hiddenDoor = {
     await s.use('Go inside');
     await s.talk();
     await s.inScene('bunker_interior');
-    // P4: the swept quarter circle in the dust, then the cupboard rolls aside.
-    await s.use('Look at the floor');
+    // P4: the scrapes beside the cupboard lead down to the swept quarter circle, then it rolls aside.
+    await s.use('Look at the cupboard');
     await s.talk();
     await s.use('Push the cupboard');
     await s.talk();
     await s.use('Look at the wrapper');
     await s.talk();
+    await s.teleport(HIDDEN_DOOR_VIEW.x, HIDDEN_DOOR_VIEW.z, HIDDEN_DOOR_VIEW.yaw);
+    await s.until(() => window.__game.hotspots().some((h) => h.prompt === 'Push the cupboard back'), 'the cupboard to roll clear');
     await s.frames(20);
     await s.shot('13-hidden-door');
     await walk(s, exits.fortInsideToOutside);
@@ -327,6 +332,7 @@ const dig = {
     await torchOff(s);
     await s.eval((speed) => window.__game.setSpeed(speed), DIG_SPEED);
     await holdAtGrave(s, 'Dig', () => (window.__game.state().counts.dig_stage ?? 0) >= 5, 'five stages of digging');
+    await afterTheNextRound(s);
     await s.eval(() => window.__game.setSpeed(1));
     if (!(await inHole(s))) {
       await s.use('Climb down', { near: HOLE });
@@ -338,9 +344,12 @@ const dig = {
     await s.shot('14-empty-coffin');
     await atGrave(s, 'Take the box');
     await s.talk();
+    // Out of the hole with the box the reporter says this, either as the climb ends or just after.
+    const after = 'I should put this back the way it was.';
     await climbOut(s);
-    // Out of the hole with the box: "I should put this back the way it was."
-    await s.awaitTalk('the reporter looking at the open grave');
+    if (!s.heard.has(after)) await s.awaitTalk('the reporter looking at the open grave');
+    if (!s.heard.has(after)) throw new StageError(`Climbing out with the box never played "${after}"`);
+    if ((await s.state()).flags.includes('caught')) throw new StageError('Raymond caught the reporter at the open coffin');
   },
 };
 
@@ -349,6 +358,7 @@ const refill = {
   flags: ['grave_refilled'],
   counts: { refill_stage: 3 },
   async play(s) {
+    await torchOff(s);
     await s.eval((speed) => window.__game.setSpeed(speed), DIG_SPEED);
     await holdAtGrave(s, 'Fill in the grave', () => window.__game.state().flags.includes('grave_refilled'), 'three stages of refilling');
     // His round comes in by the front gate, so the reporter leaves between rounds.

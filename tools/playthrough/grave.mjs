@@ -18,6 +18,14 @@ const raymondNear = (s) =>
     ([hole, limit]) => window.__game.characters().some((c) => c.id === 'raymond' && c.visible && Math.hypot(c.x - hole.x, c.z - hole.z) < limit),
     [HOLE, TOO_CLOSE],
   );
+/** Where Raymond stands and how far that is from the hole, for a failure message. */
+const whereIsRaymond = (s) =>
+  s.eval((hole) => {
+    const r = window.__game.characters().find((c) => c.id === 'raymond' && c.visible);
+    const torch = window.__game.game.world.lights.flashlightOn ? 'on' : 'off';
+    if (!r?.visible) return `Raymond offstage, torch ${torch}`;
+    return `Raymond at ${r.x.toFixed(1)}, ${r.z.toFixed(1)}, ${Math.hypot(r.x - hole.x, r.z - hole.z).toFixed(1)} m from the hole, torch ${torch}`;
+  }, HOLE);
 export const inHole = (s) => s.eval(() => window.__game.pose().y < -0.25);
 
 export async function torchOff(s) {
@@ -61,6 +69,15 @@ async function waitOutTheRound(s) {
   if ((await s.state()).flags.includes('tarp_over_hole')) await s.use('Pull the tarp back');
 }
 
+/**
+ * Waits in the shed for Raymond's next round to come and go, so the minute after it is clear of him.
+ * The coffin takes that long to open and empty at normal speed.
+ */
+export async function afterTheNextRound(s) {
+  await s.until(() => window.__game.characters().some((c) => c.id === 'raymond' && c.visible), "Raymond's next round", { timeout: 120_000 });
+  await waitOutTheRound(s);
+}
+
 /** Waits out Raymond's round if he is anywhere on it, so the reporter can walk out by the front gate. */
 export async function whenRaymondIsGone(s) {
   const out = await s.eval(() => window.__game.characters().some((c) => c.id === 'raymond' && c.visible));
@@ -75,7 +92,7 @@ export async function holdAtGrave(s, prompt, done, what) {
   const end = Date.now() + 400_000;
   while (!(await s.eval(done))) {
     if (Date.now() > end) throw new StageError(`Never finished: ${what}`);
-    if ((await s.state()).flags.includes('caught')) throw new StageError(`Raymond caught the reporter: ${what}`);
+    if ((await s.state()).flags.includes('caught')) throw new StageError(`Raymond caught the reporter: ${what} (${await whereIsRaymond(s)})`);
     if (await raymondNear(s)) {
       await waitOutTheRound(s);
       continue;
@@ -114,10 +131,12 @@ export async function holdAtGrave(s, prompt, done, what) {
  */
 export async function atGrave(s, prompt) {
   if (!(await inHole(s))) return s.use(prompt, { near: HOLE });
-  await s.eval(() => (window.__game.game.player.yaw = 0));
-  await s.frames(3);
-  const shown = await s.eval(() => window.__game.prompt());
-  if (shown !== prompt) throw new StageError(`In the hole, expected the prompt "${prompt}", saw "${shown}"`);
+  // Just after climbing down the reporter is still settling and may face the headstone's prompt.
+  const facing = (p) => {
+    window.__game.game.player.yaw = 0;
+    return window.__game.prompt() === p;
+  };
+  await s.until(facing, `the prompt "${prompt}" in the hole`, { timeout: 5_000, arg: prompt });
   await s.key('KeyE');
 }
 
