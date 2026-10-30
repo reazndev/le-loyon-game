@@ -168,6 +168,11 @@ export const markers = {
     yaw: 0,
     note: 'Deeper in, uphill: the branch.',
   },
+  for2_cup: {
+    beat: 'for2_cup',
+    ...beside(toFort, 21, 1.7),
+    note: 'Day 2, walking back from the fort: a tin cup on the stump beside the path. It was not there on the way up. Looking at it drops every sound for a while. Nothing else.',
+  },
   for3n_follow: {
     beat: 'for3n_follow',
     ...along(main, 22),

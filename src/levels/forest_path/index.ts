@@ -1,5 +1,6 @@
 import type { LevelKit } from '../../game/kit/levelKit';
 import { defineScene, type SceneContext } from '../../game/scene';
+import { cupOnTheStump } from './cup';
 import { heiferInTheForest } from './heifer';
 import { area, BRIDGE, FORK, height, main, markers, SHRINE, slope, stream, toFort, trails } from './layout';
 import { lostInTheFog } from './lost';
@@ -89,7 +90,7 @@ export const forestPathScene = defineScene({
     kit.exit({ w: 1, d: 5, to: 'yerly_farm', spawn: 'from_forest' }).at(-50.4, 0, -14);
 
     forestAmbience(kit, ctx);
-    stageForestPath(kit, ctx, phase, heiferInTheForest(kit, ctx, phase));
+    stageForestPath(kit, ctx, phase, [...heiferInTheForest(kit, ctx, phase), ...cupOnTheStump(kit, ctx, phase)]);
   },
 
   update: lostInTheFog(trails),
