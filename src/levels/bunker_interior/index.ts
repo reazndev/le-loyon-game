@@ -506,13 +506,12 @@ function kp3Door(kit: LevelKit, ctx: SceneContext, phase: StoryPhase): Kp3Door {
     });
   };
 
-  // Night 3: candlelight under the door, and behind it once the door is open.
+  // Night 3: candlelight under the door from Marc's candle on the other side.
   const night3 = phase === 'night3';
   const candle = night3 && !open;
   const lineUnder = kit.box({ w: 0.02, h: 0.012, d: 0.84 }).unlit().color(0xffa850).at(KP3.x - 0.06, 0, KP3.z);
   lineUnder.object.visible = candle;
   const glow = kit.light({ color: 0xff9a48, intensity: candle ? 0.5 : 0, range: 1.8 }).at(KP3.x - 0.4, 0.1, KP3.z);
-  if (night3) kit.light({ color: 0xff9440, intensity: 0.9, range: 3.4 }).flicker(0.25).at(15.6, 0.5, -31);
   const putOutCandle = () => {
     lineUnder.object.visible = false;
     if (glow.light) glow.light.intensity = 0;
@@ -599,12 +598,12 @@ function kp3Door(kit: LevelKit, ctx: SceneContext, phase: StoryPhase): Kp3Door {
 }
 
 /**
- * The right knock: Marc in the passage behind the door, well back, the candle behind him. He is
+ * The right knock: Marc in the passage behind the door, well back, holding his candle low. He is
  * there when the door swings open, and the reporter turns to him, so a photo he allows has him in
  * it. When he has said goodbye he goes back into the dark.
  */
 function marcInThePassage(kit: LevelKit, ctx: SceneContext) {
-  const marc = kit.npc('marc').at(MARC_BACK.x, 0, MARC_BACK.z).faceYaw(markers.marc_door.yaw);
+  const marc = kit.npc('marc').at(MARC_BACK.x, 0, MARC_BACK.z).faceYaw(markers.marc_door.yaw).holdCandle();
   marc.object.visible = false;
   return {
     show: () => {

@@ -1,9 +1,10 @@
 import type { LevelKit } from '../../game/kit/levelKit';
 import type { SceneContext } from '../../game/scene';
+import { fogWindow } from '../../game/kit/windows';
 import { playNode } from '../forest_path/play';
 import { cafeLit, darkOutside, type InnDressing } from './dressing';
 import { bottles, cafeTable, chair, placeSetting } from './furniture';
-import { fogWindow, floorAndCeiling, pendantLamp, skirting, wall, type Finish } from './interior';
+import { floorAndCeiling, pendantLamp, skirting, wall, type Finish } from './interior';
 import { CAFE, COUNTER, FRONT_DOOR, KITCHEN_DOOR, STAIRS, STUBLI_DOOR, SUPPER_TABLE, TABLES } from './layout';
 
 /** The café on the ground floor: six tables, the counter, the television on its bracket. */

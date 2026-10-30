@@ -1,7 +1,8 @@
 import type { LevelKit } from '../../game/kit/levelKit';
+import { fogWindow } from '../../game/kit/windows';
 import { darkOutside, type InnDressing } from './dressing';
 import { chair } from './furniture';
-import { fogWindow, floorAndCeiling, pendantLamp, wall, type Finish } from './interior';
+import { floorAndCeiling, pendantLamp, wall, type Finish } from './interior';
 import { DESK, PHONE, SCREEN, STUBLI, STUBLI_DOOR } from './layout';
 
 /**

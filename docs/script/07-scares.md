@@ -64,13 +64,13 @@ Only these three. Each has a loud sound hit. Nothing else in the game has one.
 
 **Why it's earned.** It is the first night, the first time in the dark, the cemetery. The player is braced for Le Loyon. It's a dog. It also teaches the mechanic that will matter on night 2.
 
-### Jumpscare 2: the doorway (day 3 evening, inn)
+### Jumpscare 2: the regulars' table (day 3 evening, inn)
 
 **Build.** All game, veilleur's posts have described where the reporter is and what they did. On day 3 the inn is empty: Monique is in the kitchen, the café lights are off. The stübli is lit only by the monitor. The modem handshake, then the board loads, slowly, image by image. A new post at the top, time-stamped a minute ago. It describes the room the player is sitting in: the cup, the coat, the light in the kitchen. "turn around."
 
-**Hit.** The player has to turn the reporter around with tank controls, which takes about two seconds for 180 degrees. The doorway behind is dark. Yannick is standing in it, hood up, face half lit by the monitor, completely still. At the moment he is fully in view, a floorboard cracks under his foot (the hit) and he flinches.
+**Hit.** Yannick is already in the stübli. He sits in the dark on the corner bench at the regulars' table, behind the reporter's right shoulder, hood up, where the monitor's light only just reaches his face. He has been there while the reporter read. The player has to turn the reporter around with tank controls, which takes about two seconds for 180 degrees, so he comes in at the edge of view first and the player sees him before they understand him. At the moment he is fully in view, the bench creaks (the hit) and he stands up. The doorway stays empty: a figure in a doorway is Marc's, the same night.
 
-If the player refuses to turn for 40 s: the floorboard cracks behind them anyway and Yannick says "Sorry." Same scene.
+If the player refuses to turn for 40 s: the bench creaks behind them anyway, Yannick says "Sorry.", and the reporter turns to him. Same scene.
 
 **Resolve.** `yannick_reveal`. He's sixteen and embarrassed. He wrote every post.
 
@@ -195,6 +195,7 @@ The dig is the longest tense sequence in the game. The patrol is the threat. Le 
 | `for2_heifer` | Finding Marquise | She stands still at the forest edge, staring into the trees. Her bell is silent because she doesn't move. | Setup. |
 | `for2_stump` | Following her gaze | A dark vertical shape 25 m in. If the player looks away and back, it's gone. If they walk to it, it's a mossy stump in a different place than they thought. Then, deeper in, `sfx_branch`. | Open. The stump is false. The branch is real. Players won't be sure which was which. |
 | `for2_led_home` | Leading the heifer | She keeps looking back over her shoulder at the forest. If the player looks back too, there is nothing. Every time. | False, every time. The heifer knows something the player can't see. |
+| `for2_cup` | Day 2, after `bunker_door_open`, walking back past the stump beside the fort path | An army tin cup stands on the stump with an inch of cold coffee in it. It wasn't there on the way up. Looking at it silences the forest for 9 seconds. Nothing else happens. | Real. Someone was there between the walk up and the walk back. |
 
 ### Bunker, day 2
 

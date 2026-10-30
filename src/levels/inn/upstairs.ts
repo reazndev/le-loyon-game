@@ -1,12 +1,13 @@
 import type { Group } from 'three';
 import type { LevelKit } from '../../game/kit/levelKit';
 import type { SceneContext } from '../../game/scene';
+import { fogWindow } from '../../game/kit/windows';
 import { movingBlocker } from '../bunker_interior/concrete';
 import { everyFrame } from '../church/everyFrame';
 import { playNode } from '../forest_path/play';
 import type { InnDressing } from './dressing';
 import { chair } from './furniture';
-import { fogWindow, floorAndCeiling, pendantLamp, skirting, wall, type Finish } from './interior';
+import { floorAndCeiling, pendantLamp, skirting, wall, type Finish } from './interior';
 import { BED, CORRIDOR, CORRIDOR_DOORS, RADIATOR, ROOM3, ROOM3_DESK, ROOM3_DOOR, STAIRS, UPPER } from './layout';
 
 /** The stairs, the upstairs corridor with its doors, and room 3 under the roof. */
