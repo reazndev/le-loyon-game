@@ -112,9 +112,9 @@ export class GameUi {
     return this.read(documents[id], documentLook(id));
   }
 
-  /** The quest log: the notes earned so far, opened at the latest. */
+  /** The quest log, opened at the first page, where the next step sits above the notes. */
   openNotebook(): Promise<void> {
-    return this.read(notebookDocument(this.state), 'notebook', 'last');
+    return this.read(notebookDocument(this.state), 'notebook');
   }
 
   /** Holds up a Polaroid. Photo 7 makes the reporter look again once it has developed. */

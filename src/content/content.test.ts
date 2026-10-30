@@ -7,7 +7,7 @@ import { documents } from './documents';
 import { caught, endings } from './endings';
 import { counts, derivedFlags, storyFlags } from './flags';
 import { items } from './items';
-import { notebook } from './notebook';
+import { notebook, notebookGoals } from './notebook';
 import { PAGE_LINES, PAGE_WIDTH } from './paginate';
 import { speakers } from './speakers';
 import { splitTranslation } from './translation';
@@ -193,6 +193,7 @@ describe('notebook and endings', () => {
         ...(knownFlags.has(flag) ? [] : [`notebook: unknown flag ${flag}`]),
         ...conditionProblems('if' in entry ? entry.if : undefined, `notebook ${flag}`),
       ]),
+      ...notebookGoals.flatMap((goal) => conditionProblems(goal.if, `notebook goal "${goal.text}"`)),
       ...Object.entries(endings).flatMap(([id, ending]) => [
         ...ending.articles.flatMap((a) => [a.if, ...a.paragraphs.map((p) => p.if)]).flatMap((c) => conditionProblems(c, id)),
         ...ending.epilogue.flatMap((p) => conditionProblems(p.if, id)),

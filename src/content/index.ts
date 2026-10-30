@@ -8,6 +8,6 @@ export { documents, type Document, type DocumentId } from './documents';
 export { caught, endings, type Ending } from './endings';
 export { checkStory, derived, flags, holds, type CountName, type DerivedFlag, type Flag, type StoryFlag } from './flags';
 export { items, miscPhoto, miscPhotoCaptions, type Item, type ItemId } from './items';
-export { notebook, type NotebookEntry } from './notebook';
+export { notebook, notebookGoals, type NotebookEntry, type NotebookGoal } from './notebook';
 export { speakers } from './speakers';
 export { splitTranslation } from './translation';
