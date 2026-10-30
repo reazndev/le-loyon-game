@@ -30,6 +30,8 @@ export class GameRenderer {
     this.renderer = new WebGLRenderer({ antialias: false, powerPreference: 'high-performance' });
     this.renderer.outputColorSpace = LinearSRGBColorSpace;
     this.renderer.setPixelRatio(1);
+    // Two passes per frame; reset once so the stats cover both.
+    this.renderer.info.autoReset = false;
     this.renderer.setSize(FRAME_WIDTH, FRAME_HEIGHT, false);
     this.canvas = this.renderer.domElement;
     this.canvas.className = 'game-canvas';
@@ -51,7 +53,14 @@ export class GameRenderer {
     this.post.saturation = value;
   }
 
+  /** What the last frame cost the GPU, for performance checks. Includes the dither pass. */
+  get stats(): { calls: number; triangles: number; programs: number; geometries: number; textures: number } {
+    const { render, memory, programs } = this.renderer.info;
+    return { calls: render.calls, triangles: render.triangles, programs: programs?.length ?? 0, ...memory };
+  }
+
   render(scene: Scene, camera: Camera, time: number): void {
+    this.renderer.info.reset();
     ps1Uniforms.uTime.value = time;
     this.post.time = time;
     this.renderer.setRenderTarget(this.target);

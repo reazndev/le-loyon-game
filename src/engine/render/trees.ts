@@ -1,5 +1,5 @@
 import { BufferGeometry, ConeGeometry, CylinderGeometry, Euler, Matrix4, Quaternion, Vector3 } from 'three';
-import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import { mergeGeometries, mergeVertices } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { hashString, seededRandom } from '../random';
 
 export type TreeKind = 'spruce' | 'bare' | 'birch';
@@ -22,14 +22,10 @@ export interface TreeModel {
 
 /** Low-poly tree models, one geometry per material so each part can be instanced. */
 export function treeModel(kind: TreeKind): TreeModel {
-  switch (kind) {
-    case 'spruce':
-      return spruce();
-    case 'bare':
-      return bareTree(0x8a7e70, 'bark_spruce');
-    case 'birch':
-      return bareTree(0xd8d4cc, 'bark_birch');
-  }
+  const model = kind === 'spruce' ? spruce() : kind === 'bare' ? bareTree(0x8a7e70, 'bark_spruce') : bareTree(0xd8d4cc, 'bark_birch');
+  // Parts are built non-indexed so they merge. Indexing them again lets the GPU light each
+  // shared vertex once instead of once per triangle, about a third of the vertex work.
+  return { ...model, parts: model.parts.map((part) => ({ ...part, geometry: mergeVertices(part.geometry) })) };
 }
 
 function spruce(): TreeModel {
