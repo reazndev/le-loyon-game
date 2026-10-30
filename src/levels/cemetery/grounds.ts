@@ -1,7 +1,6 @@
 import type { LevelKit } from '../../game/kit/levelKit';
 import { scatter } from '../../game/kit/scatter';
 import type { SceneContext } from '../../game/scene';
-import { readDocument } from '../forest_path/play';
 import { rock, undergrowth } from '../forest_path/woods';
 import {
   BACK_GATE,
@@ -197,6 +196,6 @@ export function oldStones(kit: LevelKit, ctx: SceneContext): void {
   OLD_STONES.forEach(({ doc, x, z }, i) => {
     const h = 0.85 + (i % 2) * 0.2;
     kit.box({ w: 0.7, h, d: 0.1 }).texture('gravestone_sandstone', { tile: 0.9 }).color(i === 3 ? 0x7a7466 : 0x8e8676).at(x, 0.05, z).rotY(90);
-    kit.hotspot({ prompt: 'Read the old stone', radius: 0.6, onInteract: () => readDocument(ctx, doc) }).at(x + 0.3, 0, z);
+    kit.hotspot({ prompt: 'Read the old stone', radius: 0.6, onInteract: () => ctx.readDocument(doc) }).at(x + 0.3, 0, z);
   });
 }

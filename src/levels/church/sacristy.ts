@@ -2,7 +2,7 @@ import type { LevelKit } from '../../game/kit/levelKit';
 import type { SceneContext } from '../../game/scene';
 import { playNode } from '../forest_path/play';
 import { OFFICE, RAISED, REGISTER_CUPBOARD, SACRISTY, WALL } from './layout';
-import { registerMenu } from './registers';
+import { readRegisters } from './registers';
 
 /** The sacristy with the register cupboard (P2), and the parish office next door. */
 
@@ -80,7 +80,7 @@ function registerCupboard(kit: LevelKit, ctx: SceneContext, floor: number): void
     .hotspot({
       prompt: () => (cupboardOpen(ctx) ? 'Read the registers' : 'Look at the cupboard'),
       radius: 0.6,
-      onInteract: () => (cupboardOpen(ctx) ? ctx.dialogue(registerMenu()) : ctx.say('Locked. The abbé said after morning mass.')),
+      onInteract: () => (cupboardOpen(ctx) ? readRegisters(ctx) : ctx.say('Locked. The abbé said after morning mass.')),
     })
     .at(x, 0, z + 0.6);
 }

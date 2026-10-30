@@ -234,7 +234,8 @@ export class Game {
       audio: this.audio,
       player: this.player,
       goTo: (scene, spawn) => void this.scenes.load(scene, spawn ?? 'default'),
-      dialogue: (script) => this.ui.dialogue(script),
+      dialogue: async (script) => void (await this.ui.dialogue(script)),
+      ask: (script) => this.ui.dialogue(script),
       say: (lines, speaker) => this.ui.say(lines, speaker),
       notify: (text) => this.overlay.notify(text),
       get time() {

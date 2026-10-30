@@ -1,7 +1,7 @@
 import { dialogues, type NodeId } from '../../content';
 import type { LevelKit } from '../../game/kit/levelKit';
 import type { SceneContext } from '../../game/scene';
-import { playNode, readDocument } from '../forest_path/play';
+import { playNode } from '../forest_path/play';
 import { bedOf, CHASSOT_BEDS, chassotGrave, GRAVE_FOOT, graves, type Bed, type Grave, type Rect } from './layout';
 
 const STONE_TEXTURE = { granite: 'gravestone_granite', sandstone: 'gravestone_sandstone' } as const;
@@ -25,12 +25,12 @@ export async function readGrave(ctx: SceneContext, grave: Grave): Promise<void> 
   const { state } = ctx;
   if (grave === chassotGrave) {
     const first = !state.hasFlag('read_grave_chassot');
-    await readDocument(ctx, 'grave_chassot');
+    await ctx.readDocument('grave_chassot');
     await playNode(ctx, first ? 'grave_chassot_look' : 'grave_chassot_look_again');
     return;
   }
   if (!grave.doc) return;
-  await readDocument(ctx, grave.doc);
+  await ctx.readDocument(grave.doc);
   if (grave.doc === 'grave_menoud') {
     state.setFlag('read_grave_menoud');
     if (state.time === 'night') await playNode(ctx, lanternNode(state.count('night')));

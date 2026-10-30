@@ -2,7 +2,6 @@ import { CylinderGeometry } from 'three';
 import { seededRandom } from '../../engine/random';
 import type { LevelKit } from '../../game/kit/levelKit';
 import type { SceneContext } from '../../game/scene';
-import { readDocument } from '../forest_path/play';
 import { WALL } from '../inn/interior';
 import { BELL, CLOCK, CORK_BOARD, RADIO, ROOM, SHOP_COUNTER } from './layout';
 
@@ -134,7 +133,7 @@ export function buildShop(kit: LevelKit, ctx: SceneContext, night: boolean): voi
     kit.box({ w, h, d: 0.005 }).color(color).at(b.x + x, b.y + y - h / 2 + 0.06, boardZ - 0.025);
     kit.box({ w: 0.015, h: 0.015, d: 0.01 }).color(LABELS[Math.round(x * 10 + y * 10 + 10) % LABELS.length]!).at(b.x + x, b.y + y + 0.035, boardZ - 0.03);
   });
-  kit.hotspot({ prompt: 'Read the notices', radius: 0.35, onInteract: () => readDocument(ctx, 'doc_laiterie_board') }).at(b.x, 0, boardZ - 0.2);
+  kit.hotspot({ prompt: 'Read the notices', radius: 0.35, onInteract: () => ctx.readDocument('doc_laiterie_board') }).at(b.x, 0, boardZ - 0.2);
 
   // The brass bell on its spring over the door.
   kit.box({ w: 0.03, h: 0.03, d: 0.16 }).color(0x2a2620).at(BELL.x, BELL.y + 0.12, BELL.z + 0.06);

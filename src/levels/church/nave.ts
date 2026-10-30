@@ -197,7 +197,7 @@ function doorFittings(kit: LevelKit, ctx: SceneContext): void {
     [0.12, 0.12, 0.2, 0.26],
     [0.1, -0.12, 0.3, 0.14],
   ].forEach(([dx, dy, w, h]) => kit.box({ w: w!, h: h!, d: 0.01 }).color(0xc8c4b6).at(1.9 + dx!, 1.25 + dy!, face - 0.03));
-  kit.hotspot({ prompt: 'Read the bulletin', radius: 0.45, onInteract: () => playNode(ctx, 'church_bulletin') }).at(1.9, 0, face - 0.5);
+  kit.hotspot({ prompt: 'Read the bulletin', radius: 0.45, onInteract: () => ctx.readDocument('doc_church_bulletin') }).at(1.9, 0, face - 0.5);
   kit.box({ w: 0.36, h: 0.14, d: 0.24 }).texture('church_stone', { tile: 0.5 }).color(0xaaa69c).at(-1.25, 0.95, face - 0.1);
   kit.box({ w: 0.1, h: 0.3, d: 0.1 }).texture('church_stone', { tile: 0.5 }).color(0x9a968c).at(-1.25, 0.65, face - 0.05);
 }

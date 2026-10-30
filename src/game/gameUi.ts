@@ -59,8 +59,10 @@ export class GameUi {
     this.stack.at(-1)?.update(dt, input);
   }
 
-  dialogue(script: DialogueScript): Promise<void> {
+  /** Plays a dialogue. Resolves with the text of the last choice the player picked, or null. */
+  dialogue(script: DialogueScript): Promise<string | null> {
     const runner = new DialogueRunner(script, this.state);
+    let picked: string | null = null;
     const box = this.overlay.dialogue;
     const show = (step: DialogueStep) => {
       this.dialogueStep = step.kind === 'end' ? null : step;
@@ -77,7 +79,10 @@ export class GameUi {
           if (input.pressed('interact')) show(runner.advance());
         } else if (step.kind === 'choice') {
           const index = box.choices.handle(input);
-          if (index !== null) show(runner.choose(index));
+          if (index !== null) {
+            picked = step.choices[index] ?? null;
+            show(runner.choose(index));
+          }
         }
         if (runner.step.kind === 'end') close();
       },
@@ -90,12 +95,12 @@ export class GameUi {
         if (runner.step.kind === 'end') close();
       },
     );
-    return ended;
+    return ended.then(() => picked);
   }
 
-  say(lines: string | string[], speaker?: string): Promise<void> {
+  async say(lines: string | string[], speaker?: string): Promise<void> {
     const node = { lines: typeof lines === 'string' ? [lines] : lines, ...(speaker ? { speaker } : {}) };
-    return this.dialogue({ start: 'say', nodes: { say: node } });
+    await this.dialogue({ start: 'say', nodes: { say: node } });
   }
 
   /** Shows a document from the content page by page, with its translation underneath. */

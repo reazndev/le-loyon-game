@@ -79,8 +79,6 @@ export const storyFlags = [
   'gar_yannick_left',
   'sat_in_confessional',
   'chu_confessional',
-  // Set by the dig's "Dig." choice and cleared at once by the cemetery, so never saved.
-  'dig_confirmed',
 ] as const;
 
 export type StoryFlag = (typeof storyFlags)[number];

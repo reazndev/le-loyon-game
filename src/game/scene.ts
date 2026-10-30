@@ -27,6 +27,8 @@ export interface SceneContext {
   goTo(scene: string, spawn?: string): void;
   /** Plays a dialogue script and resolves when it ends. */
   dialogue(script: DialogueScript): Promise<void>;
+  /** Plays a dialogue script and resolves with the text of the last choice picked, or null. */
+  ask(script: DialogueScript): Promise<string | null>;
   /** Shows lines in the dialogue box, with an optional speaker, and resolves when dismissed. */
   say(lines: string | string[], speaker?: string): Promise<void>;
   /** Shows a short line in the corner of the screen. */

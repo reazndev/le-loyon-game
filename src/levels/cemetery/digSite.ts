@@ -1,11 +1,11 @@
 import { MathUtils, type Object3D } from 'three';
 import { playerTuning } from '../../engine/player';
-import { dialogues, type StoryFlag } from '../../content';
+import { dialogues } from '../../content';
 import type { BoxShape, Vec2 } from '../../engine/physics/collision';
 import type { DialogueScript } from '../../game/dialogue';
 import type { LevelKit } from '../../game/kit/levelKit';
 import type { SceneContext } from '../../game/scene';
-import { playNode, readDocument } from '../forest_path/play';
+import { playNode } from '../forest_path/play';
 import {
   boxInCoffin,
   CLIMB_IN_SECONDS,
@@ -40,8 +40,8 @@ export const DIG_REACH = 20;
 export const REFILL_REACH = 12;
 /** Looking down at the lid from inside the hole. */
 const COFFIN_PITCH = -0.85;
-/** A transient flag the confirm dialogue sets on "Dig.", read and cleared at once. */
-const CONFIRMED: StoryFlag = 'dig_confirmed';
+/** The confirm dialogue's choice that starts digging. */
+const DIG = 'Dig.';
 
 type Tarp = 'shed' | 'beside' | 'over';
 
@@ -173,7 +173,7 @@ export class DigSite {
     if (action === 'take_box') {
       await playNode(this.ctx, 'coffin_box');
       this.refresh();
-      await readDocument(this.ctx, 'doc_gremaud_letter');
+      await this.ctx.readDocument('doc_gremaud_letter');
       this.hooks.letterRead();
       return;
     }
@@ -197,17 +197,11 @@ export class DigSite {
         ...nodes,
         dig_chassot_start: {
           ...nodes.dig_chassot_start!,
-          choices: [
-            { text: 'Dig.', effects: { set: CONFIRMED } },
-            { text: 'Not yet.', next: 'dig_not_yet' },
-          ],
+          choices: [{ text: DIG }, { text: 'Not yet.', next: 'dig_not_yet' }],
         },
       },
     };
-    await this.ctx.dialogue(script);
-    const confirmed = this.ctx.state.hasFlag(CONFIRMED);
-    this.ctx.state.setFlag(CONFIRMED, false);
-    return confirmed;
+    return (await this.ctx.ask(script)) === DIG;
   }
 
   private setTarp(tarp: Tarp): void {

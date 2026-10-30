@@ -1,6 +1,5 @@
 import type { LevelKit } from '../../game/kit/levelKit';
 import type { SceneContext } from '../../game/scene';
-import { readDocument } from '../forest_path/play';
 import { CALENDAR, CLOCK, COAT_HOOK, CRUCIFIX, DIARY, DRESSER, EAST, FRIDGE, HIS_CHAIR, LIVING_DOOR, NORTH, PHOTO, PIPE, SOUTH, STOVE, WEST, WINDOW } from './layout';
 import { looks, type Look } from './looks';
 
@@ -31,7 +30,7 @@ export function placeLooks(kit: LevelKit, ctx: SceneContext, night: boolean, dia
   const say = (lines: Look[]) => () => ctx.say(lines.map((look) => looks[look]));
   spots.forEach((spot) => kit.hotspot({ prompt: spot.prompt, radius: spot.radius, onInteract: say(spot.say) }).at(spot.at.x, 0, spot.at.z));
 
-  kit.hotspot({ prompt: 'Read the clipping', radius: 0.2, onInteract: () => readDocument(ctx, 'doc_odile_clipping') }).at(FRIDGE.x + 0.08, 0, NORTH + FRIDGE.d);
+  kit.hotspot({ prompt: 'Read the clipping', radius: 0.2, onInteract: () => ctx.readDocument('doc_odile_clipping') }).at(FRIDGE.x + 0.08, 0, NORTH + FRIDGE.d);
   kit.hotspot({ prompt: 'Listen at the door', radius: 0.4, onInteract: say([night ? 'livingRoomNight' : 'livingRoomDay']) }).at(WEST, 0, LIVING_DOOR.z);
   kit.hotspot({ prompt: 'Look at the diary', radius: 0.1, enabled: diaryThere, onInteract: say(['diary']) }).at(DIARY.x, 0, DIARY.z);
 }

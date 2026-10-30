@@ -1,31 +1,18 @@
 import { describe, expect, it } from 'vitest';
-import { DialogueRunner, validateScript } from '../../game/dialogue';
+import { documents } from '../../content';
+import { DialogueRunner } from '../../game/dialogue';
 import { GameState } from '../../game/state';
-import { registerMenu } from './registers';
+import { bookTitled, CLOSE_CUPBOARD, shelf } from './registers';
 
-/** Picks a choice by its text, then pages through until the next choice or the end. */
-function pick(runner: DialogueRunner, text: string) {
-  const step = runner.step;
-  if (step.kind !== 'choice') throw new Error('No choice on screen');
-  let next = runner.choose(step.choices.indexOf(text));
-  while (next.kind === 'line') next = runner.advance();
-  return next;
-}
-
-describe('registerMenu', () => {
-  it('has no jumps to missing nodes', () => {
-    expect(validateScript(registerMenu())).toEqual([]);
+describe('the register shelf', () => {
+  it('offers every book by its title, and a way out', () => {
+    const step = new DialogueRunner(shelf, new GameState()).step;
+    expect(step.kind === 'choice' && step.choices).toEqual(['Burials, 1995', 'Burials, 1996', 'Burials, 1997', 'Baptisms, 1958', 'Parish chronicle', CLOSE_CUPBOARD]);
   });
 
-  it('sets read_register after the 1995 burials and returns to the shelf', () => {
-    const state = new GameState();
-    const runner = new DialogueRunner(registerMenu(), state);
-    expect(pick(runner, 'Burials, 1996').kind).toBe('choice');
-    expect(state.hasFlag('read_register')).toBe(false);
-    pick(runner, 'Burials, 1995');
-    expect(state.hasFlag('read_register')).toBe(true);
-    pick(runner, 'Parish chronicle');
-    expect(state.hasFlag('read_chronicle')).toBe(true);
-    expect(pick(runner, 'Close the cupboard.').kind).toBe('end');
+  it('maps each title to its book and flag', () => {
+    expect(bookTitled(documents.doc_register_1995.title)).toEqual({ doc: 'doc_register_1995', sets: 'read_register' });
+    expect(bookTitled(CLOSE_CUPBOARD)).toBeUndefined();
+    expect(bookTitled(null)).toBeUndefined();
   });
 });
