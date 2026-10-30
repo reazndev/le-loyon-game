@@ -1,4 +1,5 @@
 import { Color, MathUtils, Vector3, type ColorRepresentation } from 'three';
+import { FlashlightFault } from './flashlightFault';
 import { MAX_POINT_LIGHTS, ps1Uniforms } from './ps1Uniforms';
 
 export interface PointLightOptions {
@@ -43,6 +44,7 @@ export class LightingRig {
     innerAngle: 10,
   };
   flashlightOn = false;
+  private readonly fault = new FlashlightFault();
   private readonly points = new Set<PointLight>();
   private nextSeed = 1;
 
@@ -83,7 +85,7 @@ export class LightingRig {
     ps1Uniforms.uPointCount.value = nearest.length;
 
     const flash = this.flashlight;
-    ps1Uniforms.uSpotColor.value.copy(flash.color).multiplyScalar(this.flashlightOn ? flash.intensity : 0);
+    ps1Uniforms.uSpotColor.value.copy(flash.color).multiplyScalar(this.flashlightOn ? flash.intensity * this.fault.level(time) : 0);
     ps1Uniforms.uSpotRange.value = flash.range;
     ps1Uniforms.uSpotCos.value.set(
       Math.cos(MathUtils.degToRad(flash.angle)),
