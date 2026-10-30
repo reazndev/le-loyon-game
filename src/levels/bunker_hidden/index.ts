@@ -229,13 +229,13 @@ function candle(kit: LevelKit, ctx: SceneContext, arrival: Arrival): void {
  */
 function tunnel(kit: LevelKit, ctx: SceneContext): () => void {
   const metMarc = () => ctx.state.hasFlag('met_marc');
-  let open = metMarc();
-  let swing = open ? 1 : 0;
+  // Shut on every visit, even after the monologue: the player opens it themselves.
+  let open = false;
+  let swing = 0;
   let closing = false;
   const leaf = kit
     .group((g) => g.box({ w: 0.06, h: 1.5, d: 0.8 }).texture('bunker_door', { tile: [0.8, 1.5] }).color(0x6a6c66).at(0, 0, 0.4))
-    .at(6.15, 0, -0.4)
-    .rotY(open ? -85 : 0);
+    .at(6.15, 0, -0.4);
   updates.push(movingBlocker(() => (open ? null : { kind: 'box', x: 6.3, z: 0, hw: 0.2, hd: 0.45, angle: 0 })));
   kit
     .hotspot({

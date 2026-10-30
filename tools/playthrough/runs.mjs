@@ -442,11 +442,9 @@ async function toTheSteelDoor(s) {
 async function outByTheTunnel(s) {
   await s.use('Read the notebook');
   await s.talk();
-  // The steel door at the back stands open when he has already said goodbye.
-  if (await s.eval(() => window.__game.hotspots().some((h) => h.prompt === 'Open the door'))) {
-    await s.use('Open the door', { near: { x: 5.85, z: 0 } });
-    await s.frames(60);
-  }
+  // The steel door at the back is shut until the reporter opens it.
+  await s.use('Open the door', { near: { x: 5.85, z: 0 } });
+  await s.frames(60);
   await s.use('Climb the rungs', { timeout: 10_000 });
   await s.inScene('bunker_exterior');
 }
