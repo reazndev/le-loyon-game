@@ -9,6 +9,7 @@ import { playNode } from '../forest_path/play';
 import { handText, paintedTexture } from '../forest_path/scrawl';
 import { unspent } from '../forest_path/spent';
 import { distanceToTrails, pointAlong, yawToward, type Trail } from '../forest_path/trail';
+import { dressTrack, keepClear } from './dressing';
 import { larch } from './larch';
 import { scatter } from '../../game/kit/scatter';
 import {
@@ -161,13 +162,15 @@ export const forestDeepScene = defineScene({
       const d = calm(x, z);
       return distanceToTrails([track], x, z) < inner || inClearing(x, z) < 0.2 || d > outer || inSight(x, z, 1.5);
     };
-    undergrowth(kit, area, { seed: 'larch-low', count: 700, mix: lowPlants, spacing: 0.75, avoid: offTrack(0.9, 9) });
-    undergrowth(kit, area, { seed: 'larch-tall', count: 800, mix: tallPlants, spacing: 1, avoid: offTrack(1.7, 14) });
+    const props = keepClear(track);
+    undergrowth(kit, area, { seed: 'larch-low', count: 700, mix: lowPlants, spacing: 0.75, avoid: (x, z) => offTrack(0.9, 9)(x, z) || props.low(x, z) });
+    undergrowth(kit, area, { seed: 'larch-tall', count: 800, mix: tallPlants, spacing: 1, avoid: (x, z) => offTrack(1.7, 14)(x, z) || props.tall(x, z) || props.low(x, z) });
     mossPatches(kit, height, scatter({ ...area, count: 70, seed: 'larch-moss', spacing: 2.4, avoid: offTrack(1.2, 10) }));
     fallenLog(kit, 4.2, 19, 30, 4);
     fallenLog(kit, -4.5, 1, -60, 5);
     rock(kit, 3.5, 9, 0.6, 'larch-rock-1');
     rock(kit, -3.8, -6, 0.5, 'larch-rock-2');
+    dressTrack(kit, ctx, track, height);
 
     const scares = stageLarch(kit, ctx);
     larch(kit, LARCH);
