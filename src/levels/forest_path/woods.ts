@@ -15,6 +15,7 @@ import { around, breathVapor, caw, distantDog, distantTraffic, drizzle, fallingL
 import { rain, waterDrop } from '../../game/ambient/sounds';
 import { distanceToTrails, nearestOnTrails, resample, type Trail } from './trail';
 import { wildlife } from '../../game/ambient/wildlife';
+import { forestLife } from '../../game/ambient/forestLife';
 
 /** Building blocks shared by every Bois-Noir scene: ground, path, trees, undergrowth, sound. */
 
@@ -413,12 +414,14 @@ export function enclose(kit: LevelKit, area: Area): void {
 
 /**
  * The forest's air: wind in the tops at the strength the weather gives, trunks creaking, mist
- * along the ground, the church bell from the village below on the hour. By day leaves come down,
- * a crow calls, and a cowbell carries up from the fields. At night no birds, only small sounds
- * close by, the reporter's breath, and on wet nights drizzle and drops off the branches.
+ * along the ground, crickets in the grass, the church bell from the village below on the hour. By
+ * day leaves come down, songbirds and a woodpecker call, and a cowbell carries up from the fields.
+ * At night no birds, only small sounds close by, the reporter's breath, and on wet nights drizzle
+ * and drops off the branches.
  */
 export function forestAmbience(kit: LevelKit, ctx: SceneContext): void {
   wildlife(kit, ctx, 'forest');
+  forestLife(kit, ctx);
   const night = ctx.state.time === 'night';
   const sky = weather(ctx.state);
   windInTrees(kit, ctx, sky.wind);
