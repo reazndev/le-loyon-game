@@ -10,7 +10,8 @@ import { streamHiss } from './sounds';
 import { edgeStones } from './stones';
 import { storyPhase } from './story';
 import { distanceToTrails, nearestOnTrails, yawToward } from './trail';
-import { enclose, fallenLog, forestAmbience, forestAtmosphere, forestFloor, rock, trailStrip, undergrowth, woodland } from './woods';
+import { scatter } from '../../game/kit/scatter';
+import { enclose, fallenLog, forestAmbience, forestAtmosphere, forestFloor, leafyTrees, leaningBeeches, lowPlants, mossPatches, rock, spruceWall, tallPlants, trailStrip, undergrowth, woodland } from './woods';
 
 /**
  * Bois-Noir, chemin. From the cemetery's back gate north through spruce to the shrine fork.
@@ -20,7 +21,7 @@ import { enclose, fallenLog, forestAmbience, forestAtmosphere, forestFloor, rock
 export { markers };
 
 /** Trees within this many meters of a trail are solid models; past it, pictures in the fog. */
-const NEAR_TREES = 7.5;
+const NEAR_TREES = 8.5;
 
 export const forestPathScene = defineScene({
   id: 'forest_path',
@@ -44,15 +45,26 @@ export const forestPathScene = defineScene({
     streamBed(kit);
 
     const nearWater = (x: number, z: number) => distanceToTrails([stream], x, z) < 2.4;
-    const onTrail = (x: number, z: number) => distanceToTrails(trails, x, z) < 3;
+    const fromTrail = (x: number, z: number) => distanceToTrails(trails, x, z);
+    const onTrail = (x: number, z: number) => fromTrail(x, z) < 3;
     const clear = (x: number, z: number) => onTrail(x, z) || nearWater(x, z) || Math.hypot(x - FORK.x, z - FORK.z) < 6 || z > 76;
-    const near = (x: number, z: number) => distanceToTrails(trails, x, z) < NEAR_TREES;
-    const spruceClear = (x: number, z: number) => distanceToTrails(trails, x, z) < 4.4;
-    woodland(kit, { area, seed: 'forest-path', avoid: clear, near, spruceClear, spruce: 620, beech: 110, birch: 26, distant: 1700 });
+    const near = (x: number, z: number) => fromTrail(x, z) < NEAR_TREES;
+    const spruceClear = (x: number, z: number) => fromTrail(x, z) < 4.2;
+    woodland(kit, { area, seed: 'forest-path', avoid: clear, near, spruceClear, spruce: 900, beech: 170, birch: 26, distant: 2000 });
     // The big spruce Le Loyon steps behind on night 1.
-    kit.trees('spruce', [{ x: markers.for1_ahead_exit.x + 0.6, z: markers.for1_ahead_exit.z - 0.5, scale: 1.4 }]).collider();
-    // Undergrowth only where the player can see it, along the trails.
-    undergrowth(kit, area, { seed: 'forest-path', count: 700, avoid: (x, z) => onTrail(x, z) || distanceToTrails(trails, x, z) > 16 });
+    leafyTrees(kit, 'spruce', [{ x: markers.for1_ahead_exit.x + 0.6, z: markers.for1_ahead_exit.z - 0.5, scale: 1.4 }]);
+    leaningBeeches(kit, { area, seed: 'forest-path', trails, count: 60, avoid: (x, z) => nearWater(x, z) || Math.hypot(x - FORK.x, z - FORK.z) < 4 || z > 74 });
+    spruceWall(kit, { area, seed: 'forest-path', trails, from: 10, to: 26, count: 420, avoid: (_x, z) => z > 76 });
+
+    // Undergrowth only where the player can see it: low plants up to the trail's edge, tall ones a step back.
+    const atShrine = (x: number, z: number) => Math.hypot(x - SHRINE.x, z - SHRINE.z) < 1.6;
+    const offTrail = (inner: number, outer: number) => (x: number, z: number) => {
+      const d = fromTrail(x, z);
+      return d < inner || d > outer || distanceToTrails([stream], x, z) < 1.2 || atShrine(x, z) || z > 76;
+    };
+    undergrowth(kit, area, { seed: 'forest-path-low', count: 1500, mix: lowPlants, spacing: 0.75, avoid: offTrail(1.3, 9) });
+    undergrowth(kit, area, { seed: 'forest-path-tall', count: 1700, mix: tallPlants, spacing: 1, avoid: offTrail(2.1, 15) });
+    mossPatches(kit, height, scatter({ ...area, count: 170, seed: 'forest-path-moss', spacing: 2.4, avoid: offTrail(1.6, 11) }));
 
     [
       [4.5, 60, 20, 5],
