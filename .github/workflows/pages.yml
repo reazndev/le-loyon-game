@@ -10,8 +10,9 @@ permissions:
   pages: write
   id-token: write
 
+# Renamed from "pages": GitHub left a frozen run holding that group on 2026-10-30.
 concurrency:
-  group: pages
+  group: pages-deploy
   cancel-in-progress: true
 
 jobs:
