@@ -56,6 +56,8 @@ Debug hooks: `?scene=<id>&time=<day|night>&flags=a,b` loads any scene directly, 
   - Engine: spawning inside a building footprint gives a NaN position and stalls; check collision push-out.
   - Integration agents, started 03:35 UTC: story flow and playthrough (all levels except forest/bunker), forest and bunker polish, engine robustness and packaging.
 - Step 4 scope: Script into content data, quest flow from start to all three endings, title screen, settings, save slots.
-- [ ] **5. QA.** Automated playthrough of every ending, screenshot review of every area, performance check, bug fixes.
-- [ ] **6. Packaging.** Linux AppImage and Windows build with electron-builder.
+- [ ] **5. QA.** Perf fixes in level code found by the packaging agent: the bunker mask pile (one 133k-triangle mesh, merge vertices and hide it outside the mask store), cemetery static props (merge by material), village square (instance or merge the 820 copies of one small part).
+  Scope: Automated playthrough of every ending, screenshot review of every area, performance check, bug fixes.
+- [ ] **6. Packaging.** Set up and tested on 2026-10-30 (`docs/packaging.md`, `npm run dist`, `npm run dist:check`). Rebuild both artifacts after QA.
+  Scope: Linux AppImage and Windows build with electron-builder.
 - [ ] **7. Report.** Final report to the user with screenshots.
