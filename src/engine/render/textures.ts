@@ -15,6 +15,7 @@ export class TextureLibrary {
     const cached = this.cache.get(name);
     if (cached) return cached;
     const texture = new Texture<HTMLCanvasElement | HTMLImageElement>(paintProceduralTexture(name));
+    texture.name = name;
     texture.needsUpdate = true;
     applyPs1Sampling(texture);
     this.cache.set(name, texture);

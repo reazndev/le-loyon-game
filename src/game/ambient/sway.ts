@@ -46,6 +46,9 @@ const windChunk = /* glsl */ `
   }
   vec4 viewPos = viewMatrix`;
 
+/** Cut-out pictures of rigid things, which stay still in the wind: iron railings and gates. */
+const RIGID_CUTOUTS = new Set(['iron_fence']);
+
 const swaying = new WeakSet<ShaderMaterial>();
 const wind = { value: 0 };
 
@@ -62,9 +65,9 @@ function addWind(material: ShaderMaterial): void {
 
 /**
  * Makes the scene's foliage move in the wind: every cut-out leaf, needle, and grass picture,
- * including trees and undergrowth from the shared builders. Solid meshes such as trunks stay
- * still. `strength` 1 moves a ten-meter treetop about 12 cm; the setting holds while the scene
- * lasts. Call it once, anywhere in `build`.
+ * including trees and undergrowth from the shared builders. Solid meshes such as trunks, and
+ * cut-out railings, stay still. `strength` 1 moves a ten-meter treetop about 12 cm; the setting
+ * holds while the scene lasts. Call it once, anywhere in `build`.
  */
 export function windSway(kit: LevelKit, strength = 1): void {
   kit.use((ctx) =>
@@ -73,7 +76,8 @@ export function windSway(kit: LevelKit, strength = 1): void {
       ctx.world.scene.traverse((object: Object3D) => {
         if (!(object instanceof Mesh)) return;
         const material = object.material as unknown;
-        if (material instanceof ShaderMaterial && (material.uniforms.uAlphaTest?.value ?? 0) > 0) addWind(material);
+        if (!(material instanceof ShaderMaterial) || (material.uniforms.uAlphaTest?.value ?? 0) <= 0) return;
+        if (!RIGID_CUTOUTS.has(material.uniforms.uMap?.value?.name)) addWind(material);
       });
     }),
   );
