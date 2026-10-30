@@ -18,7 +18,9 @@ export function buildPostcard(kit: LevelKit, ctx: SceneContext): void {
     g.box({ w: 0.138, h: 0.05, d: 0.005 }).color(0x5e8aa6).at(0, 0.044, 0);
     g.box({ w: 0.138, h: 0.03, d: 0.005 }).color(0x3a6684).at(0, 0.014, 0);
     g.box({ w: 0.05, h: 0.03, d: 0.006 }).color(0x9a8c70).at(0.035, 0.05, 0);
-  }).at(x, y, z);
+  })
+    .at(x, y, z)
+    .dynamic();
   kit.box({ w: 0.012, h: 0.012, d: 0.02 }).color(0x6a2a20).at(x, y + 0.085, z);
 
   everyFrame(kit, () => {

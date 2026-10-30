@@ -2,8 +2,10 @@ import { defineScene } from '../../game/scene';
 import { WALL, loopSound } from '../inn/interior';
 import { nowAndThen, roomTone } from '../inn/sounds';
 import { isNight, storyPhase } from '../forest_path/story';
+import { garageAmbient } from './ambient';
 import { stageBeats } from './beats';
 import { garageCast } from './cast';
+import { buildClutter } from './clutter';
 import { buildFiatOnLift } from './fiat';
 import { DOOR, INSIDE_DOOR, LIFT, PIT, RADIO, ROOM, SUMP } from './layout';
 import { buildLights } from './lights';
@@ -44,19 +46,23 @@ export const garageScene = defineScene({
     const phase = storyPhase(ctx.state);
     const open = !isNight(phase);
 
-    buildShell(kit, !open);
-    buildLights(kit, open);
-    buildFiatOnLift(kit);
-    buildBench(kit);
-    buildDrums(kit);
-    buildTyres(kit);
-    buildRadioShelf(kit, open);
-    buildPostcard(kit, ctx);
+    kit.batch((still) => {
+      buildShell(still, !open);
+      buildLights(still, ctx, open);
+      buildFiatOnLift(still);
+      buildBench(still);
+      buildDrums(still);
+      buildTyres(still);
+      buildRadioShelf(still, open);
+      buildPostcard(still, ctx);
+      buildClutter(still);
+      buildCalendar(still).interact({ prompt: 'Look at the calendar', radius: 0.3, onInteract: () => ctx.say(narration.calendar) });
+    });
+    garageAmbient(kit, ctx, open);
     placeCast(kit, ctx, garageCast(phase, ctx.state));
 
     kit.door({ to: 'village_square', spawn: 'from_garage', w: DOOR.w, h: DOOR.h, prompt: 'Go out' }).at(DOOR.x, 0, ROOM.z1 - WALL / 2 - 0.05);
 
-    buildCalendar(kit).interact({ prompt: 'Look at the calendar', radius: 0.3, onInteract: () => ctx.say(narration.calendar) });
     kit.hotspot({ prompt: 'Look at the Fiat', radius: 0.5, onInteract: () => ctx.say(narration.fiat) }).at(LIFT.x - 0.9, 0, LIFT.z + 1.6);
     kit.hotspot({ prompt: 'Look into the pit', radius: 0.5, onInteract: () => ctx.say(narration.pit) }).at(PIT.x, 0, PIT.z + 1.4);
     kit.hotspot({ prompt: 'Look at the radio', radius: 0.3, onInteract: () => ctx.say(open ? narration.radioOn : narration.radioOff) }).at(RADIO.x, 0, RADIO.z);
