@@ -29,14 +29,16 @@ export const churchScene = defineScene({
     sacristy: { x: -0.5, z: -17.9, yaw: -15 },
   },
   atmosphere: {
+    // The one still, clear place in Leurs: only a faint haze down the nave, so the fog outside
+    // reads as a threat by contrast.
     day: {
-      fog: { color: 0x76797a, near: 3, far: 20, density: 0.03, wisps: 0.12 },
+      fog: { color: 0x6e7072, near: 10, far: 36, density: 0.008, wisps: 0.03 },
       ambient: 0x56585a,
       saturation: 0.58,
       flashlight: false,
     },
     night: {
-      fog: { color: 0x040506, near: 0.5, far: 12, density: 0.12, wisps: 0.1 },
+      fog: { color: 0x040506, near: 3, far: 26, density: 0.04, wisps: 0.05 },
       ambient: 0x0b0c10,
       saturation: 0.5,
     },
