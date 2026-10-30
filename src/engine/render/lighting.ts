@@ -39,8 +39,8 @@ export class LightingRig {
   readonly flashlight: FlashlightSettings = {
     // A tungsten bulb behind old glass: warm, a little yellow.
     color: new Color(1, 0.86, 0.6),
-    intensity: 2.2,
-    range: 10,
+    intensity: 2.8,
+    range: 7,
     angle: 16,
     innerAngle: 6,
   };

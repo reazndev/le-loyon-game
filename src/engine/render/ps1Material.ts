@@ -158,8 +158,9 @@ vec3 spotLight() {
   float spotDist = length(toSpot);
   vec3 spotL = toSpot / max(spotDist, 1e-4);
   float cone = smoothstep(uSpotCos.x, uSpotCos.y, dot(-spotL, uSpotDir));
+  // Cubed, so it stays bright close by and drops away fast: a few meters out is already dim.
   float falloff = clamp(1.0 - spotDist / uSpotRange, 0.0, 1.0);
-  return uSpotColor * cone * falloff * falloff * diffuse(normalize(vWorldNormal), spotL);
+  return uSpotColor * cone * falloff * falloff * falloff * diffuse(normalize(vWorldNormal), spotL);
 }
 
 // Snapping moves vertices on screen but not in depth, so close surfaces such as a rug on a floor
