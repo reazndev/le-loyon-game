@@ -10,6 +10,7 @@ import { BUS_STOP, FOUNTAIN, GREMAUD_GATE, HOUSE_1, HOUSE_2, spawns } from './la
 import { bicycle } from './props';
 import { arrival, departure } from './postbus';
 import { fountainWater, televisionThroughWall } from './sounds';
+import { greenery } from './greenery';
 import { exits, ground, streetFurniture } from './streets';
 
 /**
@@ -38,6 +39,7 @@ export const villageSquareScene = defineScene({
     // Everything that stands still goes into one batch; the parts beats move are marked dynamic.
     const { church, abbe, home, houseTwo, street } = kit.batch((still) => {
       ground(still);
+      greenery(still);
       inn(still, night);
       laiterie(still, night);
       garage(still, night);
