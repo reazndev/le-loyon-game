@@ -162,6 +162,12 @@ export class AudioManager {
   setListener(position: Point3, forward: Point3): void {
     Object.assign(this.listenerPosition, position);
     const listener = this.context.listener;
+    // Firefox's listener has no AudioParams, only the older setters.
+    if (!listener.positionX) {
+      listener.setPosition(position.x, position.y, position.z);
+      listener.setOrientation(forward.x, forward.y, forward.z, 0, 1, 0);
+      return;
+    }
     const t = this.now;
     listener.positionX.setValueAtTime(position.x, t);
     listener.positionY.setValueAtTime(position.y, t);
