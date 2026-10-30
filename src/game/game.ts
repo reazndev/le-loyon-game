@@ -21,6 +21,7 @@ import type { Scene, SceneContext } from './scene';
 import { SceneManager } from './sceneManager';
 import { GameState, type PlayerPose, type TimeOfDay } from './state';
 import { World } from './world';
+import { playSound } from './scares/sounds';
 
 export interface StartOptions {
   scene: string;
@@ -269,6 +270,10 @@ export class Game {
       ask: (script) => this.ui.dialogue(script),
       say: (lines, speaker) => this.ui.say(lines, speaker),
       notify: (text) => this.overlay.notify(text),
+      screamer: () => {
+        playSound(this.audio, 'sfx_scream');
+        return this.overlay.screamer();
+      },
       get time() {
         return game.scenes.time;
       },

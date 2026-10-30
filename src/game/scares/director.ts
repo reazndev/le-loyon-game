@@ -100,6 +100,8 @@ export class ScareDirector {
       this.silence(action.silence);
     } else if ('fog' in action) {
       this.changeFog(action.fog);
+    } else if ('screamer' in action) {
+      void scene.screamer();
     } else if ('stinger' in action) {
       const at = this.place(action.at ?? 'behind', 2);
       playSound(audio, action.stinger === true ? 'sfx_hit' : action.stinger, { at, volume: 2 });

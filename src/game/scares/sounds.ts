@@ -125,6 +125,19 @@ function hit(audio: AudioManager, options: OneShot): void {
   });
 }
 
+/** The screamer's shriek: a slam, a tearing hiss, and a cluster of detuned voices pitched up. Very loud. */
+function scream(audio: AudioManager, options: OneShot): void {
+  oneShot(audio, { volume: 3, ...options }, 2, (out, t) => {
+    thump(audio, out, t, 55, 1.4);
+    noiseBurst(audio, out, { start: t, duration: 1.1, type: 'highpass', frequency: 1200, gain: 1.2, attack: 0.005 });
+    noiseBurst(audio, out, { start: t, duration: 0.9, type: 'bandpass', frequency: 2400, q: 1.5, gain: 1.2, attack: 0.005 });
+    [880, 933, 1245, 1318, 1760].forEach((f) =>
+      tone(audio, out, { type: 'sawtooth', frequency: vary(f, 0.03), to: f * 1.6, start: t, duration: 1.1, gain: 0.22, attack: 0.005 }),
+    );
+    [82, 87].forEach((f) => tone(audio, out, { type: 'square', frequency: f, start: t, duration: 0.9, gain: 0.25, attack: 0.005 }));
+  });
+}
+
 /** Three barks close together, the way Bari barks at a stranger. */
 function barkThree(audio: AudioManager, options: OneShot): void {
   [0, 0.42, 0.78].forEach((delay) => setTimeout(() => bark(audio, options), delay * 1000));
@@ -152,6 +165,7 @@ export const sounds = {
   sfx_bark: barkThree,
   sfx_growl: growl,
   sfx_hit: hit,
+  sfx_scream: scream,
 } satisfies Record<string, (audio: AudioManager, options: OneShot) => void>;
 
 export type SoundId = keyof typeof sounds;

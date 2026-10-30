@@ -17,6 +17,7 @@ import { barbedWire, gravelPath } from './hillside';
 import { bench } from '../cemetery/clutter';
 import { crossOfferings, fenceSign } from './props';
 import { billboards } from '../forest_path/woods';
+import { screamer } from '../../game/scares/screamers';
 
 /**
  * Chemin du cimetière. A gravel path climbs from behind the church in three switchbacks between
@@ -229,7 +230,7 @@ function cemeteryWall(kit: LevelKit): void {
 /** path_light_above on night 2: halfway up, a torch beam moving up toward the cemetery, and the bell. */
 function stagePath(kit: LevelKit, phase: StoryPhase): void {
   if (!isNight(phase)) return;
-  kit.use(scareDirector([], { random: { surface: 'gravel' } }));
+  kit.use(scareDirector([screamer('cemetery_path', 14)], { random: { surface: 'gravel' } }));
   if (phase !== 'night2') return;
   const ahead = (meters: number) => {
     const p = pointAlong(path, meters);

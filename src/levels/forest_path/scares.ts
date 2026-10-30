@@ -7,6 +7,7 @@ import { lookPoint } from './beats';
 import { height, markers } from './layout';
 import { unspent } from './spent';
 import { isNight, type StoryPhase } from './story';
+import { screamer } from '../../game/scares/screamers';
 
 const { for1_ahead, for1_ahead_exit, for1_ahead_again_from, for1_ahead_again_to, for1_fork_steps_from, for1_fork_steps_to } = markers;
 
@@ -36,6 +37,7 @@ export function stepsAway(from: { x: number; z: number }, to: { x: number; z: nu
 export function stageForestPath(kit: LevelKit, ctx: SceneContext, phase: StoryPhase, extra: Beat[] = []): ScareDirector {
   const night1 = phase === 'night1';
   const beats: Beat[] = [...extra];
+  if (isNight(phase)) beats.push(screamer('forest_path', 45));
   if (night1) {
     beats.push(
       {

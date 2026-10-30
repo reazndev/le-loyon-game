@@ -31,6 +31,8 @@ export interface SceneContext {
   ask(script: DialogueScript): Promise<string | null>;
   /** Shows lines in the dialogue box, with an optional speaker, and resolves when dismissed. */
   say(lines: string | string[], speaker?: string): Promise<void>;
+  /** A face fills the screen with a loud scream for under a second. */
+  screamer(): Promise<void>;
   /** Shows a short line in the corner of the screen. */
   notify(text: string): void;
   /** Seconds since this scene finished loading. */

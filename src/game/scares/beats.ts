@@ -61,6 +61,8 @@ export type ScareAction = { after?: number } & (
   | { fog: { far?: number; density?: number; seconds: number; fade?: number } }
   /** The loud hit of a real jumpscare. Default `sfx_hit`. */
   | { stinger: SoundId | true; at?: Place }
+  /** A face fills the screen with a scream. See `screamer()` in screamers.ts. */
+  | { screamer: true }
   /** Anything else, such as a dialogue. */
   | { run: (ctx: SceneContext) => void | Promise<void> }
 );

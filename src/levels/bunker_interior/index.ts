@@ -26,6 +26,7 @@ import { floorMask, heapPoses, maskPile, uprightMask, type HeapOptions, type Mas
 import { beerCans, bench, bunkStack, ceilingRuns, chair, graffiti, locker, stencil, stubs, table, wires } from './props';
 import { neighbors, roomAt, type Opening, type Room } from './rooms';
 import { fortBeats } from './scares';
+import { screamer } from '../../game/scares/screamers';
 
 /**
  * Fort, outer rooms. The vaulted entrance, the gas lock, one long corridor with the guard room
@@ -201,7 +202,7 @@ export const bunkerInteriorScene = defineScene({
     updates.push(dripInTheNextRoom(rooms, openings));
     scares = kit.use(
       scareDirector(
-        unspent(ctx.state, fortBeats(ctx, { markers, cupboard: { x: CUPBOARD.x, y: 0.4, z: CUPBOARD.z }, slideMask, voice: kp3.voice })),
+        unspent(ctx.state, [...fortBeats(ctx, { markers, cupboard: { x: CUPBOARD.x, y: 0.4, z: CUPBOARD.z }, slideMask, voice: kp3.voice }), screamer('bunker', 50)]),
         { random: { surface: 'stone' } },
       ),
     );

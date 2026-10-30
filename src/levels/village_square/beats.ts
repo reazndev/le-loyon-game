@@ -11,6 +11,7 @@ import { everyFrame } from '../church/everyFrame';
 import { isNight, type StoryPhase } from '../forest_path/story';
 import { HOUSE_2, PHONE_BOX, SQUARE } from './layout';
 import { dialTone, moped, phoneRing, scoped, type MovingSound } from './sounds';
+import { screamer } from '../../game/scares/screamers';
 
 /**
  * The village beats of docs/script/07-scares.md. By day almost nothing: a curtain, a light going
@@ -42,7 +43,7 @@ export function stageBeats(kit: LevelKit, ctx: SceneContext, phase: StoryPhase, 
   let curtainOffset = 0;
   let idling: { sound: MovingSound; leaving: number | null } | null = null;
 
-  const beats: Beat[] = [];
+  const beats: Beat[] = night ? [screamer('square', 70)] : [];
   if (phase === 'day1')
     beats.push({ id: 'vil_curtain', when: { enter: { x: 9.6, z: 10.5, r: 3.5 } }, do: [{ run: () => void twitch() }] });
   if (phase === 'day2')
