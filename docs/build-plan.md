@@ -57,6 +57,7 @@ Debug hooks: `?scene=<id>&time=<day|night>&flags=a,b` loads any scene directly, 
   - Integration agents, started 03:35 UTC: story flow and playthrough (all levels except forest/bunker), forest and bunker polish, engine robustness and packaging.
 - Step 4 scope: Script into content data, quest flow from start to all three endings, title screen, settings, save slots.
 - [ ] **5. QA.** Perf fixes in level code found by the packaging agent: the bunker mask pile (one 133k-triangle mesh, merge vertices and hide it outside the mask store), cemetery static props (merge by material), village square (instance or merge the 820 copies of one small part).
+  From the forest agent: `yerly_farm` must check `heiferAtTheFork` (forest_path/story.ts) so Marquise isn't in two places; move the fog-counts-as-out-of-view rule from `forest_path/fogFigure.ts` into `src/game/scares/director.ts`; fog thinning should extend the camera far plane; a sitting pose for characters (Marc on the bed, Odile, Yannick); `docs/engine.md` still mentions the removed `readDocument` level helper; scare beats remember themselves per session only, consider declaring their flags.
   Scope: Automated playthrough of every ending, screenshot review of every area, performance check, bug fixes.
 - [ ] **6. Packaging.** Set up and tested on 2026-10-30 (`docs/packaging.md`, `npm run dist`, `npm run dist:check`). Rebuild both artifacts after QA.
   Scope: Linux AppImage and Windows build with electron-builder.
