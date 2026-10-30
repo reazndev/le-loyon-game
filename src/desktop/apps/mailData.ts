@@ -62,6 +62,9 @@ folklore and we'll run it small.
 
 Call in by Saturday morning at the latest.
 
+Before you go, find out which village it is and how
+you get there.
+
 R.
 
 --

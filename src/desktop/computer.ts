@@ -100,6 +100,7 @@ export class Computer {
       { class: 'pc-desktop', style: setup.wallpaper ? `background-image:url(${setup.wallpaper()})` : '' },
       h('div', 'pc-icons', this.desktopIcons),
       this.windows.element,
+      this.notes?.strip,
       this.browser.bookmarks.element,
     );
     this.root = h(
