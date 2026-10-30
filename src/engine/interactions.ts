@@ -10,6 +10,8 @@ export interface Interactable {
   /** When this returns false, the object is ignored. */
   enabled?: () => boolean;
   onInteract: () => void | Promise<void>;
+  /** What the camera makes of the object: a `photo_*` item id or a misc photo caption key. */
+  photo?: string;
 }
 
 /** How far past an object's radius the player can reach, in meters. */

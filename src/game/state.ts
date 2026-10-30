@@ -1,4 +1,5 @@
 import { Emitter } from '../engine/events';
+import type { Photo } from './camera/photos';
 import type { StateMutator } from './conditions';
 
 export type TimeOfDay = 'day' | 'night';
@@ -26,10 +27,12 @@ export interface StateSnapshot {
   inventory: string[];
   /** Missing in saves made before counts existed. */
   counts?: Record<string, number>;
+  /** Polaroids by item id. Missing in saves made before the camera existed. */
+  photos?: Record<string, Photo>;
   player: PlayerPose;
 }
 
-/** Flags, counts, inventory, current scene, and time of day. Inventory holds each item once, in pickup order. */
+/** Flags, counts, inventory, photos, current scene, and time of day. Inventory holds each item once, in pickup order. */
 export class GameState implements StateMutator {
   readonly events = new Emitter<StateEvents>();
   scene = '';
@@ -37,6 +40,7 @@ export class GameState implements StateMutator {
   private readonly flags = new Set<string>();
   private readonly counts = new Map<string, number>();
   private readonly items: string[] = [];
+  private readonly pictures = new Map<string, Photo>();
   private timeOfDay: TimeOfDay = 'day';
 
   get time(): TimeOfDay {
@@ -91,6 +95,20 @@ export class GameState implements StateMutator {
     this.events.emit('item', { item, held: false });
   }
 
+  /** The picture behind a camera photo item. */
+  photo(item: string): Photo | undefined {
+    return this.pictures.get(item);
+  }
+
+  /** Ids of every photo taken, in the order taken. */
+  get photos(): string[] {
+    return [...this.pictures.keys()];
+  }
+
+  addPhoto(item: string, photo: Photo): void {
+    this.pictures.set(item, photo);
+  }
+
   snapshot(): StateSnapshot {
     return {
       scene: this.scene,
@@ -98,6 +116,7 @@ export class GameState implements StateMutator {
       flags: [...this.flags].sort(),
       inventory: [...this.items],
       counts: Object.fromEntries(this.counts),
+      photos: Object.fromEntries(this.pictures),
       player: { ...this.player },
     };
   }
@@ -112,5 +131,7 @@ export class GameState implements StateMutator {
     this.counts.clear();
     Object.entries(snapshot.counts ?? {}).forEach(([name, value]) => this.counts.set(name, value));
     this.items.splice(0, this.items.length, ...snapshot.inventory);
+    this.pictures.clear();
+    Object.entries(snapshot.photos ?? {}).forEach(([item, photo]) => this.pictures.set(item, photo));
   }
 }

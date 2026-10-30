@@ -1,0 +1,36 @@
+.title-screen {
+  position: absolute;
+  inset: 0;
+  background: #000;
+}
+
+.title-picture {
+  position: absolute;
+  inset: 0;
+  width: 640px;
+  height: 480px;
+  image-rendering: pixelated;
+}
+
+.title-menu {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 286px;
+  display: flex;
+  justify-content: center;
+}
+
+.title-menu .ui-list li {
+  padding-right: 16px;
+  margin-bottom: 4px;
+  color: #6f6b63;
+}
+
+.title-menu .ui-list li.selected {
+  color: #e2ddd1;
+}
+
+.ui-crisp .title-menu {
+  filter: url(#ui-crisp);
+}

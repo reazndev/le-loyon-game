@@ -9,6 +9,7 @@ export type Action =
   | 'inventory'
   | 'flashlight'
   | 'crouch'
+  | 'camera'
   | 'pause';
 
 /** Keyboard bindings by `KeyboardEvent.code`, so they follow key position on any layout. */
@@ -31,6 +32,7 @@ export const keyBindings: Record<string, Action[]> = {
   KeyF: ['flashlight'],
   KeyC: ['crouch'],
   ControlLeft: ['crouch'],
+  KeyQ: ['camera'],
   Escape: ['pause', 'cancel'],
   Backspace: ['cancel'],
 };
@@ -43,6 +45,7 @@ export const gamepadBindings: Record<number, Action[]> = {
   3: ['inventory'],
   4: ['crouch'],
   5: ['fast'],
+  6: ['camera'],
   7: ['fast'],
   9: ['pause'],
   12: ['up'],
@@ -53,3 +56,6 @@ export const gamepadBindings: Record<number, Action[]> = {
 
 /** Prompt labels for the interact button on each device. */
 export const interactLabel = { keyboard: 'E', gamepad: 'A' } as const;
+
+/** Prompt labels for the cancel button on each device. */
+export const cancelLabel = { keyboard: 'Esc', gamepad: 'B' } as const;

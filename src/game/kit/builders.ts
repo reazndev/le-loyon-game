@@ -43,6 +43,11 @@ export interface InteractOptions {
   /** Defaults to the object's footprint. */
   radius?: number;
   enabled?: () => boolean;
+  /**
+   * What the camera makes of the object when it is in the viewfinder: a photo item id from the
+   * script, such as `photo_lantern`, or a key of `miscPhotoCaptions`. Other shots make a misc photo.
+   */
+  photo?: string;
 }
 
 export interface TextureOptions {
@@ -169,6 +174,7 @@ export class MeshBuilder extends Placed {
         prompt: options.prompt,
         onInteract: options.onInteract,
         ...(options.enabled ? { enabled: options.enabled } : {}),
+        ...(options.photo ? { photo: options.photo } : {}),
       });
     });
     return this;
@@ -361,6 +367,7 @@ export class HotspotBuilder extends Placed {
         prompt: options.prompt,
         onInteract: options.onInteract,
         ...(options.enabled ? { enabled: options.enabled } : {}),
+        ...(options.photo ? { photo: options.photo } : {}),
       });
     });
   }

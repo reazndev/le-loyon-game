@@ -1,6 +1,6 @@
 # Engine
 
-How to run the game and how to build a level on the engine. Level authors only need the [level kit](#level-kit), [scenes](#scenes), and [dialogue](#dialogue) sections, plus the [example level](#example-level).
+How to run the game and how to build a level on the engine. Level authors only need the [level kit](#level-kit), [scenes](#scenes), [dialogue](#dialogue), [story state](#story-state-from-the-content), and [documents and photos](#documents-photos-and-the-notebook) sections, plus the [example level](#example-level).
 
 ![Test courtyard by day](screenshots/engine-test-day.png) ![Test courtyard at night](screenshots/engine-test-night.png)
 
@@ -31,7 +31,7 @@ Options: `--time day|night`, `--pos x,y,z`, `--yaw deg`, `--flags a,b`, `--frame
 
 ### Debug URL parameters
 
-`?scene=<id>&time=<day|night>&flags=a,b&pos=x,y,z&yaw=deg` loads any scene directly. Without `pos`, the player starts at the scene's `default` spawn. Without `scene`, the game starts at `test`.
+`?scene=<id>&time=<day|night>&flags=a,b&pos=x,y,z&yaw=deg` loads any scene directly. Without `pos`, the player starts at the scene's `default` spawn. Without `scene`, the game opens on the [title screen](#title-screen-and-settings).
 
 ### `window.__game`
 
@@ -39,14 +39,14 @@ For automated tests. Defined in `src/game/debug.ts`.
 
 | Member | Use |
 |---|---|
-| `ready` | `true` once the first scene has faded in. Wait for it before anything else. |
+| `ready` | `true` once the first scene, or the title screen, has faded in. Wait for it before anything else. |
 | `state()` | Snapshot: `{ scene, time, flags, inventory, player }`. |
 | `pose()` | `{ x, y, z, yaw }` of the player. |
 | `scenes()` | Registered scene ids. |
 | `loadScene(id, spawnOrPose?)` | Loads a scene with no fade. |
 | `teleport(x, y, z, yawDeg)` | Moves the player. |
 | `setTime('day' \| 'night')` | Changes the time of day; the atmosphere updates at once. |
-| `press(action, frames = 2)` | Holds an input action for some frames. Actions: `up`, `down`, `left`, `right`, `fast`, `interact`, `cancel`, `inventory`, `flashlight`, `pause`. |
+| `press(action, frames = 2)` | Holds an input action for some frames. Actions: `up`, `down`, `left`, `right`, `fast`, `interact`, `cancel`, `inventory`, `flashlight`, `crouch`, `camera`, `pause`. |
 | `waitFrames(n)` | Resolves after `n` rendered frames. |
 | `prompt()` | The visible interaction prompt text, or `null`. |
 | `dialogue()` | The dialogue step on screen, or `null`. |
@@ -62,11 +62,14 @@ For automated tests. Defined in `src/game/debug.ts`.
 | `src/engine/physics/` | XZ collision and ground height |
 | `src/engine/input/` | Key and gamepad bindings, the `Input` class |
 | `src/engine/audio/` | `AudioManager`, procedural generators, footsteps |
-| `src/engine/ui/` | The overlay: prompt, dialogue box, menus, fade, notices, the font |
+| `src/engine/ui/` | The overlay: prompt, dialogue box, menus, document and photo views, viewfinder, fade, notices, the font |
 | `src/engine/player.ts` | Tank controls, head bob, footstep events |
-| `src/game/` | `Game` loop, state, saves, dialogue runner, items, scenes, the level kit, debug hooks |
+| `src/game/` | `Game` loop, state, saves, settings, dialogue runner, items, inventory, notebook, scenes, the level kit, debug hooks |
+| `src/game/camera/` | The Polaroid: viewfinder, shots, prints, photo ids, camera sounds |
+| `src/content/` | The script as data: dialogues, documents, items, flags, notebook, endings |
+| `src/title/` | The title screen |
 | `src/levels/<id>/` | One folder per scene |
-| `src/main.ts` | The list of scenes and the start scene |
+| `src/main.ts` | Starts the game at the title, or at `?scene=` |
 
 ## Conventions
 
@@ -78,7 +81,7 @@ For automated tests. Defined in `src/game/debug.ts`.
 
 ## Scenes
 
-A scene is a plain object. Add it to the `scenes` array in `src/main.ts` to register it.
+A scene is a plain object. Export it from `src/levels/<area>/index.ts` as part of `export const scenes: Scene[]`; `src/levels/index.ts` collects every area with a glob.
 
 ```ts
 import { defineScene } from '../../game/scene';
@@ -140,8 +143,12 @@ atmosphere: {
 | `ctx.goTo(sceneId, spawn?)` | Fades out and loads another scene. |
 | `ctx.dialogue(script)` | Plays a dialogue; the promise resolves when it ends. Player input pauses meanwhile. |
 | `ctx.say(lines, speaker?)` | Shortcut for a one-node dialogue: `ctx.say('It is locked.')`. |
+| `ctx.readDocument(id)` | Shows `documents[id]` from `src/content` full-frame, page by page. Resolves when the player closes it. See [documents](#documents). |
 | `ctx.notify(text)` | A short line in the top-right corner, such as "Saved." Receiving an item shows "Got: <name>" by itself. |
 | `ctx.time` | Seconds since the scene finished loading. |
+| `ctx.paused` | `true` while a dialogue, menu, screen, or scene change holds the player still. |
+| `ctx.held(action)` | Whether an input action is held this frame, for actions held over time such as digging. |
+| `ctx.openScreen(element, update)` | Shows a full-frame HTML element, such as a computer desktop, and gives `update(dt, input)` all input until the returned handle's `close()` runs. Dialogues still show on top and hand input back to it. |
 
 ## Level kit
 
@@ -186,7 +193,7 @@ These work on everything above except `glow`.
 | `.cutout(threshold = 0.5)` | Discards transparent texels, for fences and leaves. |
 | `.collider()` | Blocks the player. Boxes and other meshes use their footprint, turned with the object. Cylinders use a circle. |
 | `.walkable(surface = 'stone')` | The player can walk on top. Surfaces: `grass`, `gravel`, `wood`, `stone`, `snow`. The surface picks the footstep sound. |
-| `.interact({ prompt, onInteract, radius?, enabled? })` | Shows "[E] prompt" when the player faces the object within reach and runs `onInteract` on the button. `prompt` can be a function. `enabled` can hide the interaction. |
+| `.interact({ prompt, onInteract, radius?, enabled?, photo? })` | Shows "[E] prompt" when the player faces the object within reach and runs `onInteract` on the button. `prompt` can be a function. `enabled` can hide the interaction. `photo` marks it as a [camera target](#the-polaroid-camera). |
 | `.mesh` and `.object` | The Three.js mesh, for animating it in `update`. |
 
 ### Other builders
@@ -196,7 +203,7 @@ These work on everything above except `glow`.
 | `kit.trees(kind, spots)` | Instanced low-poly trees, `kind` is `'spruce'`, `'bare'`, or `'birch'`. Each spot is `{ x, z, scale?, yaw? }`; trees stand on the ground under them. Chain `.collider()` to block at the trunks. |
 | `scatter({ x, z, w, d, count, seed?, spacing?, avoid?, scale? })` | Returns repeatable random spots in a rectangle for `kit.trees` or anything else. `avoid(x, z)` returns `true` to keep paths clear. Import from `src/game/kit/scatter`. |
 | `kit.light({ color?, intensity?, range? })` | Point light. `.flicker(0 to 1)`, `.at(...)`. Up to 8 lights are active at once; the nearest win. After the build, `.light` is the live light; change its `position` or `intensity` in `update` to carry or dim it. |
-| `kit.hotspot({ prompt, onInteract, radius?, enabled? })` | An invisible interaction point. Chain `.at(...)`. |
+| `kit.hotspot({ prompt, onInteract, radius?, enabled?, photo? })` | An invisible interaction point. Chain `.at(...)`. `photo` works as on `.interact`. |
 | `kit.trigger({ w, d } \| { r })` | Invisible area. `.onEnter(fn)`, `.onExit(fn)`, `.once()`. Use it for scares and story beats. Spawning inside a trigger doesn't fire it. |
 | `kit.barrier({ w, d } \| { r })` | Invisible wall. Close off the edges of every outdoor level. |
 | `kit.door({ to, spawn?, w?, h?, texture?, prompt?, locked?, lockedText? })` | A door slab (default 1 x 2.1 m, texture `door_wood`) with a collider. Using it loads scene `to` at spawn `spawn`. When `locked()` returns `true`, it shows `lockedText` instead. |
@@ -241,23 +248,34 @@ export const priest: DialogueScript = {
 ```
 
 - A node shows its `lines` one at a time. If it has `choices`, they appear with the last line.
+- A line can be `{ if, text }`: it shows only while the condition holds, checked when the node starts, after the node's own effects. A node whose lines and choices all drop out jumps straight on.
 - `effects` on a node apply when the node starts. `effects` on a choice apply when it is picked.
 - `next` and `start` are a node id or a list of `{ if?, to }`; the first entry whose condition holds wins. No `next`, or no match, ends the dialogue.
 - A node with no lines and no visible choices jumps straight on, which makes it a branch point.
-- Conditions: `{ flag, notFlag, item, notItem, any: [...], not: {...} }`. Each field takes one id or a list, and every field present must hold.
-- Effects: `{ set, clear, give, take }`, each one id or a list.
+- Conditions: `{ flag, notFlag, item, notItem, count, any: [...], all: [...], not: {...} }`. `flag` to `notItem` take one id or a list. `count` is a list of tests such as `['marc_trust', '>=', 2]`, with `==`, `!=`, `<`, `<=`, `>`, `>=`. `any` holds when one of its conditions does, `all` when every one does; use `all` to combine conditions that set the same field. Every field present must hold.
+- Effects: `{ set, clear, give, take, assign, add }`, applied in that order. `set` to `take` take one id or a list. `assign: { night: 1 }` sets counts, `add: { marc_trust: 1 }` adds to them.
 - `validateScript(script)` returns the jumps to missing nodes. Content tests should expect `[]`.
 
 Play it with `ctx.dialogue(priest)`. The player confirms with interact; while text is typing, interact shows the whole line.
+
+How lines show:
+
+- A node with no `speaker` is narration, the reporter's eye and thoughts. It shows in italics, a little dimmer, with no name label, as the script convention asks.
+- A French line carries its English in double braces: `'Bouge pas! {{Don\'t move!}}'`. The box shows "Bouge pas!" and, once the line has typed out, "Don't move!" on its own smaller line underneath. Several `{{...}}` in one line are joined. The subtitles setting hides the English.
+- Script dialogues from the content are ready to play: `ctx.dialogue(dialogues.monique)` follows Monique's entry table, `ctx.dialogue(dialogues.grave_chassot_look)` plays one node and ends at once if its `?if:` fails.
+
+![A French line with its subtitle](screenshots/ui-subtitle.png) ![Narration](screenshots/ui-narration.png)
 
 ## State, items, and saves
 
 `ctx.state` is a `GameState`:
 
 - `hasFlag(f)`, `setFlag(f, on = true)`
+- `count(name)`, `setCount(name, value)` for numeric story values such as `day`, `night`, `dig_stage`, `marc_trust`, and `film_shots`. An unset count reads as 0.
 - `hasItem(id)`, `giveItem(id)`, `takeItem(id)`, `inventory` (each item at most once, in pickup order)
+- `photo(item)` and `photos` for the camera's prints
 - `time` (`'day'` or `'night'`; setting it updates the atmosphere at once), `scene`
-- `events.on('flag' | 'item' | 'time', handler)`
+- `events.on('flag' | 'count' | 'item' | 'time', handler)`
 
 `check(condition, state)` and `apply(effect, state)` in `src/game/conditions.ts` use the same condition and effect format as dialogue, for doors, triggers, and hotspots.
 
@@ -268,7 +286,77 @@ import { registerItems } from '../../game/items';
 registerItems({ cemetery_key: { name: 'Cemetery key', description: 'Heavy, with a bent bit.' } });
 ```
 
-Saves go to `localStorage` under `le-loyon.save.<slot>`, as JSON with a `version`. The pause menu saves and loads slot `main`. When the format changes, raise `SAVE_VERSION` in `src/game/save.ts` and add a migration from the old version to `migrations`, so old saves keep loading.
+Items from the script register themselves when anything imports `src/content`.
+
+Saves go to `localStorage` under `le-loyon.save.<slot>`, as JSON with a `version`. A save holds flags, counts, inventory, photos, scene, time, and pose. The pause menu saves and loads slot `main`. Slot `sleep` is the save made when the reporter wakes at the inn and when they set out on night 2; the caught screen loads it. "Continue" on the title loads whichever of the two is newer (`latestSave` in `src/game/save.ts`). When the format changes, raise `SAVE_VERSION` in `src/game/save.ts` and add a migration from the old version to `migrations`, so old saves keep loading.
+
+## Story state from the content
+
+`src/content` holds the script as data. Import from its index:
+
+```ts
+import { checkStory, dialogues, documents, holds, notebook, type DocumentId, type Flag } from '../../content';
+```
+
+- **Flags.** `flags.story` lists the stored flags. Some flags in the script are derived instead: `pro_knows_village`, `suspects_empty_coffin`, `has_evidence`, and `has_shovel`, `has_food`, `has_bunker_key`, `has_legion_tag`, `has_ring`, which follow the items. The game never stores derived flags, so `state.hasFlag('suspects_empty_coffin')` is always false. Read any flag with `holds(flag, ctx.state)`, and test conditions from the content with `checkStory(condition, ctx.state)`, which expands derived flags before it checks. Plain `check` does not.
+- **Counts.** `flags.counts` lists each numeric value with its range: `day` (1 to 4), `night` (0 to 3, 0 by day), `dig_stage`, `refill_stage`, `marc_trust`, `film_shots` (0 to 10), and `forum_stage`.
+- **Dialogues** compiled from the script already have their node conditions and derived flags expanded.
+
+## Documents, photos, and the notebook
+
+### Documents
+
+`ctx.readDocument(id)` shows a document from `src/content/documents.ts` over a dark backdrop, one page at a time. Pages hold up to 10 lines of 64 characters, as the content paginates them. Interact, right, or down turns the page and closes the last one; left or up goes back; cancel closes. The promise resolves on close, so a level can set a flag after the player has read it:
+
+```ts
+kit.hotspot({ prompt: 'Read the letter', onInteract: async () => {
+  await ctx.readDocument('doc_gremaud_letter');
+  ctx.state.setFlag('read_gremaud_letter');
+} }).at(1, 0, 2);
+```
+
+French documents show the original on the sheet and the English in smaller type underneath. When the two paginate to different lengths, the view has as many pages as the longer one and spreads the shorter one across them. Gravestones (`grave_*`, `oldstone_*`, `doc_forest_cross`) are carved into a stone shape; everything else is paper. Items with a `document` in `src/content/items.ts` open the same view from the inventory.
+
+Some levels still show documents as dialogue pages through their own `readDocument` helper in `src/levels/forest_path/play.ts`. Both work; the full-frame view is the one to use from now on.
+
+![A document with its translation](screenshots/ui-document.png) ![An inscription](screenshots/ui-stone.png)
+
+### The Polaroid camera
+
+With the `polaroid_camera` item, Q (LT on a gamepad) or "Raise the camera" in the inventory brings up the viewfinder. Turning still works, at half speed, for framing. Interact shoots, cancel or Q lowers. A shot uses one `film_shots`, fires the flash (a point light for one frame and a white flash over the screen), plays the shutter and the motor whirr, and gives a photo item about a second and a half later. With no film left, the shutter clicks and "No film left." shows.
+
+Which photo a shot makes (`resolveShot` in `src/game/camera/photos.ts`):
+
+1. Any shot in `cemetery` on night 1 before `first_sighting` is `photo_treeline`, photo 7. Its print shows a small figure at the treeline that was never in the scene.
+2. Otherwise, if the interaction point the player faces has a `photo` option naming a `photo_*` item from the script's item table, the shot gives that item, once.
+3. Every other shot gives `photo_misc_<n>`, captioned "Leurs, November 98", or by the `miscPhotoCaptions` entry the `photo` option names.
+
+Mark targets with the `photo` option on `.interact` or `kit.hotspot`:
+
+```ts
+kit.hotspot({ prompt: 'Look at the lantern', photo: 'photo_lantern', onInteract: () => ctx.dialogue(dialogues.grave_menoud_lantern) }).at(-3, 0, 4);
+kit.hotspot({ prompt: 'Look at the garden', photo: 'chassot_garden', onInteract: ... }).at(8, 0, -2);
+```
+
+Pass `photo` only when the shot should count, for example `photo: night ? 'photo_lantern' : undefined`. Photos a dialogue gives through `give`, such as `photo_marc_masked`, fire the camera on the frame behind the dialogue and use a shot too.
+
+Each photo keeps a 240 x 240 JPEG cut from the viewfinder square of the 640x480 frame, graded like instant film, with the caption from the item's description. It lives in the save. In the inventory, "Look" holds the print up in a Polaroid border. It develops from gray over the first minute after the shot. Photo 7 makes the reporter look twice once it has developed (`photo_treeline_look`, or `photo_treeline_look_after` after `read_marc_notebook`).
+
+![The viewfinder](screenshots/ui-camera.png) ![A photo in the inventory](screenshots/ui-photo.png) ![Photo 7](screenshots/ui-treeline.png)
+
+### The notebook
+
+The `notebook` item opens the quest log on ruled paper, at the latest page. It lists every entry in `src/content/notebook.ts` whose key flag holds (derived flags included) and whose own `if` holds now, in story order.
+
+![The notebook](screenshots/ui-notebook.png) ![The inventory](screenshots/ui-inventory.png)
+
+## Title screen and settings
+
+The game opens on the title screen in `src/title/`: "Le Loyon" in a plain serif over drifting fog and static, with a low drone on the music bus. "New game" starts the prologue in `home`. "Continue" appears when slot `main` or `sleep` holds a save and loads the newer one. "Settings" opens the settings. "Quit" appears only in the desktop app.
+
+Settings live in `localStorage` under `le-loyon.settings` and apply at once: volume for each audio bus, brightness (a CSS filter on the frame), invert turning, and subtitles. The pause menu opens the same screen. `Game.applySettings(settings)` applies a changed copy from code.
+
+![The title screen](screenshots/ui-title.png) ![Settings](screenshots/ui-settings.png)
 
 ## Audio
 
@@ -280,7 +368,7 @@ radio.stop(1); // fade out over 1 second
 ```
 
 - `play(url, { bus, volume, loop, rate, at, refDistance })` plays a file. With `at`, it is positional with an HRTF panner.
-- `fadeBus(bus, level, seconds)` fades a whole bus. Scene changes fade the ambience, sfx, and music buses.
+- `fadeBus(bus, level, seconds)` fades a whole bus. Scene changes fade the ambience, sfx, and music buses back to `busLevel(bus)`. `setBusVolume(bus, 0 to 1)` scales a bus from its mixed level; the volume settings use it.
 - Generators in `src/engine/audio/generators.ts`: `wind`, `drone`, `crackle`, `click`, plus `noiseBurst` and `thump` for building new sounds.
 - `playFootstep(audio, surface, { at, level })` in `src/engine/audio/footsteps.ts` synthesizes one step. The player's steps play from the `footstep` event. Pass `at` for steps that aren't the player's.
 
@@ -297,13 +385,15 @@ Sounds started with `kit.sound` or `kit.ambience` stop with the scene. Stop soun
 | Back, cancel | Esc, Backspace | B |
 | Inventory | Tab, I | Y |
 | Flashlight | F | X |
+| Crouch | C, Ctrl | LB |
+| Camera | Q | LT |
 | Pause | Esc | Start |
 
 Bindings live in `src/engine/input/bindings.ts`. Player speeds, turn rate, eye height (1.65 m), head bob, and field of view (60) live in `playerTuning` in `src/engine/player.ts`.
 
 ## Example level
 
-A complete scene: a small chapel yard at the edge of the forest, with a locked chapel door, a priest's note, and a lamp that only burns at night. Save it as `src/levels/chapel/index.ts` and add `chapelScene` to `scenes` in `src/main.ts`.
+A complete scene: a small chapel yard at the edge of the forest, with a locked chapel door, a priest's note, and a lamp that only burns at night. Save it as `src/levels/chapel/index.ts` and add `export const scenes = [chapelScene];` at the end.
 
 ```ts
 import { playFootstep } from '../../engine/audio/footsteps';
@@ -420,11 +510,11 @@ The door and the exit lead to `chapel_inside` and `village`, which must be regis
 - The PS1 material snaps vertices to a 320x240 grid, so geometry wobbles as the camera moves. Change `ps1Uniforms.uSnap` in `src/engine/render/ps1Uniforms.ts` to tune it.
 - Textures are affine-mapped (they warp on big polygons, as on the PS1), sampled with nearest filtering, and have no mipmaps.
 - Lighting is per vertex: ambient, one directional light, up to 8 point lights, and the flashlight. Light can reach 2x brightness. Lamps and the flashlight also brighten the fog near what they light.
-- The UI is HTML laid out in 640x480 frame pixels and scaled with the frame. The font is DotGothic16 at 16 px.
+- The UI is HTML laid out in 640x480 frame pixels and scaled with the frame. The font is DotGothic16 at 16 px, and 12 px for subtitles. At fractional frame scales, an SVG filter rounds the alpha of every text pixel to 0 or 1, so text keeps hard edges like the nearest-neighbor 3D frame.
 
 ## Known limits
 
 - No glTF loading yet. Build props from kit shapes or `kit.mesh`.
 - Collision is 2D. There are no stairs or jumps; ramps and steps up to 0.45 m work through walkable ground patches.
 - Sprites turn around Y only, so they look flat from above.
-- One save slot from the pause menu; `writeSave` and `readSave` already take a slot name.
+- The pause menu saves to one slot, `main`; `writeSave` and `readSave` take any slot name.

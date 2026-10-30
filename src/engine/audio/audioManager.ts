@@ -47,6 +47,7 @@ export class AudioManager {
   private readonly buses: Record<Bus, GainNode>;
   private readonly buffers = new Map<string, Promise<AudioBuffer>>();
   private noiseBuffer: AudioBuffer | null = null;
+  private readonly levels: Record<Bus, number> = { ...defaultBusLevels };
 
   constructor() {
     this.master.connect(this.context.destination);
@@ -180,8 +181,15 @@ export class AudioManager {
     gain.linearRampToValueAtTime(level, this.now + seconds);
   }
 
+  /** The level a bus plays at, and returns to after scene fades. */
   busLevel(bus: Bus): number {
-    return defaultBusLevels[bus];
+    return this.levels[bus];
+  }
+
+  /** Scales a bus from its mixed level: 1 keeps the mix, 0 mutes it. For the volume settings. */
+  setBusVolume(bus: Bus, volume: number): void {
+    this.levels[bus] = defaultBusLevels[bus] * volume;
+    this.fadeBus(bus, this.levels[bus], 0.05);
   }
 
   /** Two seconds of white noise, shared by the generators. */

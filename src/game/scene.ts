@@ -1,3 +1,4 @@
+import type { DocumentId } from '../content';
 import type { AudioManager } from '../engine/audio/audioManager';
 import type { Action } from '../engine/input/bindings';
 import type { Input } from '../engine/input/input';
@@ -41,6 +42,11 @@ export interface SceneContext {
    * handle closes. Dialogues still show on top and hand input back to the screen.
    */
   openScreen(element: HTMLElement, update: (dt: number, input: Input) => void): ScreenHandle;
+  /**
+   * Shows a document from `src/content` full-frame, page by page, on paper or stone, with the
+   * English under French originals. Resolves when the player closes it.
+   */
+  readDocument(id: DocumentId): Promise<void>;
 }
 
 export interface Scene {

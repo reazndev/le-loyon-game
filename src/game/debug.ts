@@ -32,7 +32,7 @@ export function parseDebugParams(search: string): DebugParams {
 
 /** Helpers for automated tests and screenshots, exposed as `window.__game`. */
 export interface DebugHooks {
-  /** True once the first scene has loaded and faded in. */
+  /** True once the first scene, or the title screen, has loaded and faded in. */
   ready: boolean;
   game: Game;
   state: () => ReturnType<Game['state']['snapshot']>;

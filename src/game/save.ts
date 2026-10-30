@@ -65,3 +65,11 @@ function isSaveFile(value: Record<string, unknown>): value is SaveFile & Record<
     ['x', 'y', 'z', 'yaw'].every((k) => typeof player[k] === 'number')
   );
 }
+
+/** The most recent readable save among `slots`, for a "Continue" option. */
+export function latestSave(storage: SaveStorage, slots: string[]): { slot: string; file: SaveFile } | null {
+  return slots
+    .map((slot) => ({ slot, file: readSave(storage, slot) }))
+    .filter((save): save is { slot: string; file: SaveFile } => save.file !== null)
+    .reduce<{ slot: string; file: SaveFile } | null>((latest, save) => (!latest || save.file.savedAt > latest.file.savedAt ? save : latest), null);
+}

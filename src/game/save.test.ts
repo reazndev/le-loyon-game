@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { check, apply } from './conditions';
-import { SAVE_VERSION, deleteSave, readSave, writeSave, type SaveStorage } from './save';
+import { SAVE_VERSION, deleteSave, latestSave, readSave, writeSave, type SaveStorage } from './save';
 import { GameState } from './state';
 
 function memoryStorage(): SaveStorage & { data: Map<string, string> } {
@@ -113,5 +113,27 @@ describe('save files', () => {
     expect(readSave(storage, 'b')).toBeNull();
     deleteSave(storage, 'a');
     expect(readSave(storage, 'a')).toBeNull();
+  });
+});
+
+describe('latestSave', () => {
+  it('picks the newest of several slots and skips empty ones', () => {
+    const storage = memoryStorage();
+    expect(latestSave(storage, ['main', 'sleep'])).toBeNull();
+    writeSave(storage, 'main', sampleState().snapshot(), new Date('1998-11-17T20:00:00Z'));
+    writeSave(storage, 'sleep', sampleState().snapshot(), new Date('1998-11-18T07:00:00Z'));
+    expect(latestSave(storage, ['main', 'sleep'])?.slot).toBe('sleep');
+    expect(latestSave(storage, ['main', 'other'])?.slot).toBe('main');
+  });
+
+  it('keeps photos through a save', () => {
+    const storage = memoryStorage();
+    const state = sampleState();
+    state.addPhoto('photo_lantern', { image: 'data:image/jpeg;base64,', caption: 'D.M. Who lights it?', takenAt: 5 });
+    writeSave(storage, 'main', state.snapshot());
+    const restored = new GameState();
+    restored.restore(readSave(storage, 'main')!);
+    expect(restored.photo('photo_lantern')?.caption).toBe('D.M. Who lights it?');
+    expect(restored.photos).toEqual(['photo_lantern']);
   });
 });
