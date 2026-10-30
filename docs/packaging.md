@@ -90,3 +90,7 @@ What changed to get here:
 What is left:
 
 - Instanced trees are culled as one group, so trees behind the fog are still drawn. GPU time is small enough that this can wait.
+
+## Web build on GitHub Pages
+
+Every push to `main` on `git@github.com:reazndev/le-loyon-game.git` runs `.github/workflows/pages.yml`, which builds `dist/` and publishes it to https://reazndev.github.io/le-loyon-game/. The browser version has no Quit button, and its saves live in that browser's localStorage.
