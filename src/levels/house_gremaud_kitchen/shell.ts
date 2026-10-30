@@ -1,5 +1,6 @@
 import type { LevelKit } from '../../game/kit/levelKit';
-import { floorAndCeiling, fogWindow, skirting, wall, WALL, type Finish } from '../inn/interior';
+import { fogWindow } from '../../game/kit/windows';
+import { floorAndCeiling, skirting, wall, WALL, type Finish } from '../inn/interior';
 import { HALL_DOOR, LIVING_DOOR, ROOM, WINDOW } from './layout';
 
 /** Cream paint over a pine wainscot, the way the commune's houses were done in the seventies. */

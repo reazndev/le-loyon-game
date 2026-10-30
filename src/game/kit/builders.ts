@@ -11,6 +11,7 @@ import {
   Vector3,
   type BufferGeometry,
   type ColorRepresentation,
+  type Texture,
 } from 'three';
 import type { AudioManager } from '../../engine/audio/audioManager';
 import type { Shape } from '../../engine/physics/collision';
@@ -128,8 +129,13 @@ export class MeshBuilder extends Placed {
 
   /** Loads `public/assets/textures/<name>.png`, or a procedural stand-in when it is missing. */
   texture(name: string, options: TextureOptions = {}): this {
+    return this.map(this.ctx.world.textures.get(name), options);
+  }
+
+  /** Uses a texture made in code, such as a painted window pane. */
+  map(texture: Texture, options: TextureOptions = {}): this {
     const [u, v] = typeof options.tile === 'number' || options.tile === undefined ? [options.tile ?? 2, options.tile ?? 2] : options.tile;
-    this.mesh.material.uniforms.uMap.value = this.ctx.world.textures.get(name);
+    this.mesh.material.uniforms.uMap.value = texture;
     this.mesh.material.uniforms.uUvScale.value.set(1 / u, 1 / v);
     return this;
   }

@@ -1,5 +1,6 @@
 import type { LevelKit } from '../../game/kit/levelKit';
-import { fogWindow, wall, type Finish } from '../inn/interior';
+import { fogWindow } from '../../game/kit/windows';
+import { wall, type Finish } from '../inn/interior';
 import { BAY_DOOR, DOOR, PIT, PIT_EDGES, ROOM } from './layout';
 
 /** The walls, floor, pit, ceiling, bay doors, windows, and strip lights of the workshop. */

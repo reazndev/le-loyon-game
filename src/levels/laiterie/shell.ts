@@ -1,5 +1,6 @@
 import type { LevelKit } from '../../game/kit/levelKit';
-import { floorAndCeiling, fogWindow, pendantLamp, skirting, wall, WALL, type Finish } from '../inn/interior';
+import { fogWindow } from '../../game/kit/windows';
+import { floorAndCeiling, pendantLamp, skirting, wall, WALL, type Finish } from '../inn/interior';
 import { DAIRY_EDGE, DOOR, MILK_COUNTER, ROOM, SHOP_COUNTER, SHOP_WINDOW, SIDE_WINDOW } from './layout';
 
 /** The walls, floors, ceiling, windows, and lamps of the laiterie. */
