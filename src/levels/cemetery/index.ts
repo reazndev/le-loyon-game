@@ -86,6 +86,7 @@ export const cemeteryScene = defineScene({
     everyFrame(kit, windmill);
 
     exits(kit, ctx, phase, gate);
+    dayHint(kit, ctx, phase);
     // The village lies below the front gate. On night 1 the silence before the dog has no bell in it.
     hillAmbience(kit, ctx, { x: 0, z: 1 }, !(phase === 'night1' && !state.hasFlag('met_raymond')));
     if (!night) crows(kit, ctx, [
@@ -97,6 +98,26 @@ export const cemeteryScene = defineScene({
     ]);
   },
 });
+
+/** By day the cemetery has nothing to do, so the reporter says once a day what it is for. */
+const dayHints: Partial<Record<StoryPhase, string>> = {
+  day1: 'Crows and wet stones. Nothing up here by daylight. Tonight, maybe, with a torch.',
+  day2: "Marc Chassot's grave. Not in daylight. Tonight, with a spade.",
+  day3: 'Nothing more for me here. The larch above the fort, the letter said.',
+};
+const hintedDays = new Set<StoryPhase>();
+
+function dayHint(kit: LevelKit, ctx: SceneContext, phase: StoryPhase): void {
+  const line = dayHints[phase];
+  if (!line || hintedDays.has(phase)) return;
+  hintedDays.add(phase);
+  let said = false;
+  everyFrame(kit, () => {
+    if (said || ctx.time < 1.5) return;
+    said = true;
+    void ctx.say(line);
+  });
+}
 
 /** The refusals, and two strokes on the Gremaud footing, loud enough to bring Raymond early. */
 async function digWrongGrave(ctx: SceneContext, grave: Grave, alarm: () => void): Promise<void> {
