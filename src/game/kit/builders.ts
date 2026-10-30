@@ -20,7 +20,8 @@ import type { GroundPatch, Surface } from '../../engine/physics/ground';
 import type { PointLight, PointLightOptions } from '../../engine/render/lighting';
 import { createPs1Material, setDefine, type Ps1Material } from '../../engine/render/ps1Material';
 import { DYNAMIC } from '../../engine/render/staticBatch';
-import { treeModel, type TreeKind, type TreeModel } from '../../engine/render/trees';
+import type { TreeKind, TreeModel } from '../../engine/render/trees';
+import { stockTrees } from './foliage';
 import type { SceneContext } from '../scene';
 import type { World } from '../world';
 
@@ -297,43 +298,45 @@ export interface TreeSpot {
 }
 
 /**
- * Many trees of one kind as instanced meshes. Each tree stands on the ground under it. Pass a
- * kind for the engine's stock trees or a model, such as one from `foliage.ts`.
+ * Many trees as instanced meshes, each standing on the ground under it. Pass a stock kind for
+ * the kit's card trees, or a model or several from `foliage.ts`; several are dealt out across
+ * the spots in turn, so neighbours differ in more than size and turn.
  */
 export class TreesBuilder extends Placed {
-  private readonly trunkRadius: number;
+  private readonly stands: { model: TreeModel; spots: TreeSpot[] }[];
   private shadeSpread = 0;
 
-  constructor(
-    ctx: KitContext,
-    kind: TreeKind | TreeModel,
-    private readonly spots: TreeSpot[],
-  ) {
+  constructor(ctx: KitContext, kind: TreeKind | TreeModel | readonly TreeModel[], spots: TreeSpot[]) {
     super(ctx, new Group());
-    const model = typeof kind === 'string' ? treeModel(kind) : kind;
-    this.trunkRadius = model.trunkRadius;
-    const meshes = model.parts.map((part) => {
-      const material = createPs1Material({
-        map: ctx.world.textures.get(part.texture),
-        uvScale: part.uvScale,
-        color: part.color,
-        vertexColors: part.geometry.hasAttribute('color'),
-        ...(part.cutout ? { alphaTest: 0.5, side: DoubleSide } : {}),
-      });
-      const mesh = new InstancedMesh(part.geometry, material, spots.length);
-      this.object.add(mesh);
-      return mesh;
-    });
-    ctx.later('place', () => this.placeInstances(meshes));
+    const models = typeof kind === 'string' ? stockTrees(kind) : 'parts' in kind ? [kind] : kind;
+    this.stands = models.map((model, v) => ({ model, spots: spots.filter((_, i) => i % models.length === v) })).filter((stand) => stand.spots.length);
+    const placed = this.stands.map(({ model, spots: mine }) => ({
+      spots: mine,
+      meshes: model.parts.map((part) => {
+        const material = createPs1Material({
+          map: ctx.world.textures.get(part.texture),
+          uvScale: part.uvScale,
+          color: part.color,
+          vertexColors: part.geometry.hasAttribute('color'),
+          ...(part.cutout ? { alphaTest: 0.5, side: DoubleSide } : {}),
+        });
+        const mesh = new InstancedMesh(part.geometry, material, mine.length);
+        this.object.add(mesh);
+        return mesh;
+      }),
+    }));
+    ctx.later('place', () => placed.forEach(({ spots: mine, meshes }) => this.placeInstances(mine, meshes)));
   }
 
   /** Blocks the player at each trunk. */
   collider(): this {
     this.ctx.later('register', () =>
-      this.spots.forEach((spot) => {
-        const p = this.object.localToWorld(new Vector3(spot.x, 0, spot.z));
-        this.ctx.world.collision.add({ kind: 'circle', x: p.x, z: p.z, r: this.trunkRadius * (spot.scale ?? 1) });
-      }),
+      this.stands.forEach(({ model, spots }) =>
+        spots.forEach((spot) => {
+          const p = this.object.localToWorld(new Vector3(spot.x, 0, spot.z));
+          this.ctx.world.collision.add({ kind: 'circle', x: p.x, z: p.z, r: model.trunkRadius * (spot.scale ?? 1) });
+        }),
+      ),
     );
     return this;
   }
@@ -344,11 +347,11 @@ export class TreesBuilder extends Placed {
     return this;
   }
 
-  private placeInstances(meshes: InstancedMesh[]): void {
+  private placeInstances(spots: TreeSpot[], meshes: InstancedMesh[]): void {
     const groupY = worldPosition(this.object).y;
     const matrix = new Matrix4();
     const tint = new Color();
-    this.spots.forEach((spot, i) => {
+    spots.forEach((spot, i) => {
       const p = this.object.localToWorld(new Vector3(spot.x, 0, spot.z));
       const scale = spot.scale ?? 1;
       // Sink the base a little so trunks never float on slopes.

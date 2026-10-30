@@ -114,8 +114,11 @@ export class LevelKit {
     return this.add(new MeshBuilder(this.ctx, geometry));
   }
 
-  /** Instanced trees, one per spot. See `scatter` for random spots and `foliage.ts` for leafy models. */
-  trees(kind: TreeKind | TreeModel, spots: TreeSpot[]): TreesBuilder {
+  /**
+   * Instanced trees, one per spot, built of alpha cards. Give a stock kind or models from
+   * `foliage.ts`; with several, the spots are dealt out among them. See `scatter` and `spotsAlong`.
+   */
+  trees(kind: TreeKind | TreeModel | readonly TreeModel[], spots: TreeSpot[]): TreesBuilder {
     return this.add(new TreesBuilder(this.ctx, kind, spots));
   }
 

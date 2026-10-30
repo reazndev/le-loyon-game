@@ -1,6 +1,6 @@
 import { Vector3 } from 'three';
 import { describe, expect, it } from 'vitest';
-import { branchCard, cardsGeometry, leafyBeech, leafySpruce } from './foliage';
+import { bareTree, branchCard, cardsGeometry, ivyCover, leafyBeech, leafySpruce, stockTrees, thicket, VERGE_PLANTS } from './foliage';
 
 const corners = (geometry: ReturnType<typeof cardsGeometry>) => {
   const position = geometry.getAttribute('position');
@@ -46,5 +46,38 @@ describe('leafy trees', () => {
     const needles = (seed: string) => Array.from(leafySpruce(seed).parts[1]!.geometry.getAttribute('position').array);
     expect(needles('a')).toEqual(needles('a'));
     expect(needles('a')).not.toEqual(needles('b'));
+  });
+});
+
+describe('card trees', () => {
+  const bounds = (geometry: ReturnType<typeof cardsGeometry>) => {
+    geometry.computeBoundingBox();
+    return geometry.boundingBox!;
+  };
+
+  it('keeps a bare tree\'s limbs inside its painted crown', () => {
+    const [limbs, twigs] = bareTree('test', { spread: 1.6 }).parts;
+    const [wood, crown] = [bounds(limbs!.geometry), bounds(twigs!.geometry)];
+    expect(Math.max(-wood.min.x, wood.max.x, -wood.min.z, wood.max.z)).toBeLessThan(crown.max.x * 1.05);
+  });
+
+  it('builds every stock kind from alpha cards', () => {
+    (['spruce', 'bare', 'birch'] as const).forEach((kind) => {
+      const models = stockTrees(kind);
+      expect(models.length).toBeGreaterThan(1);
+      models.forEach((model) => expect(model.parts.some((part) => part.cutout)).toBe(true));
+    });
+  });
+
+  it('makes one part per plant texture in a thicket', () => {
+    const textures = new Set(VERGE_PLANTS.map((plant) => plant.texture));
+    expect(thicket('test', { length: 2, depth: 1, count: 10, plants: VERGE_PLANTS }).parts.map((part) => part.texture).sort()).toEqual([...textures].sort());
+  });
+
+  it('lays ivy just off the wall, in front of its -Z side', () => {
+    const box = bounds(ivyCover('test', { w: 3, h: 2 }).parts[0]!.geometry);
+    expect(box.min.z).toBeGreaterThan(-0.4);
+    expect(box.max.z).toBeLessThan(0.6);
+    expect(box.max.x - box.min.x).toBeGreaterThan(2.5);
   });
 });

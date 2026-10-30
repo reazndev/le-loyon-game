@@ -45,3 +45,30 @@ export function scatter(options: ScatterOptions): TreeSpot[] {
   }
   return spots;
 }
+
+/**
+ * Spots every `step` meters along a line through `points`, each turned so its +X runs along the
+ * line, for hedges, verges, and ivy built from `thicket` models. `jitter` pushes each spot up to
+ * that far off the line, so a hedge doesn't come out ruled straight.
+ */
+export function spotsAlong(points: readonly (readonly [number, number])[], options: { step: number; seed?: string; jitter?: number; scale?: [number, number] }): TreeSpot[] {
+  const random = seededRandom(hashString(options.seed ?? 'along'));
+  const [minScale, maxScale] = options.scale ?? [0.9, 1.15];
+  const jitter = options.jitter ?? 0;
+  return points.slice(1).flatMap(([x1, z1], i) => {
+    const [x0, z0] = points[i]!;
+    const length = Math.hypot(x1 - x0, z1 - z0);
+    const count = Math.max(1, Math.round(length / options.step));
+    const yaw = (Math.atan2(-(z1 - z0), x1 - x0) * 180) / Math.PI;
+    return Array.from({ length: count }, (_, k) => {
+      const f = (k + 0.5) / count;
+      const off = (random() - 0.5) * 2 * jitter;
+      return {
+        x: x0 + (x1 - x0) * f - ((z1 - z0) / length) * off,
+        z: z0 + (z1 - z0) * f + ((x1 - x0) / length) * off,
+        scale: minScale + random() * (maxScale - minScale),
+        yaw: yaw + (random() - 0.5) * 8,
+      };
+    });
+  });
+}

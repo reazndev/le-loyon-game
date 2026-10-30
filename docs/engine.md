@@ -207,8 +207,9 @@ These work on everything above except `glow`.
 
 | Method | What it adds |
 |---|---|
-| `kit.trees(kind, spots)` | Instanced low-poly trees, `kind` is `'spruce'`, `'bare'`, or `'birch'`. Each spot is `{ x, z, scale?, yaw? }`; trees stand on the ground under them. Chain `.collider()` to block at the trunks. |
+| `kit.trees(kind, spots)` | Instanced trees built from alpha cards. `kind` is a stock kind (`'spruce'`, `'bare'`, or `'birch'`), a model from `foliage.ts`, or a list of models; with a list, the spots are dealt out among the models in turn. Stock kinds deal out two or three seeds of the card models below. Each spot is `{ x, z, scale?, yaw? }`; trees stand on the ground under them, sunk 0.15 m. Chain `.collider()` to block at each trunk, and `.shade(spread)` to darken or lighten each tree by up to `spread` (0.12 is about right), keyed on its spot. |
 | `scatter({ x, z, w, d, count, seed?, spacing?, avoid?, scale? })` | Returns repeatable random spots in a rectangle for `kit.trees` or anything else. `avoid(x, z)` returns `true` to keep paths clear. Import from `src/game/kit/scatter`. |
+| `spotsAlong(points, { step, seed?, jitter?, scale? })` | Spots every `step` meters along a line through `[x, z]` points, each turned so its +X runs along the line, for hedges, verges, and ivy. `jitter` pushes spots up to that far off the line. Override `yaw` on the result to face ivy out from a wall. Import from `src/game/kit/scatter`. |
 | `kit.light({ color?, intensity?, range? })` | Point light. `.flicker(0 to 1)`, `.at(...)`. Up to 8 lights are active at once; the nearest win. After the build, `.light` is the live light; change its `position` or `intensity` in `update` to carry or dim it. |
 | `kit.hotspot({ prompt, onInteract, radius?, enabled?, photo? })` | An invisible interaction point. Chain `.at(...)`. `photo` works as on `.interact`. |
 | `kit.trigger({ w, d } \| { r })` | Invisible area. `.onEnter(fn)`, `.onExit(fn)`, `.once()`. Use it for scares and story beats. Spawning inside a trigger doesn't fire it. |
@@ -221,6 +222,32 @@ These work on everything above except `glow`.
 | `kit.ambience('wind' \| 'drone' \| 'crackle', { volume?, interval?, distance? })` | Procedural background sound for the scene. `crackle` places random twig snaps and clicks around the player; `interval` is the average gap in seconds. |
 | `kit.ground(surface, height = 0)` | The ground where no walkable object covers it. Call it first in every outdoor scene. |
 | `kit.texture(name)` | The `Texture` object, for custom materials. |
+
+### Trees and greenery
+
+All trees and plants are alpha cards, as in the forest: crossed quads cut out with `alphaTest` and drawn double-sided, instanced through `kit.trees`, so a stand of a hundred costs a few draw calls per model. Don't build trees, bushes, or hedges from solid shapes. The models live in `src/game/kit/foliage.ts`; each takes a seed, and the same seed gives the same model.
+
+| Model | What it is |
+|---|---|
+| `leafySpruce(seed, { ivy? })` | A ten-meter Norway spruce, whorls of drooping needle cards. The stock `'spruce'`. |
+| `leafyBeech(seed, { ivy?, lean? })` | A November beech with copper leaf sprays. `lean` tips it toward +X, for trees over a trail. |
+| `bareTree(seed, { height?, crownBase?, spread?, leaves?, ivy? })` | A bare broadleaf tree: real limbs inside a twig crown painted on three crossed planes, and a few dead leaves clinging. Height 10 and spread 1 for a lime, spread 1.5 for a walnut, height 5 with `crownBase` 1.4 and spread 1.6 for an orchard tree. `leaves` is the share of twig tips still holding leaves. The stock `'bare'`. |
+| `birchTree(seed)` | A birch, its crown on crossed planes. The stock `'birch'`. |
+| `yew(seed, { height?, radius? })` | A dark churchyard yew or cypress, needle sprays reaching up and out to a ragged point. |
+| `thicket(seed, { length, depth, count, plants })` | Upright plant cards, each paired with one crossed at a right angle, in a `length` by `depth` patch along X. One bush, a stretch of hedge, or a run of verge. `plants` is `HEDGE_PLANTS` (a clipped beech hedge keeping its dead leaves), `WILD_PLANTS` (bramble, saplings, young spruce), `VERGE_PLANTS` (dead grass, bramble, fern), or your own list. |
+| `ivyCover(seed, { w, h })` | Ivy lying against a wall in the XY plane, thick at the foot, ragged at the top. Place it with the wall behind its -Z side. |
+
+A hedge or verge is a few `thicket` seeds dealt along a line, plus a barrier for a hedge:
+
+```ts
+const hedge = ['a', 'b'].map((seed) => thicket(`garden-${seed}`, { length: 2.6, depth: 1, count: 9, plants: HEDGE_PLANTS }));
+kit.trees(hedge, spotsAlong([[-6, 0], [6, 0]], { step: 2.1, seed: 'garden', jitter: 0.15 }));
+kit.barrier({ w: 12, d: 1 }).at(0, 0, 0);
+// Ivy on a wall that faces west (-X): turn each sheet's +Z to face out.
+kit.trees(ivyCover('barn', { w: 3, h: 4 }), [{ x: -5.03, z: 2, yaw: -90 }]);
+```
+
+Pictures that fill their whole width, such as `undergrowth`, show the straight edge of their card in a thicket; use them through `billboards` with `ragged` in `forest_path/woods.ts` instead. Past what the player sees up close, use camera-facing pictures (`tree_spruce`, `tree_beech_bare`, `tree_birch`, `tree_dead_snag`) through `billboards`, as the cemetery does for the spruce beyond its walls. Keep many small plants such as grass tufts in one `billboards` call rather than one `kit.sprite` each.
 
 Ground height comes from walkable objects: the player stands on the highest one under them that is at most 0.45 m above their feet. Without any, the fallback from `kit.ground` applies.
 
@@ -495,7 +522,7 @@ export const chapelScene = defineScene({
 
     // Forest all around, with the path kept clear.
     const clearing = (x: number, z: number) => Math.hypot(x, z + 2) < 7 || (Math.abs(x) < 2 && z > 0);
-    kit.trees('spruce', scatter({ x: 0, z: 0, w: 44, d: 44, count: 60, seed: 'chapel', spacing: 2.5, avoid: clearing })).collider();
+    kit.trees('spruce', scatter({ x: 0, z: 0, w: 44, d: 44, count: 60, seed: 'chapel', spacing: 2.5, avoid: clearing })).collider().shade(0.12);
 
     // Fog hides the edges; barriers stop the player there.
     kit.barrier({ w: 44, d: 1 }).at(0, 0, -22);
