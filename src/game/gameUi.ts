@@ -21,6 +21,8 @@ interface Modal {
 /** A full-frame screen opened with `openScreen`. */
 export interface ScreenHandle {
   close(): void;
+  /** False while a dialogue or another screen covers this one. */
+  readonly onTop: boolean;
 }
 
 export interface PauseAction {
@@ -40,6 +42,8 @@ const TREELINE_PAUSE = 1.2;
 export class GameUi {
   /** The dialogue step on screen, or null. For tests. */
   dialogueStep: DialogueStep | null = null;
+  /** The title of the document on screen, or null. For tests. */
+  documentTitle: string | null = null;
   /** Raises the camera; the inventory calls it when the player uses the Polaroid. */
   raiseCamera: () => void = () => undefined;
   private readonly stack: Modal[] = [];
@@ -141,7 +145,14 @@ export class GameUi {
     this.overlay.screens.appendChild(element);
     let close = () => undefined as void;
     void this.present(update, () => element.remove(), (closeModal) => (close = closeModal));
-    return { close: () => close() };
+    const stack = this.stack;
+    const modal = stack.at(-1);
+    return {
+      close: () => close(),
+      get onTop() {
+        return stack.at(-1) === modal;
+      },
+    };
   }
 
   openInventory(): void {
@@ -193,6 +204,7 @@ export class GameUi {
     const view = this.overlay.document;
     let index = start === 'last' ? pages.length - 1 : 0;
     view.show(pages[index]!);
+    this.documentTitle = document.title;
     return this.present(
       (_dt, input, close) => {
         if (input.pressed('cancel')) return close();
@@ -202,7 +214,10 @@ export class GameUi {
         const turned = Math.min(pages.length - 1, Math.max(0, index + (next ? 1 : back ? -1 : 0)));
         if (turned !== index) view.show(pages[(index = turned)]!);
       },
-      () => view.close(),
+      () => {
+        view.close();
+        this.documentTitle = null;
+      },
     );
   }
 

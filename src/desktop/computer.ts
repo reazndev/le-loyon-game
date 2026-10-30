@@ -363,6 +363,18 @@ export class Computer {
       const scale = rect.width / 640;
       return { x: (event.clientX - rect.left) / scale, y: (event.clientY - rect.top) / scale };
     };
+    // While a dialogue covers the screen, the real mouse can't reach the desktop under it.
+    (['mousedown', 'mouseup', 'click', 'dblclick'] as const).forEach((type) =>
+      this.root.addEventListener(
+        type,
+        (event) => {
+          if (!event.isTrusted || this.screen?.onTop !== false) return;
+          event.stopImmediatePropagation();
+          event.preventDefault();
+        },
+        true,
+      ),
+    );
     this.root.addEventListener('mousemove', (event) => {
       if (!event.isTrusted) return;
       const { x, y } = toScreen(event);
