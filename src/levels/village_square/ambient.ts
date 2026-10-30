@@ -2,8 +2,7 @@ import type { Point3 } from '../../engine/audio/audioManager';
 import type { Placed } from '../../game/kit/builders';
 import type { LevelKit } from '../../game/kit/levelKit';
 import type { SceneContext } from '../../game/scene';
-import { animateLight, breathVapor, cat, crows, distantTraffic, drizzle, fallingLeaves, fogWisps, loop, mothsAround, particles, sway, weather, windSway } from '../../game/ambient';
-import { rain } from '../../game/ambient/sounds';
+import { animateLight, cat, crows, distantTraffic, fallingLeaves, mothsAround, outdoorWeather, particles, sway } from '../../game/ambient';
 import { lampLevel } from './lampLevel';
 import { GREMAUD_GATE, INN, LAMP, MEMORIAL, PHONE_BOX } from './layout';
 import { LAMP_HEAD, type StreetLamp } from './props';
@@ -22,16 +21,8 @@ export interface SquareMoving {
  */
 export function squareAmbient(kit: LevelKit, ctx: SceneContext, moving: SquareMoving): void {
   const night = ctx.state.time === 'night';
-  const sky = weather(ctx.state);
-  windSway(kit, 0.5 + sky.wind);
-  particles(kit, fogWisps(night ? { opacity: 0.3 } : {}));
+  const sky = outdoorWeather(kit, ctx, { rain: 0.18, tin: { at: { x: PHONE_BOX.x, y: 2.5, z: PHONE_BOX.z }, volume: 0.3 } });
   sway(kit, moving.sign, { axis: 'x', degrees: 2 + sky.wind * 5, speed: 0.18 });
-  if (sky.breath) breathVapor(kit, ctx);
-  if (sky.drizzle) {
-    particles(kit, drizzle());
-    loop(kit, () => rain(ctx.audio, { surface: 'leaves', volume: 0.18 }));
-    loop(kit, () => rain(ctx.audio, { at: { x: PHONE_BOX.x, y: 2.5, z: PHONE_BOX.z }, surface: 'tin', volume: 0.3 }));
-  }
   // The cantonal road along the valley floor, south of the village and well below it.
   distantTraffic(kit, ctx, [{ x: -150, y: -25, z: 120 }, { x: 150, y: -25, z: 95 }], night ? 300 : 150);
   if (night) failingLamp(kit, moving.lamp);

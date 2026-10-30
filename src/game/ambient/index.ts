@@ -3,6 +3,7 @@ export { breathVapor } from './breath';
 export { drips, type DripSpot } from './drips';
 export { animateLight, flameLevel, fluorescentTube, tubeLevel } from './flicker';
 export { cat, caw, crows, fliesOver, mothsAround, type Perch } from './life';
+export { outdoorWeather, type OutdoorWeather } from './outdoors';
 export { particles, type ParticleShape, type ParticleSpec } from './particles';
 export { drizzle, dustMotes, fallingLeaves, flies, fogWisps, moths } from './presets';
 export { around, everyFrame, nowAndThen } from './schedule';

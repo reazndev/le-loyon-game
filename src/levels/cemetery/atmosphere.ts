@@ -2,8 +2,7 @@ import type { Atmosphere } from '../../engine/render/atmosphere';
 import type { LevelKit } from '../../game/kit/levelKit';
 import type { TimeOfDay } from '../../game/state';
 import type { SceneContext } from '../../game/scene';
-import { breathVapor, drizzle, fogWisps, hourBells, loop, particles, weather, windSway } from '../../game/ambient';
-import { rain } from '../../game/ambient/sounds';
+import { hourBells, outdoorWeather, weather } from '../../game/ambient';
 
 /**
  * The hill above the village, shared by the cemetery and the path up to it. By day it is grey and
@@ -35,11 +34,6 @@ export function hillAmbience(kit: LevelKit, ctx: SceneContext, village: { x: num
   const sky = weather(ctx.state);
   kit.ambience('wind', { volume: (night ? 0.12 : 0.18) + sky.wind * 0.2 });
   kit.ambience('crackle', night ? { interval: 9, volume: 0.3, distance: [5, 15] } : { interval: 14, volume: 0.22 });
-  windSway(kit, 0.5 + sky.wind);
-  particles(kit, fogWisps(night ? { opacity: 0.3 } : {}));
+  outdoorWeather(kit, ctx, { rain: 0.28 });
   if (bells) hourBells(kit, ctx, village, night ? 0.35 : 0.45);
-  if (sky.breath) breathVapor(kit, ctx);
-  if (!sky.drizzle) return;
-  particles(kit, drizzle());
-  loop(kit, () => rain(ctx.audio, { surface: 'leaves', volume: 0.28 }));
 }

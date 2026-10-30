@@ -1,7 +1,6 @@
 import type { LevelKit } from '../../game/kit/levelKit';
 import type { SceneContext } from '../../game/scene';
-import { breathVapor, crows, drizzle, fallingLeaves, fogWisps, loop, particles, weather, windSway } from '../../game/ambient';
-import { rain } from '../../game/ambient/sounds';
+import { crows, fallingLeaves, loop, outdoorWeather, particles } from '../../game/ambient';
 import { radio, tvMurmur } from '../inn/sounds';
 import { DOOR } from './house';
 
@@ -13,15 +12,7 @@ import { DOOR } from './house';
  */
 export function doorstepAmbient(kit: LevelKit, ctx: SceneContext, apple: { x: number; z: number }, gate: { x: number; z: number }): void {
   const night = ctx.state.time === 'night';
-  const sky = weather(ctx.state);
-  windSway(kit, 0.5 + sky.wind);
-  particles(kit, fogWisps(night ? { opacity: 0.3 } : {}));
-  if (sky.breath) breathVapor(kit, ctx);
-  if (sky.drizzle) {
-    particles(kit, drizzle());
-    loop(kit, () => rain(ctx.audio, { surface: 'leaves', volume: 0.18 }));
-    loop(kit, () => rain(ctx.audio, { at: { x: DOOR.x, y: 2.6, z: DOOR.z }, surface: 'tin', volume: 0.22 }));
-  }
+  outdoorWeather(kit, ctx, { rain: 0.18, tin: { at: { x: DOOR.x, y: 2.6, z: DOOR.z }, volume: 0.22 } });
   if (night) {
     loop(kit, () => tvMurmur(ctx.audio, { x: DOOR.x + 2.4, y: 3.6, z: DOOR.z - 2.4 }, 0.1));
     return;
