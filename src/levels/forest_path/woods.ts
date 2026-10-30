@@ -36,10 +36,10 @@ export const forestAtmosphere: Record<TimeOfDay, Atmosphere> = {
     saturation: 0.58,
   },
   night: {
-    fog: { color: 0x07090a, near: 0.3, far: 10, density: 0.3, wisps: 0.65 },
-    ambient: 0x040506,
+    fog: { color: 0x06090d, near: 0.3, far: 10, density: 0.3, wisps: 0.65 },
+    ambient: 0x03050a,
     sun: { color: 0x05060a, direction: [-0.4, 1, 0.3] },
-    saturation: 0.5,
+    saturation: 0.75,
   },
 };
 
