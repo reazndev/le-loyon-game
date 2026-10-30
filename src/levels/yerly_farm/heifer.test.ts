@@ -19,6 +19,11 @@ describe('heiferPlace', () => {
     expect(heiferPlace(state(['heifer_missing']), 'day3')).toBe('at_the_edge');
   });
 
+  it('leaves the field edge empty while she stands at the forest fork', () => {
+    expect(heiferPlace(state(['skipped_follow']), 'day2')).toBe('missing');
+    expect(heiferPlace(state(['skipped_follow', 'heifer_found']), 'day2')).toBe('following');
+  });
+
   it('has her follow the reporter once found', () => {
     expect(heiferPlace(state(['heifer_found']), 'day2')).toBe('following');
   });
