@@ -1,4 +1,4 @@
-import { dialogues } from '../../content';
+import { dialogues, holds } from '../../content';
 import type { LevelKit } from '../../game/kit/levelKit';
 import { defineScene, type SceneContext } from '../../game/scene';
 import { isNight, storyPhase, type StoryPhase } from '../forest_path/story';
@@ -102,7 +102,7 @@ function villagers(kit: LevelKit, ctx: SceneContext, phase: StoryPhase): void {
   else bike.at(-14, 0.05, 9.6).rotY(70);
   if (!leaning) bike.object.rotation.z = Math.PI / 2 - 0.08;
 
-  if (phase === 'day2' && !ctx.state.hasFlag('has_shovel')) {
+  if (phase === 'day2' && !holds('has_shovel', ctx.state)) {
     kit.npc('raymond').at(-2.2, 0, 1.6).faceYaw(200).watch(5).talk('raymond_day2');
     kit.npc('bari').at(-1.2, 0, 2.2).faceYaw(240);
   }

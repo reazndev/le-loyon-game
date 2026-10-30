@@ -1,6 +1,6 @@
 import { MathUtils, type Object3D } from 'three';
 import { playerTuning } from '../../engine/player';
-import { dialogues } from '../../content';
+import { dialogues, type StoryFlag } from '../../content';
 import type { BoxShape, Vec2 } from '../../engine/physics/collision';
 import type { DialogueScript } from '../../game/dialogue';
 import type { LevelKit } from '../../game/kit/levelKit';
@@ -41,7 +41,7 @@ export const REFILL_REACH = 12;
 /** Looking down at the lid from inside the hole. */
 const COFFIN_PITCH = -0.85;
 /** A transient flag the confirm dialogue sets on "Dig.", read and cleared at once. */
-const CONFIRMED = 'dig_confirmed';
+const CONFIRMED: StoryFlag = 'dig_confirmed';
 
 type Tarp = 'shed' | 'beside' | 'over';
 

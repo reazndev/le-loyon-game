@@ -72,6 +72,15 @@ export const storyFlags = [
   'forum_seen_4',
   'forum_seen_5',
   'forum_seen_6',
+  // Scene beats that play once, and small scene state the levels keep across visits.
+  'lai_bell_draft',
+  'kit_clock_stop',
+  'gar_radio_static',
+  'gar_yannick_left',
+  'sat_in_confessional',
+  'chu_confessional',
+  // Set by the dig's "Dig." choice and cleared at once by the cemetery, so never saved.
+  'dig_confirmed',
 ] as const;
 
 export type StoryFlag = (typeof storyFlags)[number];

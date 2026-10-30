@@ -3,7 +3,7 @@ import { boxGeometry } from '../../engine/render/geometry';
 import type { LevelKit } from '../../game/kit/levelKit';
 import type { MeshBuilder } from '../../game/kit/builders';
 import type { SceneContext } from '../../game/scene';
-import { dialogues } from '../../content';
+import { dialogues, type StoryFlag } from '../../content';
 import { playNode } from '../forest_path/play';
 import { everyFrame } from './everyFrame';
 import { CANDLE_RACK, CHANCEL, CONFESSIONAL, NAVE, PEW, PEW_ROWS, RAISED, SIDE_ALTAR, SIDE_DOOR, WALL } from './layout';
@@ -14,7 +14,7 @@ const DARK_WOOD = 0x3c3028;
 const PAINTED_WOOD = 0x8e7e64;
 
 /** Set when the player sits in the confessional, so `chu_confessional` can follow. */
-export const SAT_IN_CONFESSIONAL = 'sat_in_confessional';
+export const SAT_IN_CONFESSIONAL: StoryFlag = 'sat_in_confessional';
 
 export function buildNave(kit: LevelKit, ctx: SceneContext): void {
   pews(kit);

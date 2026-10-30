@@ -1,3 +1,4 @@
+import { holds } from '../../content';
 import type { LevelKit } from '../../game/kit/levelKit';
 import { scareDirector } from '../../game/scares/director';
 import { defineScene, type SceneContext } from '../../game/scene';
@@ -30,7 +31,7 @@ export const yerlyFarmScene = defineScene({
     fences(kit);
     forestEdge(kit);
     const shovel = toolShed(kit);
-    everyFrame(kit, () => (shovel.object.visible = !ctx.state.hasFlag('has_shovel')));
+    everyFrame(kit, () => (shovel.object.visible = !holds('has_shovel', ctx.state)));
     // The hens are shut in for the night.
     const hens = henhouse(kit);
     hens.forEach((hen) => (hen.body.object.visible = !night));

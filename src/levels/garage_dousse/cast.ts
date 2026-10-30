@@ -1,8 +1,9 @@
+import type { StoryFlag } from '../../content';
 import type { StateView } from '../../game/conditions';
 import type { StoryPhase } from '../forest_path/story';
 
 /** Set once Yannick has walked out on day 3, so he stays gone if the player comes back. */
-export const YANNICK_LEFT = 'gar_yannick_left';
+export const YANNICK_LEFT: StoryFlag = 'gar_yannick_left';
 
 export interface GarageCast {
   /** Gilles at the bench. On day 1 he is in the inn café instead. */

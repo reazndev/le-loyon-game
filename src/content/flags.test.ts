@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { GameState } from '../game/state';
-import { checkStory, derived, expandDerived, holds } from './flags';
+import { checkStory, derived, derivedFlags, expandDerived, holds, storyFlags } from './flags';
 
 describe('derived flags', () => {
   it('suspects_empty_coffin needs two of the three coffin clues', () => {
@@ -66,5 +66,23 @@ describe('expandDerived', () => {
     state.giveItem('shovel');
     expect(checkStory({ flag: 'has_shovel', notFlag: 'has_evidence' }, state)).toBe(true);
     expect(checkStory(undefined, state)).toBe(true);
+  });
+});
+
+describe('flags the game uses', () => {
+  // Test scenes and unit tests use made-up flags on purpose.
+  const sources = import.meta.glob<string>(['../levels/**/*.ts', '../game/**/*.ts', '../desktop/**/*.ts', '!**/*.test.ts', '!../levels/test/**', '!../levels/characters_test/**'], {
+    query: '?raw',
+    import: 'default',
+    eager: true,
+  });
+  const used = Object.entries(sources).flatMap(([file, text]) =>
+    [...text.matchAll(/(?:setFlag\(|hasFlag\(|holds\(|set: |flag: |notFlag: )\[?'([a-z0-9_]+)'/g)].map((m) => ({ file, flag: m[1]! })),
+  );
+
+  it('declares every flag the levels set or read', () => {
+    const known = new Set<string>([...storyFlags, ...Object.keys(derivedFlags)]);
+    expect(used.length).toBeGreaterThan(50);
+    expect(used.filter(({ flag }) => !known.has(flag))).toEqual([]);
   });
 });

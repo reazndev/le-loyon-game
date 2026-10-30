@@ -1,4 +1,4 @@
-import { dialogues } from '../../content';
+import { dialogues, holds } from '../../content';
 import { createHomeComputer } from '../../desktop';
 import type { SoundHandle } from '../../engine/audio/audioManager';
 import type { ScreenHandle } from '../../game/gameUi';
@@ -75,7 +75,7 @@ export const homeScene: Scene = (() => {
       const screen = desk(kit, () => void sitDown(SIT_DOWN), () => !seated && !leaving);
       bed(kit);
       westWall(kit);
-      const ready = () => ctx.state.hasFlag('pro_knows_village');
+      const ready = () => holds('pro_knows_village', ctx.state);
       doorSide(kit, {
         onDoor: () => (ready() ? void packAndGo() : void ctx.dialogue(dialogues.home_bag)),
         onCoat: () => void ctx.dialogue(dialogues.home_coat),
