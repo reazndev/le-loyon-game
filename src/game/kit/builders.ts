@@ -18,6 +18,7 @@ import type { GroundPatch, Surface } from '../../engine/physics/ground';
 import type { PointLight, PointLightOptions } from '../../engine/render/lighting';
 import { createPs1Material, setDefine, type Ps1Material } from '../../engine/render/ps1Material';
 import { treeModel, type TreeKind } from '../../engine/render/trees';
+import type { SceneContext } from '../scene';
 import type { World } from '../world';
 
 /** When deferred work runs after `build` returns. Ground first, so later phases can sample it. */
@@ -26,6 +27,8 @@ export type Phase = 'ground' | 'place' | 'register';
 export interface KitContext {
   world: World;
   audio: AudioManager;
+  /** The running scene's context, for builders that need the player, state, or dialogue. */
+  scene: SceneContext;
   goTo(scene: string, spawn?: string): void;
   say(text: string): Promise<void>;
   later(phase: Phase, work: () => void): void;

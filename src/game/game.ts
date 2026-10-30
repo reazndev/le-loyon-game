@@ -64,7 +64,9 @@ export class Game {
     this.scenes.register(...scenes);
 
     this.audio.unlockOnGesture();
-    this.player.events.on('footstep', (step) => playFootstep(this.audio, step.surface, { level: step.fast ? 1.25 : 1 }));
+    this.player.events.on('footstep', (step) =>
+      playFootstep(this.audio, step.surface, { level: step.fast ? 1.25 : step.crouched ? 0.45 : 1 }),
+    );
     this.state.events.on('item', ({ item, held }) => {
       if (held) this.overlay.notify(`Got: ${itemInfo(item).name}`);
     });
@@ -141,7 +143,8 @@ export class Game {
     else if (input.pressed('flashlight')) {
       world.lights.flashlightOn = !world.lights.flashlightOn;
       click(this.audio);
-    } else if (input.pressed('inventory')) this.ui.openInventory();
+    } else if (input.pressed('crouch')) player.crouched = !player.crouched;
+    else if (input.pressed('inventory')) this.ui.openInventory();
     else if (input.pressed('pause')) this.ui.openPause(this.pauseActions());
   }
 
@@ -182,6 +185,10 @@ export class Game {
       get time() {
         return game.scenes.time;
       },
+      get paused() {
+        return game.ui.open || game.scenes.busy;
+      },
+      openScreen: (element, update) => this.ui.openScreen(element, update),
     };
   }
 

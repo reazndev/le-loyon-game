@@ -1,7 +1,9 @@
 import type { AudioManager } from '../engine/audio/audioManager';
+import type { Input } from '../engine/input/input';
 import type { Player } from '../engine/player';
 import type { Atmosphere } from '../engine/render/atmosphere';
 import type { DialogueScript } from './dialogue';
+import type { ScreenHandle } from './gameUi';
 import type { LevelKit } from './kit/levelKit';
 import type { GameState, TimeOfDay } from './state';
 
@@ -29,6 +31,13 @@ export interface SceneContext {
   notify(text: string): void;
   /** Seconds since this scene finished loading. */
   readonly time: number;
+  /** True while a dialogue, menu, or scene change holds the player still. */
+  readonly paused: boolean;
+  /**
+   * Shows a full-frame screen, such as a computer desktop, and gives it all input until the
+   * handle closes. Dialogues still show on top and hand input back to the screen.
+   */
+  openScreen(element: HTMLElement, update: (dt: number, input: Input) => void): ScreenHandle;
 }
 
 export interface Scene {

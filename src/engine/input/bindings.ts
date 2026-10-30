@@ -8,6 +8,7 @@ export type Action =
   | 'cancel'
   | 'inventory'
   | 'flashlight'
+  | 'crouch'
   | 'pause';
 
 /** Keyboard bindings by `KeyboardEvent.code`, so they follow key position on any layout. */
@@ -28,6 +29,8 @@ export const keyBindings: Record<string, Action[]> = {
   Tab: ['inventory'],
   KeyI: ['inventory'],
   KeyF: ['flashlight'],
+  KeyC: ['crouch'],
+  ControlLeft: ['crouch'],
   Escape: ['pause', 'cancel'],
   Backspace: ['cancel'],
 };
@@ -38,6 +41,7 @@ export const gamepadBindings: Record<number, Action[]> = {
   1: ['cancel'],
   2: ['flashlight'],
   3: ['inventory'],
+  4: ['crouch'],
   5: ['fast'],
   7: ['fast'],
   9: ['pause'],

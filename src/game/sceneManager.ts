@@ -62,7 +62,7 @@ export class SceneManager {
 
     this.current = scene;
     state.scene = id;
-    const session = new KitSession({ world, audio, goTo: context.goTo, say: (text) => context.say(text) });
+    const session = new KitSession({ world, audio, scene: context, goTo: context.goTo, say: (text) => context.say(text) });
     await scene.build(session.kit, context);
     session.finish();
     this.applyAtmosphere();
@@ -77,6 +77,7 @@ export class SceneManager {
   update(dt: number): void {
     if (!this.current || this.busy) return;
     this.time += dt;
+    this.deps.world.updates.forEach((update) => update(dt));
     this.current.update?.(dt, this.deps.context);
   }
 

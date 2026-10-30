@@ -8,6 +8,13 @@ import type { GameState } from './state';
 /** A screen that takes over input until it closes. */
 interface Modal {
   update(dt: number, input: Input): void;
+  /** Set when a screen closes while a dialogue covers it, so the dialogue doesn't hand input back. */
+  closed?: boolean;
+}
+
+/** A full-frame screen opened with `openScreen`. */
+export interface ScreenHandle {
+  close(): void;
 }
 
 export interface PauseAction {
@@ -37,6 +44,8 @@ export class GameUi {
 
   dialogue(script: DialogueScript): Promise<void> {
     return new Promise((resolve) => {
+      // A dialogue over a screen hands input back to the screen when it ends.
+      const underneath = this.modal;
       const runner = new DialogueRunner(script, this.state);
       const box = this.overlay.dialogue;
       const show = (step: DialogueStep) => {
@@ -44,7 +53,7 @@ export class GameUi {
         if (step.kind === 'end') {
           box.hide();
           this.dialogueStep = null;
-          this.close();
+          this.modal = underneath?.closed ? null : underneath;
           resolve();
         } else if (step.kind === 'line') {
           box.show(step.speaker, step.text);
@@ -73,6 +82,20 @@ export class GameUi {
   say(lines: string | string[], speaker?: string): Promise<void> {
     const node = { lines: typeof lines === 'string' ? [lines] : lines, ...(speaker ? { speaker } : {}) };
     return this.dialogue({ start: 'say', nodes: { say: node } });
+  }
+
+  /** Shows `element` over the 3D view and gives it all input until `close` runs. */
+  openScreen(element: HTMLElement, update: (dt: number, input: Input) => void): ScreenHandle {
+    const modal: Modal = { update };
+    this.overlay.screens.appendChild(element);
+    this.modal = modal;
+    return {
+      close: () => {
+        modal.closed = true;
+        element.remove();
+        if (this.modal === modal) this.close();
+      },
+    };
   }
 
   openInventory(): void {

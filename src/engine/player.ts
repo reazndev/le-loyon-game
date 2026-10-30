@@ -6,6 +6,9 @@ import type { GroundMap, Surface } from './physics/ground';
 
 export const playerTuning = {
   eyeHeight: 1.65,
+  crouchEyeHeight: 1.05,
+  /** Meters per second while crouched, forward or back. */
+  crouchSpeed: 0.6,
   radius: 0.3,
   /** Meters per second. */
   walkSpeed: 1.45,
@@ -29,6 +32,7 @@ export interface FootstepEvent {
   x: number;
   z: number;
   fast: boolean;
+  crouched: boolean;
 }
 
 export interface PlayerWorld {
@@ -45,6 +49,9 @@ export class Player {
   readonly position = new Vector3();
   readonly events = new Emitter<{ footstep: FootstepEvent }>();
   yaw = 0;
+  /** Lower and slower. Toggled by the crouch action; standing up again on every `place`. */
+  crouched = false;
+  private eyeHeight = playerTuning.eyeHeight;
   private stepPhase = 0;
   private bobWeight = 0;
 
@@ -54,6 +61,8 @@ export class Player {
     this.yaw = MathUtils.degToRad(yawDeg);
     this.stepPhase = 0;
     this.bobWeight = 0;
+    this.crouched = false;
+    this.eyeHeight = playerTuning.eyeHeight;
     this.syncCamera();
   }
 
@@ -65,7 +74,14 @@ export class Player {
   update(dt: number, movement: Movement, fast: boolean, world: PlayerWorld): void {
     this.yaw -= MathUtils.degToRad(playerTuning.turnSpeed) * movement.turn * dt;
 
-    const speed = movement.forward >= 0 ? (fast ? playerTuning.fastSpeed : playerTuning.walkSpeed) : playerTuning.backSpeed;
+    const speed = this.crouched
+      ? playerTuning.crouchSpeed
+      : movement.forward >= 0
+        ? fast
+          ? playerTuning.fastSpeed
+          : playerTuning.walkSpeed
+        : playerTuning.backSpeed;
+    this.eyeHeight = MathUtils.damp(this.eyeHeight, this.crouched ? playerTuning.crouchEyeHeight : playerTuning.eyeHeight, 9, dt);
     const step = this.forward().multiplyScalar(movement.forward * speed * dt);
     const from = { x: this.position.x, z: this.position.z };
     const to = world.collision.move(from, { x: step.x, z: step.z }, playerTuning.radius);
@@ -88,7 +104,7 @@ export class Player {
     const before = this.stepPhase;
     this.stepPhase += moved / (fast ? playerTuning.fastStride : playerTuning.stride);
     if (Math.floor(this.stepPhase) > Math.floor(before)) {
-      this.events.emit('footstep', { surface, x: this.position.x, z: this.position.z, fast });
+      this.events.emit('footstep', { surface, x: this.position.x, z: this.position.z, fast, crouched: this.crouched });
     }
   }
 
@@ -99,7 +115,7 @@ export class Player {
     const sway = wave * playerTuning.bob * 0.4 * this.bobWeight;
     const right = new Vector3(Math.cos(this.yaw), 0, -Math.sin(this.yaw));
     this.camera.position.copy(this.position).addScaledVector(right, sway);
-    this.camera.position.y += playerTuning.eyeHeight + lift;
+    this.camera.position.y += this.eyeHeight + lift;
     this.camera.rotation.set(MathUtils.degToRad(playerTuning.pitchDeg), this.yaw, 0, 'YXZ');
   }
 }

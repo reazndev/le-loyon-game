@@ -12,6 +12,7 @@ import {
 import type { PointLightOptions } from '../../engine/render/lighting';
 import { createPs1Material } from '../../engine/render/ps1Material';
 import type { TreeKind } from '../../engine/render/trees';
+import type { CharacterId } from '../../engine/characters/cast';
 import {
   BarrierBuilder,
   CylinderBuilder,
@@ -31,6 +32,7 @@ import {
   type SoundOptions,
   type TreeSpot,
 } from './builders';
+import { NpcBuilder } from './npc';
 
 /** Size of the cells that faces are split into, in meters. Smaller cells light more smoothly. */
 const DEFAULT_CELL = 1;
@@ -176,6 +178,19 @@ export class LevelKit {
   /** What the ground is where no walkable object covers it. */
   ground(surface: Surface, height = 0): void {
     this.ctx.world.ground.fallback = { surface, height };
+  }
+
+  /** A cast member: a villager, Le Loyon (`marc`), Bari, or Marquise. See docs/characters.md. */
+  npc(id: CharacterId): NpcBuilder {
+    return this.add(new NpcBuilder(this.ctx, id));
+  }
+
+  /**
+   * Hands the kit's context to a system built on top of it, such as the scare director or a
+   * patrol: `const scares = kit.use(scareDirector)`.
+   */
+  use<T>(system: (ctx: KitContext) => T): T {
+    return system(this.ctx);
   }
 
   /** A texture by name, for custom materials. */

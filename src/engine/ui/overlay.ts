@@ -7,6 +7,8 @@ import { Prompt } from './prompt';
 /** The UI layer over the 3D frame, in 640x480 frame pixels. */
 export class Overlay {
   readonly root: HTMLElement;
+  /** Full-frame screens such as a computer desktop, under every other UI element. */
+  readonly screens: HTMLElement;
   readonly prompt: Prompt;
   readonly dialogue: DialogueBox;
   readonly menu: MenuScreen;
@@ -16,6 +18,7 @@ export class Overlay {
 
   constructor(frame: HTMLElement) {
     this.root = el('div', 'ui', frame);
+    this.screens = el('div', 'ui-screens', this.root);
     this.prompt = new Prompt(this.root);
     this.notice = el('div', 'ui-notice', this.root);
     this.dialogue = new DialogueBox(this.root);

@@ -17,6 +17,8 @@ export class World {
   readonly lights = new LightingRig();
   readonly sounds = new SoundScope();
   readonly textures = new TextureLibrary();
+  /** Per-frame work that belongs to the scene, such as animated characters. */
+  readonly updates = new Set<(dt: number) => void>();
 
   clear(): void {
     this.scene.clear();
@@ -26,5 +28,6 @@ export class World {
     this.triggers.clear();
     this.lights.clear();
     this.sounds.stopAll(0.3);
+    this.updates.clear();
   }
 }

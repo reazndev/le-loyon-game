@@ -38,7 +38,12 @@ Debug hooks: `?scene=<id>&time=<day|night>&flags=a,b` loads any scene directly, 
   - Wave 1, started 2026-10-30 01:05 UTC: content data (`src/content`), desktop and prologue (`src/desktop`, `home`), characters, scares and patrol, forest and bunker.
   - Wave 2, after wave 1: village outdoors (square, farms, road), village interiors (inn, laiterie, garage, Gremaud house), church and cemetery (with the dig and the patrol).
 - [ ] **3. Systems.** Le Loyon sightings and scare director, procedural sound and ambience, night watchman and grave digging, the dial-up forum during the game.
-- [ ] **4. Integration.** Script into content data, quest flow from start to all three endings, title screen, settings, save slots.
+- [ ] **4. Integration.** Known gaps from wave 1 to close here:
+  - Engine UI: italic narration, French lines with the `{{subtitle}}` translation on its own line (`splitTranslation()` in content), and a document view (pages of up to 10 lines of 64 characters).
+  - `docs/engine.md`: document counters, the `all` condition, `assign`/`add` effects, conditional lines, and `checkStory()`/`holds()` for derived flags.
+  - Levels must use `checkStory()` or `holds()` for derived flags, and `doc_marc_notebook_restored` when `cupboard_restored` is set.
+  - Replace any `// stand-in until src/content lands` code with real imports.
+- Step 4 scope: Script into content data, quest flow from start to all three endings, title screen, settings, save slots.
 - [ ] **5. QA.** Automated playthrough of every ending, screenshot review of every area, performance check, bug fixes.
 - [ ] **6. Packaging.** Linux AppImage and Windows build with electron-builder.
 - [ ] **7. Report.** Final report to the user with screenshots.
