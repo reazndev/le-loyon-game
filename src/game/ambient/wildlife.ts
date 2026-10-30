@@ -5,6 +5,7 @@ import { playSound } from '../scares/sounds';
 import type { SceneContext } from '../scene';
 import { animalCall, preloadRecordings, rustle, type Animal } from './recordings';
 import { around, everyFrame, nowAndThen } from './schedule';
+import { suddenLife } from './suddenLife';
 import { treeline } from './treeline';
 import { wingFlaps } from './sounds';
 
@@ -75,6 +76,7 @@ export function wildlife(kit: LevelKit, ctx: SceneContext, habitat: Habitat): vo
   let hushedUntil = 0;
   const quiet = () => ctx.time < hushedUntil;
   treeline(kit, ctx, { hushed: quiet, glimpses: habitat !== 'village' });
+  suddenLife(kit, ctx, habitat);
 
   callers.forEach((caller) =>
     nowAndThen(kit, ctx, caller.every, () => {

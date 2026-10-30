@@ -162,6 +162,46 @@ describe('playing the converted script', () => {
     expect(texts(play(dialogues.bernard_day3, state)).some((t) => t.includes('My wife'))).toBe(true);
   });
 
+  it('sells one taxcard, which opens the call to Brodard', () => {
+    const state = new GameState();
+    state.setCount('day', 2);
+    play(dialogues.christine_shop, state, ['A taxcard, please.']);
+    expect(state.hasItem('taxcard')).toBe(true);
+    expect(play(dialogues.christine_shop, state).some((s) => s.kind === 'choice')).toBe(false);
+    state.setFlag('knows_brodard');
+    play(dialogues.phonebox_brodard, state, ['Look up Brodard, Vauchy.']);
+    play(dialogues.phonebox_brodard, state, ['Call Brodard.', "I'm a journalist. I'm asking about a coffin you made in November '95. For Leurs.", 'For nobody?', "Who's there?"]);
+    expect(state.hasFlag('brodard_called')).toBe(true);
+  });
+
+  it("brings the postwoman's parcel once, with a full film pack", () => {
+    const state = new GameState();
+    state.setCount('day', 2);
+    state.setCount('film_shots', 2);
+    play(dialogues.josiane, state, ['Thanks.']);
+    expect(state.count('film_shots')).toBe(10);
+    expect(state.hasItem('ruth_note')).toBe(true);
+    expect(texts(play(dialogues.josiane, state, ['Bye.']))[0]).toMatch(/last bus/);
+  });
+
+  it('sends Germaine the cat first, whatever else is pending', () => {
+    const state = new GameState();
+    state.setFlag('germaine_met');
+    state.setFlag('heard_minet');
+    expect(texts(play(dialogues.germaine, state))[0]).toMatch(/Under the house/);
+    state.giveItem('minet');
+    play(dialogues.germaine, state, ['Just the cat.']);
+    expect(state.hasItem('minet')).toBe(false);
+    expect(state.hasFlag('minet_returned')).toBe(true);
+  });
+
+  it('answers the logbook in the line the reporter wrote', () => {
+    const state = new GameState();
+    play(dialogues.fort_logbook_write, state, ['Write: "Qui êtes-vous ?" {{Who are you?}}']);
+    expect(texts(play(dialogues.fort_logbook_reply, state))[0]).toMatch(/PERSONNE/);
+    expect(state.hasFlag('read_logbook_reply')).toBe(true);
+  });
+
   it('routes the publish call by evidence', () => {
     const weak = new GameState();
     expect(texts(play(dialogues.ending_publish_route, weak)).join(' ')).toMatch(/Page nine/);

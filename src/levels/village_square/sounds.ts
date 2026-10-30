@@ -1,6 +1,7 @@
 import type { AudioManager, Point3, SoundHandle } from '../../engine/audio/audioManager';
 import { noiseBurst, thump } from '../../engine/audio/generators';
 import { oneShot, tone } from '../../engine/characters/voices';
+import { breathUrl } from '../../game/breathing';
 import type { LevelKit } from '../../game/kit/levelKit';
 
 /** The village's own sounds: the fountain, a television through a wall, engines, the phone box, locks. */
@@ -135,6 +136,16 @@ export function postHorn(audio: AudioManager, at: Point3): void {
   });
 }
 
+/** A shutter blown open against the wall: the hinge, the slam of the leaf, and a rattle as it settles. */
+export function shutterBang(audio: AudioManager, at: Point3): void {
+  oneShot(audio, { at, volume: 1.2 }, 2, (out, t) => {
+    tone(audio, out, { type: 'sawtooth', frequency: 340, to: 260, start: t, duration: 0.25, gain: 0.03, attack: 0.08 });
+    thump(audio, out, t + 0.3, 130, 1);
+    noiseBurst(audio, out, { start: t + 0.3, duration: 0.12, type: 'lowpass', frequency: 1400, gain: 0.9 });
+    [0.48, 0.6, 0.68].forEach((s, i) => thump(audio, out, t + s, 160, 0.35 / (i + 1)));
+  });
+}
+
 /** The phone box bell: one ring, a fast hammering on two small bells, then it stops. */
 export function phoneRing(audio: AudioManager, at: Point3): void {
   oneShot(audio, { at, volume: 0.8 }, 1.6, (out, t) => {
@@ -198,4 +209,62 @@ export function doorBell(audio: AudioManager, at: Point3): void {
       tone(audio, out, { frequency: frequency! * 2.76, start: t + delay!, duration: 0.5, gain: 0.04, attack: 0.004 });
     });
   });
+}
+
+/** A van door: the latch, then the door swinging open, or slammed shut on its rubber. */
+export function vanDoor(audio: AudioManager, at: Point3, shut: boolean): void {
+  oneShot(audio, { at, volume: 0.7 }, 1, (out, t) => {
+    noiseBurst(audio, out, { start: t, duration: 0.03, type: 'bandpass', frequency: 2400, q: 3, gain: 0.5 });
+    if (shut) thump(audio, out, t + 0.02, 140, 0.6);
+    else noiseBurst(audio, out, { start: t + 0.05, duration: 0.35, type: 'bandpass', frequency: 700, q: 2, gain: 0.12, attack: 0.1 });
+  });
+}
+
+/** Letters riffled and squared in a tray. */
+export function paperRustle(audio: AudioManager, at: Point3): void {
+  oneShot(audio, { at, volume: 0.35 }, 1.2, (out, t) => {
+    for (let i = 0; i < 5; i++) noiseBurst(audio, out, { start: t + i * 0.09 + Math.random() * 0.04, duration: 0.07, type: 'highpass', frequency: 3200, gain: 0.25, attack: 0.01 });
+  });
+}
+
+/** A taxcard pushed into the slot, or pushed back out, and the phone's two-tone beep as it reads it. */
+export function taxcard(audio: AudioManager, at: Point3, out: boolean): void {
+  oneShot(audio, { at, volume: 0.6 }, 1.4, (dest, t) => {
+    noiseBurst(audio, dest, { start: t, duration: 0.18, type: 'bandpass', frequency: out ? 1700 : 1300, q: 3, gain: 0.25, attack: 0.05 });
+    noiseBurst(audio, dest, { start: t + 0.2, duration: 0.02, type: 'bandpass', frequency: 2600, q: 4, gain: 0.5 });
+    [880, 1320].forEach((frequency, i) => tone(audio, dest, { type: 'square', frequency, start: t + 0.45 + i * 0.16, duration: 0.14, gain: 0.04, attack: 0.005 }));
+  });
+}
+
+/** The Swiss ringing tone in the receiver: 425 Hz, one second on, four off, until stopped. */
+export function ringTone(audio: AudioManager): SoundHandle {
+  const output = audio.output({ volume: 0.18 });
+  const gate = new GainNode(audio.context, { gain: 0 });
+  const oscillator = new OscillatorNode(audio.context, { frequency: 425 });
+  oscillator.connect(gate).connect(output.input);
+  const start = audio.now + 0.4;
+  for (let ring = 0; ring < 24; ring++) {
+    gate.gain.setValueAtTime(1, start + ring * 5);
+    gate.gain.setValueAtTime(0, start + ring * 5 + 1);
+  }
+  oscillator.start();
+  return {
+    stop: (fade = 0) => {
+      output.release(fade);
+      oscillator.stop(audio.now + fade + 0.1);
+    },
+  };
+}
+
+/** The far end picking up: a hard click and a breath of line noise. */
+export function pickUp(audio: AudioManager): void {
+  oneShot(audio, { volume: 0.5 }, 0.8, (out, t) => {
+    noiseBurst(audio, out, { start: t, duration: 0.015, type: 'bandpass', frequency: 1800, q: 2, gain: 0.9 });
+    noiseBurst(audio, out, { start: t + 0.02, duration: 0.4, type: 'bandpass', frequency: 1100, q: 0.7, gain: 0.05, attack: 0.05 });
+  });
+}
+
+/** The reporter's own slow breathing, close, as if the receiver were picking it up. */
+export function breathOnTheLine(audio: AudioManager): SoundHandle {
+  return audio.play(breathUrl('tired'), { bus: 'sfx', volume: 0.32, loop: true, rate: 0.82 });
 }

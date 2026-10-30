@@ -1,6 +1,6 @@
 import type { LevelKit } from '../../game/kit/levelKit';
 import type { SceneContext } from '../../game/scene';
-import { cat, distantTraffic, dustMotes, loop, nowAndThen, particles, sway, weather } from '../../game/ambient';
+import { cat, distantTraffic, dustMotes, loop, nowAndThen, particles, suddenLife, sway, weather } from '../../game/ambient';
 import { rain } from '../../game/ambient/sounds';
 import { houseCreak, radiatorKnock } from '../inn/sounds';
 import { secondHand } from '../laiterie/secondHand';
@@ -14,6 +14,7 @@ import { CLOCK, NIGHT_LAMP, NORTH, PENDANT, ROOM, WINDOW } from './layout';
  * around it: the radiator, rain on the glass, a car on the road, the floor upstairs at night.
  */
 export function kitchenAmbient(kit: LevelKit, ctx: SceneContext, night: boolean, clock: PausableLoop): void {
+  suddenLife(kit, ctx, 'indoors');
   secondHand(kit, { x: CLOCK.x, y: CLOCK.y, z: NORTH + 0.068 }, 0.12, () => clock.playing);
 
   const drafty = kit.group((g) => curtain(g)).at(DRAFTY_CURTAIN.x, DRAFTY_CURTAIN.y, DRAFTY_CURTAIN.z).dynamic();

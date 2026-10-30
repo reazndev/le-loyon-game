@@ -41,3 +41,19 @@ export const abbeSpots: Record<AbbeSpot, { x: number; z: number; yaw: number }> 
   office: { x: 5.3, z: -19.6, yaw: 0 },
   kneeling: { x: 3.25, z: -7.4, yaw: -90 },
 };
+
+/** Simone's harmonium, against the north wall left of the chancel arch, its keys facing south. */
+export const HARMONIUM = { x: -3.9, z: NAVE.z0 + WALL / 2 + 0.27 };
+/** The dot-matrix printer on its stand beside the office desk. */
+export const PRINTER = { x: 4.35, z: -20.4 };
+/** The middle aisle between the pews, where the reed sticks (A3). */
+export const NAVE_AISLE = { x: 0, z: -1, w: 1.6, d: 14 };
+/** Past the holy water stoup by the main door, the reporter is leaving. */
+export const PAST_THE_STOUP_Z = 9.6;
+
+/** Where Simone is: the Virgin's side altar on day 1, the office chair on day 2, the harmonium bench after. */
+export const simoneSpots = {
+  altar: { x: 3.6, z: -8.15, yaw: -90 },
+  office: { x: 5.4, z: -19.62, yaw: 0 },
+  harmonium: { x: HARMONIUM.x, z: HARMONIUM.z + 0.62, yaw: 0 },
+};

@@ -57,3 +57,31 @@ export function tinKnock(audio: AudioManager, at: Point3, volume = 0.4): void {
     if (Math.random() < 0.6) noiseBurst(audio, out, { start: t + vary(0.22, 0.3), duration: 0.05, type: 'bandpass', frequency: 700, q: 2, gain: 0.25 });
   });
 }
+
+/** A cow blowing hard through her nose: a wet rush of air and a flutter of the nostrils. */
+export function snort(audio: AudioManager, at: Point3, volume = 0.7): void {
+  oneShot(audio, { at, volume }, 1.2, (out, t) => {
+    noiseBurst(audio, out, { start: t, duration: vary(0.45), type: 'bandpass', frequency: vary(700), q: 0.9, gain: 0.8, attack: 0.03 });
+    for (let i = 0; i < 5; i++) noiseBurst(audio, out, { start: t + 0.05 + i * 0.05, duration: 0.03, type: 'lowpass', frequency: 300, gain: 0.35 });
+  });
+}
+
+/** A cow breathing out and in, slow and deep, close by: no filter, no rasp, just a big animal. */
+export function cowBreath(audio: AudioManager, at: Point3, volume = 0.45): void {
+  oneShot(audio, { at, volume }, 3.4, (out, t) => {
+    noiseBurst(audio, out, { start: t, duration: 1.3, type: 'lowpass', frequency: vary(420), gain: 0.6, attack: 0.25 });
+    noiseBurst(audio, out, { start: t + 1.7, duration: 1.2, type: 'lowpass', frequency: vary(300), gain: 0.35, attack: 0.5 });
+  });
+}
+
+/** Hens woken in the dark: squawks over each other, rising and breaking, for a few seconds. */
+export function henPanic(audio: AudioManager, at: Point3, volume = 0.9): void {
+  oneShot(audio, { at, volume, bus: 'sfx' }, 4, (out, t) => {
+    for (let i = 0; i < 14; i++) {
+      const s = t + Math.random() * 2.8;
+      const pitch = vary(900, 0.25);
+      tone(audio, out, { type: 'square', frequency: pitch, to: pitch * vary(1.4, 0.2), start: s, duration: vary(0.18, 0.4), gain: 0.07, attack: 0.01 });
+      noiseBurst(audio, out, { start: s, duration: 0.12, type: 'bandpass', frequency: vary(2200), q: 2, gain: 0.3 });
+    }
+  });
+}

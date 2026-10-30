@@ -12,6 +12,7 @@ import { veilleur } from './veilleur';
 import { cafeLit, dressInn, type InnDressing } from './dressing';
 import { loopSound } from './interior';
 import { CAFE, FRONT_DOOR, KITCHEN_DOOR, ROOM3_DESK, SCREEN, SEAT, STUBLI, UPPER } from './layout';
+import { nightScares } from './nightScares';
 import { InnPhone } from './phone';
 import { clockTick, cutlery, houseCreak, nowAndThen, radio, roomTone, tvMurmur } from './sounds';
 import { innStage } from './story';
@@ -66,18 +67,18 @@ export const innScene = defineScene({
     const dressing = dressInn(state);
     const justAte = takeMealJustEaten();
 
-    const tvScreen = buildCafe(kit, ctx, dressing, justAte);
+    const cafe = buildCafe(kit, ctx, dressing, justAte);
     const curtain = innClutter(kit, dressing);
     placeCafeCast(kit, ctx, dressing);
-    const scares = stageBeats(kit, ctx, dressing);
+    const monitor = buildStubli(kit, dressing, { useComputer: () => void sitAtComputer(ctx, dressing, showYannick) });
+    const scares = stageBeats(kit, ctx, dressing, nightScares(kit, ctx, dressing, { cafe, monitor }));
     const phone = new InnPhone(kit, ctx, dressing, scares);
     const showYannick = veilleur(kit, ctx, scares);
-    buildStubli(kit, dressing, { useComputer: () => void sitAtComputer(ctx, dressing, showYannick) });
     buildUpstairs(kit, ctx, dressing, { onBed: () => void lieDown(ctx), onWindow: () => void lookOutOfRoom3(ctx) });
     kit.door({ to: 'village_square', spawn: 'from_inn', w: FRONT_DOOR.w, h: FRONT_DOOR.h, prompt: 'Go out' }).at(FRONT_DOOR.x, 0, CAFE.z1 + 0.02);
 
     sounds(kit, dressing);
-    innAmbient(kit, ctx, dressing, { tvScreen, curtain });
+    innAmbient(kit, ctx, dressing, { tvScreen: cafe.tvScreen, curtain });
     turnTheDay(kit, ctx, dressing, (moniqueHere) => phone.ring(moniqueHere), arrivingAtDawn);
     hints(kit, ctx, dressing, () => phone.isRinging);
   },

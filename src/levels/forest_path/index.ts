@@ -4,8 +4,9 @@ import { cupOnTheStump } from './cup';
 import { dressPath, keepClear } from './dressing';
 import { heiferInTheForest } from './heifer';
 import { hints } from './hints';
-import { area, BRIDGE, FORK, height, main, markers, SHRINE, slope, stream, toFort, trails } from './layout';
+import { area, BRIDGE, FORK, height, main, markers, SHRINE, slope, stream, toFort, toStream, trails } from './layout';
 import { lostInTheFog } from './lost';
+import { overgrowth } from './overgrowth';
 import { playNode } from './play';
 import { stageForestPath } from './scares';
 import { streamHiss } from './sounds';
@@ -69,6 +70,11 @@ export const forestPathScene = defineScene({
     undergrowth(kit, area, { seed: 'forest-path-low', count: 700, mix: lowPlants, spacing: 0.75, avoid: (x, z) => offTrail(1.3, 9)(x, z) || keepClear.low(x, z) });
     undergrowth(kit, area, { seed: 'forest-path-tall', count: 800, mix: tallPlants, spacing: 1, avoid: (x, z) => offTrail(2.1, 15)(x, z) || keepClear.tall(x, z) || keepClear.low(x, z) });
     mossPatches(kit, height, scatter({ ...area, count: 80, seed: 'forest-path-moss', spacing: 2.4, avoid: offTrail(1.6, 11) }));
+    // Three stretches where the path has nearly closed over.
+    overgrowth(kit, [{ trail: main, from: 10, to: 20 }, { trail: toFort, from: 9, to: 20 }, { trail: toStream, from: 8, to: 17 }], {
+      seed: 'forest-path-overgrown',
+      avoid: (x, z) => keepClear.low(x, z) || distanceToTrails([stream], x, z) < 1.2 || atShrine(x, z),
+    });
 
     [
       [3.6, 25.7, 20, 5],

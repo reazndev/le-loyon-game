@@ -49,7 +49,7 @@ const SCARE_DISTANCE = 5;
 const FLIGHT_SECONDS = 3.5;
 
 /** A crow as a handful of boxes merged into one draw call, for perches near the path. */
-function crowModel(kit: LevelKit): Placed {
+export function crowModel(kit: LevelKit): Placed {
   return kit.group((outer) => outer.batch((g) => {
     g.box({ w: 0.16, h: 0.15, d: 0.3 }).color(0x111214).at(0, 0.06, 0);
     g.box({ w: 0.1, h: 0.1, d: 0.11 }).color(0x0e0f10).at(0, 0.16, -0.17);
@@ -117,8 +117,9 @@ function purr(ctx: SceneContext, at: Point3): void {
 /**
  * A grey cat sitting on a windowsill or a chair: it breathes, flicks its tail, and turns its head
  * to watch the reporter when they come near. It purrs if they stand close. `at` is where it sits.
+ * Returns the cat, for scenes where someone picks it up.
  */
-export function cat(kit: LevelKit, ctx: SceneContext, at: Point3 & { yaw?: number }, fur = 0x3e3b38): void {
+export function cat(kit: LevelKit, ctx: SceneContext, at: Point3 & { yaw?: number }, fur = 0x3e3b38): Placed {
   const parts = {} as Record<'body' | 'head' | 'tail', Placed>;
   const root = kit
     .group((g) => {
@@ -158,4 +159,5 @@ export function cat(kit: LevelKit, ctx: SceneContext, at: Point3 & { yaw?: numbe
     if (near < 1.2 && !purred) purr(ctx, at);
     purred = near < 1.2 ? true : near > 2.5 ? false : purred;
   });
+  return root;
 }

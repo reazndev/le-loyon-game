@@ -1,5 +1,5 @@
 import type { Point3 } from '../../engine/audio/audioManager';
-import { caw, dustMotes, everyFrame, loop, nowAndThen, particles, weather } from '../../game/ambient';
+import { caw, dustMotes, everyFrame, loop, nowAndThen, particles, suddenLife, weather } from '../../game/ambient';
 import { rain } from '../../game/ambient/sounds';
 import type { LevelKit } from '../../game/kit/levelKit';
 import type { SceneContext } from '../../game/scene';
@@ -23,6 +23,7 @@ const SHAFTS: Point3[] = [
  * a crow on the roof, and on wet nights the rain on the glass.
  */
 export function churchAmbient(kit: LevelKit, ctx: SceneContext, night: boolean): void {
+  suddenLife(kit, ctx, 'indoors');
   const { audio } = ctx;
   if (night) particles(kit, dustMotes({ follow: true, box: [6, 3, 6], count: 50 }));
   else SHAFTS.forEach((at, i) => particles(kit, dustMotes({ box: [2.6, 2.6, 0.9], count: 40, size: 0.014, opacity: 0.55, seed: `church-shaft-${i}` })).at(at.x, at.y, at.z));

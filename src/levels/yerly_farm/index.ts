@@ -15,6 +15,7 @@ import { greenery } from './greenery';
 import { hints } from './hints';
 import { BERNARD, BOUNDS, FOREST_EDGE, HENHOUSE, spawns, STALL } from './layout';
 import { marquise } from './marquise';
+import { yerlyNightScares } from './nightScares';
 import { cluck, moo } from './sounds';
 
 /**
@@ -46,7 +47,10 @@ export const yerlyFarmScene = defineScene({
 
     if (!night) kit.npc('bernard').at(BERNARD.x, 0, BERNARD.z).faceYaw(BERNARD.yaw).watch(6).talk('bernard');
     hints(kit, marquise(kit, ctx, phase));
-    if (night) kit.use(scareDirector([], { random: { surface: 'gravel' } }));
+    if (night) {
+      kit.use(scareDirector([], { random: { surface: 'gravel' } }));
+      yerlyNightScares(kit, ctx, hens);
+    }
 
     kit.exit({ w: 1, d: 8, to: 'village_square', spawn: 'from_yerly' }).at(BOUNDS.x1 - 1, 0, 12);
     kit.exit({ w: 1, d: 5, to: 'forest_path', spawn: 'from_yerly' }).at(FOREST_EDGE - 12, 0, -10);

@@ -249,6 +249,22 @@ export function wireFence(kit: LevelKit, ctx: SceneContext, height: Height, poin
   return posts.filter((post) => !post.fallen).map((post) => ({ x: post.x, z: post.z, y: POST - 0.05 }));
 }
 
+/**
+ * Old army wire trailing across the path from a rotted stake, two loose strands low in the grass
+ * where a boot catches them. `yaw` is the trail's direction there.
+ */
+export function snagWire(kit: LevelKit, height: Height, at: Spot & { yaw: number }): void {
+  const a = (at.yaw * Math.PI) / 180;
+  const side = (meters: number, up: number): Point => {
+    const x = at.x + Math.cos(a) * meters;
+    const z = at.z - Math.sin(a) * meters;
+    return [x, height(x, z) + up, z];
+  };
+  kit.cylinder({ r: 0.045, h: 0.6, sides: 5 }).texture('wood_planks', { tile: 0.6 }).color(POST_WOOD).at(...side(-1.9, -0.1));
+  const strands = [sagging(side(-1.9, 0.42), side(1.6, 0.03), 0.08, 6), sagging(side(-1.9, 0.22), side(1.2, 0.02), 0.04, 6)];
+  kit.mesh(wireGeometry(strands, 0.018, 0.45)).color(RUST_WIRE);
+}
+
 /** On wet nights, water gathering on branches over the path and dropping, at each spot. */
 export function branchDrips(kit: LevelKit, ctx: SceneContext, height: Height, spots: readonly Spot[]): void {
   if (!weather(ctx.state).drizzle) return;

@@ -30,6 +30,10 @@ export const nodes = {
     speaker: speakers.editor,
     lines: ["Then find out. Friday before ten. I don't run fog twice."],
   },
+  phone_not_here: {
+    if: { flag: 'knows_brodard', notFlag: 'brodard_called' },
+    lines: ['I could call Vauchy from here. Monique can hear every word from the counter.', 'The phone box on the square, then.'],
+  },
   phone_night_static: {
     if: { count: [['night', '==', 2]] },
     lines: ['Static. Then the tone again.'],

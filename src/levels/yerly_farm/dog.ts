@@ -13,10 +13,16 @@ import { chainRattle } from './sounds';
  * chain with its chin on its paws; when the reporter comes near it lifts its head and follows
  * them with it, growls once under its breath the first time, and lays its head down again when
  * they have gone. At night it lies in the kennel door, only its head out: it barks when the
- * reporter arrives, once, and then watches without a sound.
+ * reporter arrives, once, and then watches without a sound. Once in the game, at night, a
+ * reporter who comes right up to the kennel gets the whole dog: it lunges to the end of its chain.
  */
 
 const BLACK = 0x1c1a18;
+/** How close the reporter comes before it lunges, how far the chain lets it, and how long it holds there barking. */
+const LUNGE_FROM = 2.6;
+const CHAIN = 1.4;
+const LUNGE_HOLD = 1.6;
+const LUNGE_FLAG = 'yerly_dog_lunge';
 const TAN = 0x6a4a2e;
 
 export interface DogOptions extends Point3 {
@@ -63,12 +69,14 @@ export function chainedDog(kit: LevelKit, ctx: SceneContext, at: DogOptions): vo
   const look = new Vector3();
   let dog = restingDog;
   let lift = 0;
+  const lunge = at.night && !ctx.state.hasFlag(LUNGE_FLAG) ? lunger(ctx, root, at) : null;
   everyFrame(kit, (dt) => {
     const p = ctx.player.position;
     const distance = Math.hypot(p.x - at.x, p.z - at.z);
     const step = dogStep(dog, distance, dt, at.night ? 16 : 8);
     dog = step.dog;
     if (step.first) speak(ctx, voice, at.night);
+    lunge?.(dt, distance);
     lift += ((dog.up ? 1 : 0) - lift) * Math.min(1, dt * (dog.up ? 3 : 0.8));
     look.set(p.x, 0, p.z);
     root.object.worldToLocal(look);
@@ -77,6 +85,37 @@ export function chainedDog(kit: LevelKit, ctx: SceneContext, at: DogOptions): vo
     head.rotation.x = 0.55 - lift * 0.7;
     head.position.y = 0.16 + lift * 0.12;
   });
+}
+
+/**
+ * The lunge: out of the kennel door in a fifth of a second, stopped short by the chain half a
+ * meter from the reporter, barking, then back in slowly. Runs each frame with the distance.
+ */
+function lunger(ctx: SceneContext, root: Placed, home: Point3): (dt: number, distance: number) => void {
+  const object = root.object;
+  const rest = object.rotation.y;
+  let t = -1;
+  let reach = 0;
+  const heading = new Vector3();
+  return (dt, distance) => {
+    if (t < 0) {
+      if (distance > LUNGE_FROM || ctx.paused) return;
+      t = 0;
+      reach = Math.min(CHAIN, distance - 0.6);
+      heading.set(ctx.player.position.x - home.x, 0, ctx.player.position.z - home.z).normalize();
+      ctx.state.setFlag(LUNGE_FLAG);
+      const at = { x: home.x + heading.x * reach, y: home.y + 0.4, z: home.z + heading.z * reach };
+      [0, 0.35, 0.8, 1.3].forEach((delay) => setTimeout(() => bark(ctx.audio, { at, volume: 1.4 }), delay * 1000));
+      chainRattle(ctx.audio, at, 1);
+      setTimeout(() => chainRattle(ctx.audio, at, 0.6), 1900);
+      ctx.jolt();
+    }
+    if (t > LUNGE_HOLD + 2) return;
+    t += dt;
+    const out = t < 0.22 ? t / 0.22 : t < LUNGE_HOLD ? 1 : Math.max(0, 1 - (t - LUNGE_HOLD) / 2);
+    object.position.set(home.x + heading.x * reach * out, home.y, home.z + heading.z * reach * out);
+    object.rotation.y = out > 0.05 ? Math.atan2(heading.x, heading.z) : rest;
+  };
 }
 
 /** The one sound it makes: a growl by day, at night three barks and the chain. */

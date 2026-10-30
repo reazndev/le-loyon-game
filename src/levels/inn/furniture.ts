@@ -1,4 +1,5 @@
 import type { LevelKit } from '../../game/kit/levelKit';
+import type { Placed } from '../../game/kit/builders';
 
 /** Café furniture built from boxes: tables with checked cloths, chairs, and what sits on them. */
 
@@ -6,8 +7,8 @@ const WOOD = 0x6a4e36;
 const DARK_WOOD = 0x4a3626;
 
 /** A chair at (x, z) facing `yaw`. Upside down on the table it stands by when `up`. */
-export function chair(kit: LevelKit, x: number, z: number, yaw: number, up = false): void {
-  kit
+export function chair(kit: LevelKit, x: number, z: number, yaw: number, up = false): Placed {
+  return kit
     .group((g) => {
       if (up) {
         // Seat on the tabletop, legs in the air.

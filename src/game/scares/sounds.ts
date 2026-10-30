@@ -125,6 +125,17 @@ function hit(audio: AudioManager, options: OneShot): void {
   });
 }
 
+/**
+ * A low swell under everything, for a moment the player thinks they have seen him. It rises
+ * instead of hitting, so it reads as dread rather than a jumpscare.
+ */
+function lowSting(audio: AudioManager, options: OneShot): void {
+  oneShot(audio, { volume: 0.9, ...options }, 4.5, (out, t) => {
+    [41.2, 43.7, 61.7].forEach((f) => tone(audio, out, { type: 'triangle', frequency: f, to: f * 0.97, start: t, duration: 4, gain: 0.12, attack: 1.2 }));
+    noiseBurst(audio, out, { start: t + 0.2, duration: 3.2, type: 'lowpass', frequency: 220, gain: 0.25, attack: 1.4 });
+  });
+}
+
 /** Three barks close together, the way Bari barks at a stranger. */
 function barkThree(audio: AudioManager, options: OneShot): void {
   [0, 0.42, 0.78].forEach((delay) => setTimeout(() => bark(audio, options), delay * 1000));
@@ -152,6 +163,7 @@ export const sounds = {
   sfx_bark: barkThree,
   sfx_growl: growl,
   sfx_hit: hit,
+  sfx_sting_low: lowSting,
 } satisfies Record<string, (audio: AudioManager, options: OneShot) => void>;
 
 export type SoundId = keyof typeof sounds;

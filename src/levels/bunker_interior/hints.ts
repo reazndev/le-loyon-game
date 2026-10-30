@@ -11,6 +11,8 @@ export interface FortLayout {
   /** The K.P. 3 door behind the cupboard. */
   door: Spot;
   battery: Spot;
+  /** The valley chart on the guard room wall. */
+  chart: Spot;
   kp3: Kp3Door;
 }
 
@@ -18,7 +20,7 @@ export interface FortLayout {
 const STUCK = 25;
 
 /** The clue under the goal line: the cupboard puzzle, the knock, and the way out. */
-export function hints(kit: LevelKit, ctx: SceneContext, phase: StoryPhase, { cupboard, door, battery, kp3 }: FortLayout): void {
+export function hints(kit: LevelKit, ctx: SceneContext, phase: StoryPhase, { cupboard, door, battery, chart, kp3 }: FortLayout): void {
   const lights = kit.use((k) => k.world.lights);
   const atCupboard = { ...cupboard, r: 2.5 };
   const atDoor = { ...door, r: 2.5 };
@@ -54,6 +56,7 @@ export function hints(kit: LevelKit, ctx: SceneContext, phase: StoryPhase, { cup
     kit.hint('Locked, and you have no key. Leave it for now.', { if: { flag: 'found_hidden_door', notItem: 'bunker_key' }, near: atDoor });
   }
   if (phase === 'day3') {
+    kit.hint('The chart on the guard room wall shows the slope above the fort.', { if: { flag: 'read_gremaud_letter', notFlag: ['read_chart_larch', 'found_forest_grave'] }, point: chart });
     kit.hint('The track to the larch starts outside, on the right of the barn.', { if: { flag: 'read_gremaud_letter', notFlag: 'found_forest_grave' } });
   }
   kit.hint('The way out is back up the corridor, through the gas lock.');

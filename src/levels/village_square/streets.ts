@@ -46,7 +46,7 @@ export function ground(kit: LevelKit): void {
 }
 
 export interface Street {
-  /** The phone box lamp, which flickers at night. */
+  /** The phone box lamp, which flickers at night and blinks once after the Brodard call. */
   phoneLamp: MeshBuilder | null;
   /** The street lamp, whose bulb fails now and then at night. */
   lamp: StreetLamp;
@@ -66,7 +66,7 @@ export function streetFurniture(kit: LevelKit, ctx: SceneContext, night: boolean
   kit
     .group((g) => {
       phoneBox(g);
-      if (night) parts.phoneLamp = g.box({ w: 0.32, h: 0.04, d: 0.32 }).color(0xd8e0d0).unlit().at(0, 2.31, 0).dynamic();
+      parts.phoneLamp = g.box({ w: 0.32, h: 0.04, d: 0.32 }).color(night ? 0xd8e0d0 : 0xa4aaa0).unlit().at(0, 2.31, 0).dynamic();
     })
     .at(PHONE_BOX.x, 0, PHONE_BOX.z)
     .rotY(-90);

@@ -15,6 +15,10 @@ export const speakers = {
   raymond: 'Raymond',
   driver: 'Driver',
   editor: 'Ruth',
+  simone: 'Simone',
+  josiane: 'Josiane',
+  germaine: 'Madame Kolly',
+  brodard: 'Brodard',
 };
 
 /**
@@ -29,9 +33,12 @@ const roles: Record<string, string> = {
   [speakers.christine]: 'Woman at the dairy',
   [speakers.odile]: 'Woman at the door',
   [speakers.raymond]: 'Watchman',
+  [speakers.simone]: 'Sacristan',
+  [speakers.josiane]: 'Postwoman',
+  [speakers.germaine]: 'Old woman',
 };
 
-const knownFlag = (name: string) => `knows_name_${name.toLowerCase()}`;
+const knownFlag = (name: string) => `knows_name_${name.toLowerCase().replaceAll(' ', '_')}`;
 
 /** The flags for every role name that `text` mentions, so later lines can show the name. */
 export function namesHeardIn(text: string): string[] {

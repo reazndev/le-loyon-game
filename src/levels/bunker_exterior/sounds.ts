@@ -14,3 +14,34 @@ export function tarpFlap(audio: AudioManager, at: Point3, volume = 0.35): void {
     }
   });
 }
+
+/**
+ * A siren test down in the valley: one long tone climbing, holding, and sinking away, dulled
+ * by the distance and carried in and out by the wind, with its echo off the far slope.
+ */
+export function sirenWail(audio: AudioManager, volume = 0.25): void {
+  const [rise, hold, fall] = [5, 4, 6];
+  const length = rise + hold + fall;
+  oneShot(audio, { volume }, length + 2, (out, t) => {
+    const ctx = audio.context;
+    const horn = new OscillatorNode(ctx, { type: 'square', frequency: 160 });
+    horn.frequency.setValueAtTime(160, t);
+    horn.frequency.linearRampToValueAtTime(430, t + rise);
+    horn.frequency.setValueAtTime(430, t + rise + hold);
+    horn.frequency.linearRampToValueAtTime(150, t + length);
+    const envelope = new GainNode(ctx, { gain: 0 });
+    envelope.gain.setValueAtTime(0, t);
+    envelope.gain.linearRampToValueAtTime(0.3, t + rise);
+    envelope.gain.setValueAtTime(0.3, t + rise + hold);
+    envelope.gain.linearRampToValueAtTime(0, t + length);
+    const wind = new GainNode(ctx, { gain: 0.8 });
+    const gust = new OscillatorNode(ctx, { frequency: 0.23 });
+    gust.connect(new GainNode(ctx, { gain: 0.2 })).connect(wind.gain);
+    horn.connect(new BiquadFilterNode(ctx, { type: 'lowpass', frequency: 1100 })).connect(envelope).connect(wind).connect(out);
+    wind.connect(new DelayNode(ctx, { delayTime: 0.8 })).connect(new GainNode(ctx, { gain: 0.3 })).connect(out);
+    [horn, gust].forEach((node) => {
+      node.start(t);
+      node.stop(t + length + 0.1);
+    });
+  });
+}

@@ -11,6 +11,7 @@ This is the master plan for the story of Le Loyon. The other files in this folde
 | [05-forest-bunker.md](05-forest-bunker.md) | Forest, bunker, Marc, the three endings |
 | [06-documents.md](06-documents.md) | Every readable note, letter, clipping, and photo |
 | [07-scares.md](07-scares.md) | The anticipation beats, area by area |
+| [08-additions.md](08-additions.md) | New characters, interactions, puzzles, and steps, with build batches |
 | [research.md](research.md) | Fact-check with sources, and what changed |
 
 ## The story in one paragraph

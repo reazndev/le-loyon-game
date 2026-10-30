@@ -6,6 +6,8 @@ import type { LevelKit } from '../../game/kit/levelKit';
 export const ROOM = { halfW: 2.2, halfD: 1.9, height: 2.5 };
 export const WINDOW = { x0: 0.55, x1: 1.45, y0: 0.95, y1: 2.05 };
 export const DESK = { x: -0.9, z: -1.55, top: 0.74 };
+/** The phone on the west wall. */
+export const PHONE = { x: -ROOM.halfW + 0.04, y: 1.3, z: -0.4 };
 /** Middle of the CRT's glass, where the player looks when seated. */
 export const SCREEN = { x: DESK.x, y: DESK.top + 0.14 + 0.2, z: DESK.z + 0.13 };
 
@@ -202,7 +204,7 @@ export function doorSide(kit: LevelKit, actions: { onDoor: () => void; onCoat: (
   kit.hotspot({ prompt: 'Look at the bag', radius: 0.5, onInteract: actions.onBag }).at(0.45, 0, z - 0.75);
 }
 
-/** A shelf of books and the phone on the wall, which does not ring. */
+/** A shelf of books and the phone on the wall. */
 export function westWall(kit: LevelKit): void {
   const x = -ROOM.halfW + 0.16;
   kit.box({ w: 0.3, h: 1.4, d: 0.9 }).texture('wood_planks', { tile: 0.8 }).color(0x6a5038).at(x, 0, 0.6).collider();
@@ -213,6 +215,6 @@ export function westWall(kit: LevelKit): void {
       kit.box({ w: 0.18, h: height, d: 0.05 }).color(colors[(i + row * 2) % colors.length]!).at(x, y, 0.25 + i * 0.1);
     }),
   );
-  kit.box({ w: 0.08, h: 0.22, d: 0.12 }).color(0xcfc6ac).at(-ROOM.halfW + 0.04, 1.3, -0.4);
-  kit.box({ w: 0.05, h: 0.18, d: 0.05 }).color(0xbab198).at(-ROOM.halfW + 0.1, 1.32, -0.4);
+  kit.box({ w: 0.08, h: 0.22, d: 0.12 }).color(0xcfc6ac).at(PHONE.x, PHONE.y, PHONE.z);
+  kit.box({ w: 0.05, h: 0.18, d: 0.05 }).color(0xbab198).at(PHONE.x + 0.06, PHONE.y + 0.02, PHONE.z);
 }

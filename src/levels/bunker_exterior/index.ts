@@ -1,3 +1,4 @@
+import { suddenLife } from '../../game/ambient';
 import { BoxGeometry, CylinderGeometry, TorusGeometry, type BufferGeometry } from 'three';
 import type { LevelKit } from '../../game/kit/levelKit';
 import { scareDirector, type ScareDirector } from '../../game/scares/director';
@@ -7,12 +8,14 @@ import { lookPoint, type Markers } from '../forest_path/beats';
 import { lostInTheFog } from '../forest_path/lost';
 import { playNode } from '../forest_path/play';
 import { handText, scrawl } from '../forest_path/scrawl';
-import { unspent } from '../forest_path/spent';
 import { isNight, storyPhase, type StoryPhase } from '../forest_path/story';
 import { distanceToTrails, type Trail } from '../forest_path/trail';
 import { scatter } from '../../game/kit/scatter';
 import { dressClearing, keepClear } from './debris';
 import { hints } from './hints';
+import { sirenWail } from './sounds';
+import { decoy, decoySighting } from '../../game/scares/decoys';
+import { oncePerGame, unspent } from '../forest_path/spent';
 import {
   enclose,
   fallenLog,
@@ -33,8 +36,8 @@ import {
   type Area,
 } from '../forest_path/woods';
 import { nightMist } from '../../game/ambient/mist';
-
 import { nightSky } from '../../game/ambient/sky';
+
 /**
  * La grange du Bois-Noir. A clearing with the 1940s fort dressed as a hay barn. Behind it an
  * animal track climbs past the escape hatch to a thicket; on day 3 the way goes on to the larch.
@@ -68,6 +71,9 @@ const calm = (x: number, z: number) => Math.min(distanceToTrails(trails, x, z), 
 const height = woodsHeight(slope, calm);
 const FLOOR = slope(FORT.x, FRONT);
 const DOOR = { x: 0.2, z: FRONT - 0.3 };
+/** The last post standing past the end of the old wire west of the approach, with a coat left on it. */
+const COAT = { x: -6.2, z: 7.5, yaw: 100 };
+const atCoat = (x: number, z: number) => Math.hypot(x - COAT.x, z - COAT.z) < 1.8;
 
 export const markers = {
   for1_cup: {
@@ -91,7 +97,8 @@ const CUP_DELAY = 4;
 
 /**
  * The clearing's beats. Night 1 at the wedged door: a tin cup set down inside, once. Day 3 at
- * the hatch: the worn path, and silence. Nights have the random sounds of the forest.
+ * the hatch: the worn path, and silence. The coat on the post by the approach reads as a man,
+ * once. Nights have the random sounds of the forest.
  */
 function stageFort(kit: LevelKit, ctx: SceneContext, phase: StoryPhase): ScareDirector {
   const cup = markers.for1_cup;
@@ -110,6 +117,9 @@ function stageFort(kit: LevelKit, ctx: SceneContext, phase: StoryPhase): ScareDi
           if: { count: [['day', '==', 3], ['night', '==', 0]] },
           do: [{ silence: 9 }],
         },
+        decoySighting('coat', 'coat_on_post', { ...COAT, y: height(COAT.x, COAT.z) }),
+        // The first day visit: a siren test far down in the valley, while the clearing is quiet.
+        ...(isNight(phase) ? [] : [oncePerGame({ id: 'ext_siren', when: { after: 6 }, do: [{ run: () => sirenWail(ctx.audio) }] })]),
       ]),
       isNight(phase) ? { random: { surface: 'grass' } } : {},
     ),
@@ -128,6 +138,7 @@ export const bunkerExteriorScene = defineScene({
   atmosphere: forestAtmosphere,
 
   build(kit, ctx) {
+    suddenLife(kit, ctx, 'forest');
     const phase = storyPhase(ctx.state);
     kit.ground('grass', 0);
     forestFloor(kit, area, height);
@@ -135,7 +146,7 @@ export const bunkerExteriorScene = defineScene({
     trailStrip(kit, track, 0.8, height);
 
     const onTrail = (x: number, z: number) => distanceToTrails(trails, x, z) < 2.6;
-    const clear = (x: number, z: number) => onTrail(x, z) || inClearing(x, z) < 1.5 || Math.hypot(x - HATCH.x, z - HATCH.z) < 2.5;
+    const clear = (x: number, z: number) => onTrail(x, z) || inClearing(x, z) < 1.5 || Math.hypot(x - HATCH.x, z - HATCH.z) < 2.5 || atCoat(x, z);
     const near = (x: number, z: number) => calm(x, z) < 10;
     const spruceClear = (x: number, z: number) => calm(x, z) < 4.2;
     woodland(kit, { area, seed: 'fort', avoid: clear, near, spruceClear, spruce: 480, beech: 60, birch: 6, distant: 1200 });
@@ -145,7 +156,7 @@ export const bunkerExteriorScene = defineScene({
       distanceToTrails(trails, x, z) < inner || inClearing(x, z) < 0.5 || calm(x, z) > outer || Math.hypot(x - HATCH.x, z - HATCH.z) < 2;
     const props = keepClear(approach, track);
     undergrowth(kit, area, { seed: 'fort-low', count: 800, mix: lowPlants, spacing: 0.75, avoid: (x, z) => offTrail(1.2, 9)(x, z) || props.low(x, z) });
-    undergrowth(kit, area, { seed: 'fort-tall', count: 900, mix: tallPlants, spacing: 1, avoid: (x, z) => offTrail(2, 14)(x, z) || props.tall(x, z) || props.low(x, z) });
+    undergrowth(kit, area, { seed: 'fort-tall', count: 900, mix: tallPlants, spacing: 1, avoid: (x, z) => offTrail(2, 14)(x, z) || props.tall(x, z) || props.low(x, z) || atCoat(x, z) });
     mossPatches(kit, height, scatter({ ...area, count: 90, seed: 'fort-moss', spacing: 2.4, avoid: offTrail(1.4, 10) }));
     [
       [-7, 7, 0.6],
@@ -156,6 +167,7 @@ export const bunkerExteriorScene = defineScene({
     ].forEach(([x, z, size], i) => rock(kit, x!, z!, size!, `fort-rock-${i}`));
     fallenLog(kit, -9, 12, 70, 4);
     fallenLog(kit, 11, 10, -20, 3.5);
+    decoy(kit, 'coat_on_post', COAT);
 
     const scares = stageFort(kit, ctx, phase);
     fort(kit, ctx, phase, scares);

@@ -41,6 +41,8 @@ const ARRIVE: Trail = [
   [-26, 10],
   [STAND.x, STAND.z],
 ];
+/** Behind the shelter, where the headlights pass as the bus comes down from the fountain. Yannick, looking at the newcomer. */
+const WATCHER = { x: BUS_STOP.x - 2.6, z: BUS_STOP.z + 2.2 };
 /** Seconds of nothing after the engine is gone, before the village sounds come back. */
 const SILENCE = 8;
 
@@ -146,6 +148,7 @@ export function arrival(kit: LevelKit, ctx: SceneContext, ambience: VillageAmbie
   let drive: Drive | null = null;
   let quietSince: number | null = null;
   let spoken = false;
+  const caught = inTheHeadlights(kit);
 
   const leave = async () => {
     await driver.character.walkTo(DRIVER.x - 0.6, STAND.z + 1.4);
@@ -164,6 +167,7 @@ export function arrival(kit: LevelKit, ctx: SceneContext, ambience: VillageAmbie
     if (!drive.done) {
       const p = drive.step(dt, bus);
       engine.moveTo({ x: p.x, y: 0.8, z: p.z });
+      caught(bus, dt);
       // Past the last houses the fog has it; the engine carries on down the valley for a long time.
       if (p.x < -40 && quietSince === null) {
         bus.object.visible = false;
@@ -176,6 +180,39 @@ export function arrival(kit: LevelKit, ctx: SceneContext, ambience: VillageAmbie
       ambience.begin();
     }
   });
+}
+
+/**
+ * Someone standing behind the bus shelter, there only while the bus's lights sweep over them and
+ * gone a second later. Returns the per-frame check, given the moving bus.
+ */
+function inTheHeadlights(kit: LevelKit): (bus: Placed, dt: number) => void {
+  const figure = kit
+    .group((g) => {
+      g.box({ w: 0.5, h: 1.3, d: 0.3 }).color(0x34322e).at(0, 0.2, 0);
+      g.cylinder({ r: 0.11, h: 0.26, sides: 6 }).color(0x2a2826).at(0, 1.5, 0);
+    })
+    .at(WATCHER.x, 0, WATCHER.z)
+    .dynamic();
+  figure.object.visible = false;
+  const glare = kit.light({ color: 0xfff0c8, intensity: 0, range: 3.5 }).at(WATCHER.x + 0.8, 1.2, WATCHER.z - 1.2);
+  let lit = -1;
+  return (bus, dt) => {
+    if (lit < 0) {
+      const { x, z } = bus.object.position;
+      const heading = bus.object.rotation.y;
+      const toward = Math.atan2(WATCHER.x - x, WATCHER.z - z);
+      const off = Math.abs(Math.atan2(Math.sin(toward - heading), Math.cos(toward - heading)));
+      if (off > 0.2 || Math.hypot(WATCHER.x - x, WATCHER.z - z) > 22) return;
+      lit = 0;
+      figure.object.visible = true;
+    }
+    if (lit > 1.1) return;
+    lit += dt;
+    const on = lit <= 1.1;
+    figure.object.visible = on;
+    if (glare.light) glare.light.intensity = on ? 1.6 : 0;
+  };
 }
 
 /**

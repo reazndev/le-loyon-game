@@ -10,14 +10,16 @@ import { furnish } from './furnishings';
 import { hints } from './hints';
 import { buildNave, SAT_IN_CONFESSIONAL } from './nave';
 import { placeAbbe } from './overney';
+import { churchScares } from './scares';
 import { buildSacristy } from './sacristy';
 import { buildShell } from './shell';
+import { buildHarmonium, placeSimone } from './simone';
 import { towerBell, towerClick, woodCreak } from './sounds';
 import { startle } from '../../game/scares/startles';
 
 /**
- * Église Saint-Maurice. The nave, the Virgin's side altar, the confessional, the sacristy with
- * the register cupboard (P2), and the parish office. The quietest place in the game: a lamp's
+ * Église Saint-Maurice. The nave, the Virgin's side altar, the confessional, Simone's harmonium,
+ * the sacristy with the register cupboard (P2), and the parish office. The quietest place in the game: a lamp's
  * hum and the tower clock. By day only, in the story; at night it is locked.
  */
 
@@ -56,10 +58,12 @@ export const churchScene = defineScene({
       buildShell(still, night);
       buildNave(still, ctx);
       furnish(still);
+      buildHarmonium(still);
     });
     kit.batch((still) => buildSacristy(still, ctx, night));
     churchAmbient(kit, ctx, night);
     placeAbbe(kit, ctx);
+    const simoneBeats = placeSimone(kit, ctx);
     hints(kit, ctx);
     if (overneySpot(ctx.state) === 'nave' && !ctx.state.hasFlag('chu_after_mass')) lastOutOfMass(kit, ctx);
 
@@ -76,6 +80,7 @@ export const churchScene = defineScene({
       heard = ctx.time;
     });
 
+    const scares = churchScares(kit, ctx);
     // chu_confessional: after sitting, a long quiet, then someone shifts their weight on the priest's side.
     kit.use(
       scareDirector([
@@ -87,6 +92,8 @@ export const churchScene = defineScene({
           do: [{ silence: 22 }, { after: 20, run: () => woodCreak(ctx.audio, { x: CONFESSIONAL.x, y: 1.2, z: CONFESSIONAL.z }) }],
           set: 'chu_confessional',
         },
+        ...simoneBeats,
+        ...scares,
       ]),
     );
   },

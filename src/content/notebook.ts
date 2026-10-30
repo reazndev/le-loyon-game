@@ -39,8 +39,28 @@ followed. Bearers: Yerly, Dousse, Bapst, Menoud.`,
   odile_talked: {
     text: "BN, twice a week, all year. Bois-Noir? 'D.M. knows.' Daniel Menoud. 'Confession' in November. 'Happy new year, my boy.'",
   },
+  knows_brodard: {
+    text: "Marc's coffin 'from France' had a carpenter's plate on it. Brodard, Vauchy. There's a directory in the phone box.",
+  },
+  brodard_called: {
+    text: "Brodard, Vauchy. Gremaud bought the coffin himself. Pine, lid loose, he took the screws. 'You don't forget the ones you make for nobody.'",
+  },
+  josiane_letters: {
+    text: "The postwoman: letters from France to the syndic, twice a year for years. Calvi. Then September '95, the French army, recorded. Then nothing.",
+  },
+  cellar_code_hint: { text: "The Chassot cellar padlock: Marc's birthday, day and month. The church books." },
+  opened_cellar: {
+    text: 'The Chassot cellar. Potatoes taken, jam gone, a candle in a jam jar. An army blanket stenciled BOIS-NOIR. Somebody lives off this house.',
+  },
+  minet_returned: {
+    text: "Thérèse, the week before she died: Marc's step in the garden. 'He drags it now.' Stef's man limps.",
+  },
+  josiane_letterbox: { text: 'Somebody empties the Chassot letterbox.' },
   suspects_empty_coffin: { text: "Marc Chassot's coffin. Sealed, from the syndic. Nobody saw inside. What was in it?" },
   found_hidden_door: { text: 'A steel door behind a cupboard. K.P. 3. Locked. Candle smoke.' },
+  read_logbook_reply: { if: { flag: 'logbook_wrote_harm' }, text: "The logbook. 'ALORS FRAPPEZ.' Then knock." },
+  // The notebook keeps one entry per key, so the other answer is keyed on the line the reporter wrote.
+  logbook_wrote_who: { if: { flag: 'read_logbook_reply' }, text: "The logbook. 'PERSONNE. C'EST ÉCRIT SUR LA PIERRE.'" },
   read_gremaud_letter: {
     text: `Gremaud. He knew. The coffin was empty from the start.
 "K.P. 3." The room at the end of the fort.
@@ -48,6 +68,7 @@ Knock three times, wait, then once.
 Bread. The larch above the fort.
 CHALLAND M. Who is Challand?`,
   },
+  read_chart_larch: { text: 'Fort chart: the larch is reference point 3. Keep right of the boulder.' },
   found_forest_grave: {
     text: 'Gremaud is under the larch. Someone buried him and marked it. Someone close enough to come up here every day.',
   },
@@ -80,6 +101,8 @@ export const notebookGoals: NotebookGoal[] = [
   { if: { count: night(1), notFlag: ['first_sighting', 'skipped_follow', 'found_bunker'] }, text: 'Stay a while. Watch the trees past the back wall.' },
   { if: { count: night(1), notFlag: ['found_bunker', 'skipped_follow'] }, text: 'Follow him into the forest, out through the back gate.', to: 'forest_path' },
   { if: { count: night(1) }, text: 'Go back to the inn and sleep in room 3.', to: 'inn' },
+  { if: { count: day(2), flag: 'has_burials_book' }, text: 'Put the burials books back in the sacristy cupboard and read 1995.', to: 'church' },
+  { if: { count: day(2), flag: 'saw_register_gap', notFlag: 'read_register' }, text: 'The burials books are in the parish office. Ask the sacristan for them.', to: 'church', who: 'simone' },
   { if: { count: day(2), notFlag: 'read_register' }, text: 'Go to the church after morning mass and ask the priest to see the register.', to: 'church', who: 'overney' },
   { if: { count: day(2), notFlag: ['suspects_empty_coffin', 'odile_talked'] }, text: "Visit the syndic's widow at the Gremaud house.", to: 'house_gremaud_kitchen', who: 'odile' },
   { if: { count: day(2), notFlag: 'suspects_empty_coffin' }, text: 'Ask the farmer at the Yerly farm about the coffin he carried.', to: 'yerly_farm', who: 'bernard' },

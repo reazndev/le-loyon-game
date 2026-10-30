@@ -173,3 +173,17 @@ export function wireTick(audio: AudioManager, at: Point3, volume = 0.3): void {
     if (Math.random() < 0.3) noiseBurst(audio, out, { start: t + 0.6, duration: 0.7, type: 'bandpass', frequency: 300 + Math.random() * 120, q: 12, gain: 0.25, attack: 0.3 });
   });
 }
+
+/**
+ * Old army wire catching a boot: barbs scraping cloth, the strand jerked taut with a dull ring,
+ * the rotted stake knocking in its hole.
+ */
+export function wireSnag(audio: AudioManager, at: Point3, volume = 1): void {
+  oneShot(audio, { at, volume }, 2, (out, t) => {
+    noiseBurst(audio, out, { start: t, duration: 0.18, type: 'bandpass', frequency: 2400, q: 1.5, gain: 0.4, attack: 0.02 });
+    noiseBurst(audio, out, { start: t + 0.14, duration: 0.02, type: 'highpass', frequency: 3000, gain: 0.6 });
+    [410, 830, 1270, 2100].forEach((f, n) => tone(audio, out, { frequency: f, to: f * 0.97, start: t + 0.14, duration: 1.1 - n * 0.2, gain: 0.1 / (n + 1) }));
+    thump(audio, out, t + 0.2, 140, 0.4);
+    noiseBurst(audio, out, { start: t + 0.45, duration: 0.03, type: 'bandpass', frequency: 1700, q: 3, gain: 0.25 });
+  });
+}

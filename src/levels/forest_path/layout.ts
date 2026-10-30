@@ -165,4 +165,29 @@ export const markers = {
     ...along(main, 9),
     note: 'Night 3, on the way up: footsteps behind on the needles that stop one step after the player stops.',
   },
+  fp_wire_snag: {
+    beat: 'fp_wire_snag',
+    ...along(toFort, 17.5),
+    note: 'Once: old army wire trailing across the path at ankle height catches the boot. A clank, a stumble, the view dips.',
+  },
+  fp_cape: {
+    beat: 'decoy_cape',
+    ...beside(toStream, 28, 2.8),
+    note: 'A camo tarp snagged on a dead branch beside the stream path, a man standing there from the fork. Empty up close.',
+  },
+  fp_cape_seen_from: {
+    beat: 'decoy_cape',
+    ...along(toStream, 12),
+    note: 'Night, the stretch of the stream path where the snagged tarp first shows through the fog, 15 to 20 m on.',
+  },
+  fp_torch_stream: {
+    beat: 'fp_torch_stream',
+    ...along(toStream, 21),
+    note: 'Night, at the bridge: the torch dies for 3 s, a branch snaps by the tarp and two steps go off. The light comes back on the tarp.',
+  },
+  fp_torch_fort: {
+    beat: 'fp_torch_fort',
+    ...along(toFort, 24),
+    note: 'Night 3, near the fort: the torch dies, four slow steps go off through the spruce, and a branch sweeps the face as it catches.',
+  },
 } satisfies Markers;

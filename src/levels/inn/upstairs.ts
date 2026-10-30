@@ -8,7 +8,7 @@ import { playNode } from '../forest_path/play';
 import type { InnDressing } from './dressing';
 import { chair } from './furniture';
 import { floorAndCeiling, pendantLamp, skirting, wall, type Finish } from './interior';
-import { BED, CORRIDOR, CORRIDOR_DOORS, RADIATOR, ROOM3, ROOM3_DESK, ROOM3_DOOR, STAIRS, UPPER } from './layout';
+import { BED, CORRIDOR, CORRIDOR_DOORS, RADIATOR, ROOM3, ROOM3_COAT, ROOM3_DESK, ROOM3_DOOR, STAIRS, UPPER } from './layout';
 
 /** The stairs, the upstairs corridor with its doors, and room 3 under the roof. */
 
@@ -110,6 +110,10 @@ function room3(kit: LevelKit, ctx: SceneContext, dressing: InnDressing, props: R
   kit.box({ w: 0.7, h: 0.04, d: 0.5 }).texture('wood_planks', { tile: 0.6 }).color(0x6a4e36).at(ROOM3_DESK.x, UPPER + 0.72, ROOM3_DESK.z).collider();
   [-0.3, 0.3].forEach((dx) => [-0.2, 0.2].forEach((dz) => kit.box({ w: 0.04, h: 0.72, d: 0.04 }).color(0x4a3626).at(ROOM3_DESK.x + dx, UPPER, ROOM3_DESK.z + dz)));
   chair(kit, ROOM3_DESK.x, ROOM3_DESK.z + 0.6, 0);
+  // The reporter's coat on a hook by the door, its shoulders at about head height.
+  kit.box({ w: 0.04, h: 0.04, d: 0.08 }).color(0x3a2a1c).at(ROOM3_COAT.x - 0.08, ROOM3_COAT.y + 0.5, ROOM3_COAT.z);
+  kit.box({ w: 0.14, h: 0.95, d: 0.46 }).color(0x2e2c28).at(ROOM3_COAT.x, ROOM3_COAT.y - 0.5, ROOM3_COAT.z);
+  kit.box({ w: 0.12, h: 0.16, d: 0.22 }).color(0x2a2824).at(ROOM3_COAT.x, ROOM3_COAT.y + 0.42, ROOM3_COAT.z);
   // A wardrobe by the door.
   kit.box({ w: 0.9, h: 1.9, d: 0.55 }).texture('wood_planks', { tile: 0.9 }).color(0x4e3a2a).at(x0 + 0.5, UPPER, z1 - 0.35).rotY(90).collider();
 

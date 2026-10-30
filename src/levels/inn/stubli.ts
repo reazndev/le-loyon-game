@@ -1,3 +1,4 @@
+import type { LightBuilder, MeshBuilder } from '../../game/kit/builders';
 import type { LevelKit } from '../../game/kit/levelKit';
 import { fogWindow } from '../../game/kit/windows';
 import { darkOutside, type InnDressing } from './dressing';
@@ -23,7 +24,13 @@ export interface StubliProps {
   useComputer: () => void;
 }
 
-export function buildStubli(kit: LevelKit, dressing: InnDressing, props: StubliProps): void {
+/** Yannick's monitor and the light it throws, for the night it dials out by itself. */
+export interface Monitor {
+  screen: MeshBuilder;
+  light: LightBuilder;
+}
+
+export function buildStubli(kit: LevelKit, dressing: InnDressing, props: StubliProps): Monitor {
   const { x0, x1, z0, z1, h } = STUBLI;
   const night = darkOutside(dressing);
   wall(kit, [x0, z0], [x1, z0], h, WOOD_PANELS);
@@ -61,18 +68,19 @@ export function buildStubli(kit: LevelKit, dressing: InnDressing, props: StubliP
   kit.box({ w: 0.01, h: 0.5, d: 0.34 }).texture('tiles_white', { tile: 0.4 }).color(0xd0c8b0).at(x0 + 0.09, 1.2, z1 - 0.6);
   kit.box({ w: 0.012, h: 0.16, d: 0.34 }).color(0x8a2a24).at(x0 + 0.09, 1.56, z1 - 0.6);
 
-  computerDesk(kit, dressing, props.useComputer);
+  const monitor = computerDesk(kit, dressing, props.useComputer);
   pendantLamp(kit, { x: x0 + 2.2, y: h, z: z0 + 1.2 }, { on: !night, intensity: 1.5, range: 5, drop: 0.45 });
+  return monitor;
 }
 
 /** The desk, the yellowed 14-inch monitor, the tower, the keyboard, the cup, and the chair. */
-function computerDesk(kit: LevelKit, dressing: InnDressing, use: () => void): void {
+function computerDesk(kit: LevelKit, dressing: InnDressing, use: () => void): Monitor {
   const { x, z, top } = DESK;
   kit.box({ w: 0.62, h: 0.04, d: 1.25 }).texture('wood_planks', { tile: 0.6 }).color(0x6a5040).at(x, top - 0.04, z).collider();
   kit.box({ w: 0.6, h: top - 0.04, d: 0.04 }).color(0x4a3628).at(x, 0, z - 0.6);
   kit.box({ w: 0.6, h: top - 0.04, d: 0.04 }).color(0x4a3628).at(x, 0, z + 0.6);
   kit.box({ w: 0.4, h: 0.33, d: 0.38 }).color(CASE).at(x - 0.08, top, z);
-  kit.box({ w: 0.04, h: 0.25, d: 0.3 }).color(dressing.night ? 0x10181a : 0x40607a).unlit().at(SCREEN.x, top + 0.05, z);
+  const screen = kit.box({ w: 0.04, h: 0.25, d: 0.3 }).color(dressing.night ? 0x10181a : 0x40607a).unlit().at(SCREEN.x, top + 0.05, z);
   kit.box({ w: 0.16, h: 0.05, d: 0.44 }).color(0xbab090).at(x + 0.24, top, z);
   kit.box({ w: 0.42, h: 0.38, d: 0.18 }).color(CASE).at(x, 0, z + 0.38);
   kit.box({ w: 0.13, h: 0.04, d: 0.2 }).color(0x3a3a38).at(x + 0.1, top, z - 0.32);
@@ -85,6 +93,7 @@ function computerDesk(kit: LevelKit, dressing: InnDressing, use: () => void): vo
   }
   // The screen glows; on the third evening it's the only light in the room.
   kit.glow(0.6, 0x203040).at(SCREEN.x + 0.12, SCREEN.y, z);
-  kit.light({ color: 0x7a9ab8, intensity: dressing.eveningThree ? 1.2 : 0.5, range: 3 }).at(SCREEN.x + 0.6, SCREEN.y, z);
+  const light = kit.light({ color: 0x7a9ab8, intensity: dressing.eveningThree ? 1.2 : 0.5, range: 3 }).at(SCREEN.x + 0.6, SCREEN.y, z);
   kit.hotspot({ prompt: 'Use the computer', radius: 0.55, onInteract: use }).at(x + 0.8, 0, z);
+  return { screen, light };
 }

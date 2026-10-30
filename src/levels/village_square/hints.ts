@@ -2,7 +2,7 @@ import type { Condition, CountTest } from '../../game/conditions';
 import type { LevelKit } from '../../game/kit/levelKit';
 import { nextStep } from '../../game/notebook';
 import type { SceneContext } from '../../game/scene';
-import { BUS_STOP, CHURCH_DOOR, churchLane, GREMAUD_GATE } from './layout';
+import { BUS_STOP, CHURCH_DOOR, churchLane, GREMAUD_GATE, PHONE_BOX } from './layout';
 
 /** Day `n` before nightfall, as the notebook goals count it. */
 export const day = (n: number): CountTest[] => [['day', '==', n], ['night', '==', 0]];
@@ -57,6 +57,7 @@ export function hints(kit: LevelKit, ctx: SceneContext): void {
   kit.hint('Locked at night. The lane up the hill is on its west side.', { near: near(CHURCH_DOOR, 3), when: night });
   kit.hint('Follow the gravel lane north, past the yellow sign, up the hill.', { near: laneFoot, when: headingUpTheHill(ctx) });
   kit.hint('Go through the gate to the front door.', { near: near(GREMAUD_GATE, 3), when: headingTo(ctx, 'house_gremaud_kitchen') });
+  kit.hint('The phone box is by the Gremaud lane.', { if: { flag: ['knows_brodard', 'has_taxcard'], notFlag: 'brodard_called', count: [['night', '==', 0]] }, point: PHONE_BOX });
   kit.hint('Cross the square past the fountain. The inn is on the east side.', { if: { notFlag: 'inn_checked_in' }, near: near(BUS_STOP, 5) });
   ways(kit, ctx, 'village_square');
 }

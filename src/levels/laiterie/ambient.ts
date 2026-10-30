@@ -1,6 +1,6 @@
 import type { LevelKit } from '../../game/kit/levelKit';
 import type { SceneContext } from '../../game/scene';
-import { distantTraffic, dustMotes, loop, miceInTheWalls, nowAndThen, particles, sway, weather } from '../../game/ambient';
+import { distantTraffic, dustMotes, loop, miceInTheWalls, nowAndThen, particles, suddenLife, sway, weather } from '../../game/ambient';
 import { rain } from '../../game/ambient/sounds';
 import { radiatorKnock } from '../inn/sounds';
 import { RADIATOR, WINDOW_LIGHT } from './clutter';
@@ -14,6 +14,7 @@ import { WALL } from '../inn/interior';
  * the radiator, and at night something in the dairy wall.
  */
 export function laiterieAmbient(kit: LevelKit, ctx: SceneContext, night: boolean): void {
+  suddenLife(kit, ctx, 'indoors');
   secondHand(kit, { x: CLOCK.x, y: CLOCK.y, z: ROOM.z0 + WALL / 2 + 0.072 }, 0.13);
   flypaper(kit, MILK_COUNTER.x + 0.6, MILK_COUNTER.z + 1.3);
 

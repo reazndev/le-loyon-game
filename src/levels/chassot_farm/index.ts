@@ -15,7 +15,9 @@ import { road } from '../village_square/road';
 import { chassotAmbient } from './ambient';
 import { candleAlong, gapGlow } from './candle';
 import { garden, GARDEN } from './garden';
+import { cellarHatch } from './hatch';
 import { hints } from './hints';
+import { kollyHouse, purrWhileCarried } from './kolly';
 
 /**
  * Ferme Chassot, where Marc grew up. Shuttered and nailed since his mother died in 1996, the
@@ -39,6 +41,8 @@ export const chassotFarmScene = defineScene({
   spawns: {
     default: { x: 29, z: 6, yaw: 95 },
     from_square: { x: 29, z: 6, yaw: 95 },
+    // On the trodden path beside the cellar hatch, facing the road.
+    from_cellar: { x: 6.3, z: -2.2, yaw: 180 },
   },
   atmosphere: villageAtmosphere,
 
@@ -75,6 +79,9 @@ export const chassotFarmScene = defineScene({
       still.box({ w: 0.6, h: 0.08, d: 0.032 }).color(0x8a2a24).at(2.2, 0.12, HOUSE.z + HOUSE.d / 2 + 1.5).rotY(18).object.rotation.x = -1.35;
     });
     kit.hotspot({ prompt: 'Look at the house', radius: 1, onInteract: () => ctx.dialogue(dialogues.door_chassot_farm) }).at(0, 0, HOUSE.z + HOUSE.d / 2 + 0.9);
+    cellarHatch(kit, ctx, HOUSE, isNight(phase));
+    kollyHouse(kit, ctx, isNight(phase));
+    purrWhileCarried(kit, ctx);
 
     if (phase === 'night3') candleBehindTheBoards(kit, ctx, gaps);
     if (isNight(phase)) kit.use(scareDirector([], { random: { surface: 'grass' } }));

@@ -1,10 +1,13 @@
+import type { Point3 } from '../../engine/audio/audioManager';
 import type { CharacterId } from '../../engine/characters/cast';
 import type { Waypoint } from '../../engine/characters/motion';
 import { containsPoint, type Shape, type Vec2 } from '../../engine/physics/collision';
 import type { Surface } from '../../engine/physics/ground';
+import type { BrushKind } from '../../engine/ui/overlay';
 import { check, type Condition, type StateView } from '../conditions';
 import type { SceneContext } from '../scene';
 import type { SoundId } from './sounds';
+import type { StartleKind } from './startles';
 
 /** A circle or a rectangle on the ground, centered on (x, z). */
 export type Zone = Vec2 & ({ r: number } | { w: number; d: number });
@@ -72,6 +75,12 @@ export type ScareAction = { after?: number } & (
   | { fog: { far?: number; density?: number; seconds: number; fade?: number } }
   /** The loud hit of a real jumpscare. Default `sfx_hit`. */
   | { stinger: SoundId | true; at?: Place }
+  /** An animal going off at `from`: seen and heard, see startles.ts. */
+  | { startle: StartleKind; from: Point3 }
+  /** The torch stutters and dies for this many seconds, then catches again. Nothing if it is off. */
+  | { torch: number }
+  /** A branch sweeps across the reporter's face, or they walk into a cobweb. */
+  | { brush: BrushKind }
   /** Anything else, such as a dialogue. */
   | { run: (ctx: SceneContext) => void | Promise<void> }
 );

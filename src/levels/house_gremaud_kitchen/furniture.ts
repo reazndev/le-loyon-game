@@ -1,12 +1,13 @@
+import type { Placed } from '../../game/kit/builders';
 import type { LevelKit } from '../../game/kit/levelKit';
 import { pendantLamp } from '../inn/interior';
-import { CLOCK, COUNTER, DRESSER, FRIDGE, HER_CHAIR, HIS_CHAIR, NIGHT_LAMP, NORTH, PENDANT, ROOM, STOVE, TABLE, WEST, WINDOW } from './layout';
+import { CLOCK, COUNTER, DRESSER, FRIDGE, HER_CHAIR, NIGHT_LAMP, NORTH, PENDANT, ROOM, STOVE, TABLE, WEST, WINDOW } from './layout';
 
 const PINE = 0x8a6a48;
 const ENAMEL = 0xc6bea6;
 const IRON = 0x1e1d1b;
 
-/** The stove, the sink, the dresser, the fridge, the table and its two chairs, and the lamps. */
+/** The stove, the sink, the dresser, the fridge, the table and her chair, and the lamps. His chair moves, so the scene builds it. */
 export function buildFurniture(kit: LevelKit, night: boolean): void {
   stove(kit);
   sink(kit);
@@ -14,7 +15,6 @@ export function buildFurniture(kit: LevelKit, night: boolean): void {
   fridge(kit);
   table(kit);
   chair(kit, HER_CHAIR.x, HER_CHAIR.z, HER_CHAIR.yaw);
-  chair(kit, HIS_CHAIR.x, HIS_CHAIR.z, HIS_CHAIR.yaw);
   wallClock(kit);
   pendantLamp(kit, { x: PENDANT.x, y: ROOM.h, z: PENDANT.z }, { on: !night, intensity: 1.3, range: 5, drop: 0.28 });
   if (night) nightLamp(kit);
@@ -100,8 +100,8 @@ function table(kit: LevelKit): void {
 }
 
 /** A kitchen chair with a cushion. `yaw` is the way the sitter faces. */
-function chair(kit: LevelKit, x: number, z: number, yaw: number): void {
-  kit
+export function chair(kit: LevelKit, x: number, z: number, yaw: number): Placed {
+  const placed = kit
     .group((g) => {
       g.box({ w: 0.42, h: 0.04, d: 0.42 }).color(0x6a4e34).at(0, 0.42, 0);
       g.box({ w: 0.36, h: 0.04, d: 0.36 }).color(0x6a3a30).at(0, 0.46, -0.01);
@@ -112,6 +112,7 @@ function chair(kit: LevelKit, x: number, z: number, yaw: number): void {
     .at(x, 0, z)
     .rotY(yaw);
   kit.barrier({ r: 0.24 }).at(x, 0, z);
+  return placed;
 }
 
 /** A round kitchen clock with a cream face, between the window and the fridge. */

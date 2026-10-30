@@ -66,6 +66,11 @@ export class LightingRig {
     this.points.delete(light);
   }
 
+  /** The torch's loose contact gives out for `seconds`, if it is on. */
+  torchOut(seconds: number): void {
+    if (this.flashlightOn) this.fault.dropout(seconds);
+  }
+
   /** Points the flashlight from the given origin along the given direction. */
   aimFlashlight(origin: Vector3, direction: Vector3): void {
     ps1Uniforms.uSpotPos.value.copy(origin);

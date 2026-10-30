@@ -43,16 +43,16 @@ The level code places most beats as fixed triggers. A small director adds random
 | Setting | Value |
 |---|---|
 | Random sound events | Only outdoors at night and in the bunker |
-| Minimum gap between random events | 75 s |
-| Chance per eligible 10 s window | 6% |
-| Pool | `sfx_step_other` (40%), `sfx_branch` (35%), silence drop for 8 s (20%), `sfx_breath_mask` (5%, at most once per night) |
-| Blocked | During dialogue, during Raymond's approach, for 60 s after a fixed beat, inside the inn and the church |
+| Minimum gap between random events | 40 s |
+| Chance per eligible 10 s window | 15% |
+| Pool | `sfx_step_other` (35%), `sfx_branch` far off (30%), `sfx_branch` cracking 4 to 6 m away with a jolt (20%), silence drop for 8 s (15%), `sfx_breath_mask` (5%, at most once per night) |
+| Blocked | During dialogue, during Raymond's approach, for 30 s after a fixed beat, inside the inn and the church |
 
 A random footstep never repeats more than twice in a row and always stops when the player stops, one step late. That one step late is the point.
 
 ## The jumpscares
 
-Only these three. Each has a loud sound hit. Nothing else in the game has one.
+These three are the only scripted jumpscares with the `sfx_hit` stinger. Between them, startles from animals and loud cracks go off often and flash the frame when they are close: see Startles in [../ambient.md](../ambient.md).
 
 ### Jumpscare 1: the dog (night 1, cemetery)
 

@@ -115,6 +115,28 @@ export const items = {
     name: 'Photo 7: the treeline',
     description: 'Mostly black. One gravestone in the flash. Far back between the spruces, a pale oval at head height.',
   },
+  burials_book: {
+    name: 'Burials books, green',
+    description: 'Three green ledgers, heavy as bricks. Too heavy to read standing up. They go back in the cupboard.',
+  },
+  bulletin_november: {
+    name: 'Parish bulletin, November',
+    description: "Still warm from the printer. Saturday's mass for the dead of the month.",
+    document: 'doc_bulletin_november',
+  },
+  ruth_note: {
+    name: 'Card from Ruth',
+    description: "A compliments slip from L'Écho, in Ruth's handwriting. It came with a film pack.",
+    document: 'doc_ruth_note',
+  },
+  taxcard: {
+    name: 'Taxcard',
+    description: 'A Swiss PTT phone card, ten francs. A picture of a mountain lake on the front.',
+  },
+  minet: {
+    name: 'Minet',
+    description: 'A tabby with white socks, inside my coat. Thin, furious, and purring.',
+  },
 } satisfies Record<string, Item>;
 
 export type ItemId = keyof typeof items;
@@ -127,6 +149,7 @@ export const strongEvidence = (Object.keys(items) as ItemId[]).filter(
 export const miscPhotoCaptions = {
   default: 'Leurs, November 98',
   chassot_garden: 'A garden nobody owns, kept by nobody.',
+  chassot_cellar: 'Somebody eats here.',
 };
 
 export const miscPhoto = (caption: string = miscPhotoCaptions.default): Item => ({ name: 'Photo', description: `"${caption}"` });

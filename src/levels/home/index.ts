@@ -6,6 +6,7 @@ import { defineScene, type Scene } from '../../game/scene';
 import { bed, desk, DESK, doorSide, rainStreaks, ROOM, SCREEN, walls, westWall, window } from './room';
 import { fridgeHum, rain } from '../../game/ambient/sounds';
 import { flatAmbience } from './ambience';
+import { lateNight } from './lateNight';
 import { clutter, curtains } from './clutter';
 import { computerHum } from './sounds';
 import { showTitleCard } from './titleCard';
@@ -80,6 +81,7 @@ export const homeScene: Scene = (() => {
       westWall(kit);
       clutter(kit);
       flatAmbience(kit, ctx, curtains(kit));
+      lateNight(kit, ctx);
       const ready = () => holds('pro_knows_village', ctx.state);
       doorSide(kit, {
         onDoor: () => (ready() ? void packAndGo() : void ctx.dialogue(dialogues.home_bag)),

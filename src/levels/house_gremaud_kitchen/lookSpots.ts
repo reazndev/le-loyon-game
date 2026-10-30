@@ -27,7 +27,9 @@ const spots: Spot[] = [
 
 /** The look hotspots, the clipping on the fridge, the living room door, and the diary while it is there. */
 export function placeLooks(kit: LevelKit, ctx: SceneContext, night: boolean, diaryThere: () => boolean): void {
-  const say = (lines: Look[]) => () => ctx.say(lines.map((look) => looks[look]));
+  // His chair reads differently once it has moved behind the player's back (kit_chair_moved).
+  const current = (look: Look): Look => (look === 'chair' && ctx.state.hasFlag('kit_chair_moved') ? 'chairMoved' : look);
+  const say = (lines: Look[]) => () => ctx.say(lines.map((look) => looks[current(look)]));
   spots.forEach((spot) => kit.hotspot({ prompt: spot.prompt, radius: spot.radius, onInteract: say(spot.say) }).at(spot.at.x, 0, spot.at.z));
 
   kit.hotspot({ prompt: 'Read the clipping', radius: 0.2, onInteract: () => ctx.readDocument('doc_odile_clipping') }).at(FRIDGE.x + 0.08, 0, NORTH + FRIDGE.d);

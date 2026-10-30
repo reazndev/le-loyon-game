@@ -1,4 +1,4 @@
-import { drips, dustMotes, miceInTheWalls, nowAndThen, particles, sway, weather } from '../../game/ambient';
+import { drips, dustMotes, miceInTheWalls, nowAndThen, particles, suddenLife, sway, weather } from '../../game/ambient';
 import type { LevelKit } from '../../game/kit/levelKit';
 import type { SceneContext } from '../../game/scene';
 import { LEAKS } from './clutter';
@@ -17,6 +17,7 @@ export const SHAFTS = [
  * dead, so nothing hums but the shafts.
  */
 export function fortAmbient(kit: LevelKit, ctx: SceneContext, night: boolean): void {
+  suddenLife(kit, ctx, 'indoors');
   particles(kit, dustMotes({ follow: true, box: [5, 2.4, 5], count: 45, opacity: 0.45, size: 0.013, seed: 'fort-torch' }));
   if (!night) particles(kit, dustMotes({ box: [1.6, 1.8, 4], count: 30, size: 0.012, opacity: 0.4, seed: 'fort-door' })).at(0, 1.1, -1.5);
   drips(kit, ctx, LEAKS, 3.4, 0.25);

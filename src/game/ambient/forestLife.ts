@@ -1,6 +1,7 @@
 import type { AudioManager, Point3, SoundHandle } from '../../engine/audio/audioManager';
 import type { LevelKit } from '../kit/levelKit';
 import type { SceneContext } from '../scene';
+import { animalCall } from './recordings';
 import { around, everyFrame, nowAndThen } from './schedule';
 
 /** Recordings in `public/assets/audio/forest/`. Sources in docs/credits.md. */
@@ -29,7 +30,11 @@ interface Caller {
   volume: number;
 }
 
-/** Autumn birds by day; at night the crickets have the forest to themselves. */
+/** Average seconds between the night owl's calls, and how long the other takes to answer. */
+const OWL_EVERY = 30;
+const OWL_ANSWER: [number, number] = [2, 5];
+
+/** Autumn birds by day; at night the crickets share the forest with a pair of owls. */
 const DAY_CALLS: Caller[] = [
   { name: 'robin', takes: 3, every: 25, distance: [12, 30], height: 4, volume: 0.35 },
   { name: 'wren', takes: 2, every: 45, distance: [10, 25], height: 1, volume: 0.3 },
@@ -38,14 +43,22 @@ const DAY_CALLS: Caller[] = [
 ];
 
 /**
- * Small life in the forest: crickets chirping on and on in the grass around the reporter, and by
- * day robins, a wren, a woodpecker drumming, and a jay's screech. Each cricket stops when the
- * reporter walks up to it and starts again once they have passed, like the real thing.
+ * Small life in the forest: crickets chirping on and on in the grass around the reporter, by day
+ * robins, a wren, a woodpecker drumming, and a jay's screech, and at night two owls calling to
+ * each other, one in the trees nearby and one further off. Each cricket stops when the reporter
+ * walks up to it and starts again once they have passed, like the real thing.
  */
 export function forestLife(kit: LevelKit, ctx: SceneContext): void {
   const night = ctx.state.time === 'night';
   (night ? NIGHT_SONGS : DAY_SONGS).forEach((song) => cricket(kit, ctx, song, night ? 0.5 : 0.3));
-  if (night) return;
+  if (night) {
+    nowAndThen(kit, ctx, OWL_EVERY, () => {
+      animalCall(ctx.audio, 'owl', { at: around(ctx, 15 + Math.random() * 15, 8), volume: 0.6 });
+      const answer = OWL_ANSWER[0] + Math.random() * (OWL_ANSWER[1] - OWL_ANSWER[0]);
+      setTimeout(() => animalCall(ctx.audio, 'owl', { at: around(ctx, 40 + Math.random() * 20, 10), volume: 0.4 }), answer * 1000);
+    }, 8);
+    return;
+  }
   DAY_CALLS.forEach((caller) =>
     nowAndThen(kit, ctx, caller.every, () => {
       const take = 1 + Math.floor(Math.random() * caller.takes);

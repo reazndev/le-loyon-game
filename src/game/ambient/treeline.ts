@@ -76,7 +76,7 @@ export function treeline(kit: LevelKit, ctx: SceneContext, options: TreelineOpti
 }
 
 /** A point `distance` meters away, off to one side of where the player looks, where they might just catch it. */
-function edgeOfSight(ctx: SceneContext, distance: number, y = 0.5): Point3 {
+export function edgeOfSight(ctx: SceneContext, distance: number, y = 0.5): Point3 {
   const forward = ctx.player.forward();
   const side = (Math.random() < 0.5 ? -1 : 1) * (0.5 + Math.random() * 0.8);
   const angle = Math.atan2(forward.x, forward.z) + side;

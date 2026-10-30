@@ -2,17 +2,19 @@ import type { LevelKit } from '../../game/kit/levelKit';
 import { defineScene, type SceneContext } from '../../game/scene';
 import { check } from '../../game/conditions';
 import { scareDirector } from '../../game/scares/director';
+import { lookBack } from '../../game/scares/lookBack';
+import type { Placed } from '../../game/kit/builders';
 import { everyFrame } from '../church/everyFrame';
-import { isNight, storyPhase, type StoryPhase } from '../forest_path/story';
+import { isNight, storyPhase } from '../forest_path/story';
 import { fridgeHum } from '../../game/ambient/sounds';
 import { loopSound } from '../inn/interior';
-import { roomTone, tvMurmur } from '../inn/sounds';
+import { fridgeKick, roomTone, tvMurmur } from '../inn/sounds';
 import { kitchenAmbient } from './ambient';
 import { buildBelongings } from './belongings';
 import { kitchenClock, type PausableLoop } from './clock';
 import { buildClutter } from './clutter';
-import { buildFurniture } from './furniture';
-import { CLOCK, FRIDGE, HALL_DOOR, HIS_HEAD, LIVING_DOOR, NORTH, ROOM, SOUTH } from './layout';
+import { buildFurniture, chair } from './furniture';
+import { CLOCK, FRIDGE, HALL_DOOR, HIS_CHAIR, HIS_HEAD, LIVING_DOOR, NORTH, ROOM, SOUTH } from './layout';
 import { placeLooks } from './lookSpots';
 import { hints } from './hints';
 import { greetOnArrival, INSIDE_FIRST_TIME, placeOdile } from './odile';
@@ -57,6 +59,7 @@ export const kitchenScene = defineScene({
       buildClutter(still);
       return buildBelongings(still);
     });
+    const hisChair = chair(kit, HIS_CHAIR.x, HIS_CHAIR.z, HIS_CHAIR.yaw);
     const diaryThere = () => !ctx.state.hasItem('gremaud_diary');
     everyFrame(kit, () => (diary.object.visible = diaryThere()));
     placeLooks(kit, ctx, night, diaryThere);
@@ -73,7 +76,7 @@ export const kitchenScene = defineScene({
     loopSound(kit, (audio) => roomTone(audio, 0.1));
     kitchenAmbient(kit, ctx, night, clock);
 
-    stageBeats(kit, ctx, phase, clock);
+    stageBeats(kit, ctx, clock, hisChair);
     hints(kit);
   },
 });
@@ -81,8 +84,11 @@ export const kitchenScene = defineScene({
 /**
  * kit_clock_stop: the first time the player looks for a moment at where he would sit, the clock
  * stops. Six seconds of nothing where the tick should be, then it goes on. Never explained.
+ * kit_fridge_kick: once, the fridge's compressor knocks in loudly in the quiet. kit_chair_moved:
+ * once, his chair is pulled out while the player looks away. The cat jumps down from it, or Odile
+ * pushes it with her foot; nobody says.
  */
-export function stageBeats(kit: LevelKit, _ctx: SceneContext, _phase: StoryPhase, clock: PausableLoop): void {
+export function stageBeats(kit: LevelKit, ctx: SceneContext, clock: PausableLoop, hisChair: Placed): void {
   kit.use(
     scareDirector([
       {
@@ -91,8 +97,30 @@ export function stageBeats(kit: LevelKit, _ctx: SceneContext, _phase: StoryPhase
         do: [{ run: () => clock.pause() }, { after: CLOCK_STOP, run: () => clock.resume() }],
         set: 'kit_clock_stop',
       },
+      {
+        id: 'kit_fridge_kick',
+        when: { after: 25 },
+        do: [{ run: (c) => fridgeKick(c.audio, { x: FRIDGE.x, y: 0.4, z: NORTH + 0.3 }) }],
+        set: 'kit_fridge_kick',
+      },
     ]),
   );
+  const seat = hisChair.object;
+  const pullOut = () => {
+    seat.position.x += 0.22;
+    seat.rotation.y += (18 * Math.PI) / 180;
+  };
+  // It stays where it was left on later visits.
+  if (ctx.state.hasFlag('kit_chair_moved')) return pullOut();
+  lookBack(kit, ctx, {
+    at: { x: seat.position.x, y: 0.6, z: seat.position.z },
+    within: 5,
+    if: () => ctx.time > 20,
+    change: () => {
+      pullOut();
+      ctx.state.setFlag('kit_chair_moved');
+    },
+  });
 }
 
 export const scenes = [kitchenScene];

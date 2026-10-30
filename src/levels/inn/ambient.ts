@@ -1,4 +1,4 @@
-import { dustMotes, loop, miceInTheWalls, nowAndThen, particles, sway, weather } from '../../game/ambient';
+import { dustMotes, loop, miceInTheWalls, nowAndThen, particles, suddenLife, sway, weather } from '../../game/ambient';
 import { fridgeHum, rain } from '../../game/ambient/sounds';
 import type { MeshBuilder, Placed } from '../../game/kit/builders';
 import type { LevelKit } from '../../game/kit/levelKit';
@@ -14,6 +14,7 @@ import { playChannel } from './television';
  * Monique's kitchen, rain on the panes from night 2, and at night the radiator and mice upstairs.
  */
 export function innAmbient(kit: LevelKit, ctx: SceneContext, dressing: InnDressing, parts: { tvScreen: MeshBuilder; curtain: Placed }): void {
+  suddenLife(kit, ctx, 'indoors');
   const lit = cafeLit(dressing);
   if (lit) {
     playChannel(kit, parts.tvScreen);

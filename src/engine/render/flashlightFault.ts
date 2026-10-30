@@ -22,10 +22,12 @@ export class FlashlightFault {
   private darkUntil = -1;
   private step = -1;
   private stepLevel = 1;
+  private now = 0;
 
   constructor(private readonly random: () => number = Math.random) {}
 
   level(time: number): number {
+    this.now = time;
     if (this.nextStutter === null) {
       this.nextStutter = time + this.gap(STUTTER_EVERY);
       this.nextDropout = time + this.gap(DROPOUT_EVERY);
@@ -43,6 +45,16 @@ export class FlashlightFault {
     if (time >= this.darkFrom && time < this.darkUntil) return 0;
     const catching = time >= this.darkUntil && time < this.darkUntil + CATCH;
     return time < this.stutterUntil || catching ? this.stutter(time) : 1;
+  }
+
+  /** Dies on cue: the stutter, `seconds` fully dark, then the stutter as it catches again. */
+  dropout(seconds: number): void {
+    this.darkFrom = this.now + LEAD;
+    this.darkUntil = this.darkFrom + seconds;
+    this.stutterUntil = this.darkFrom;
+    // Keeps the random faults from cutting into the scripted one.
+    this.nextDropout = Math.max(this.nextDropout, this.darkUntil + this.gap(DROPOUT_EVERY));
+    this.nextStutter = Math.max(this.nextStutter ?? this.now, this.darkUntil + this.gap(STUTTER_EVERY));
   }
 
   /** Mostly on, dipping to almost nothing on a third of the steps. */

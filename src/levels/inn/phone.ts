@@ -1,4 +1,4 @@
-import { speakers } from '../../content';
+import { checkStory, speakers } from '../../content';
 import type { SoundHandle } from '../../engine/audio/audioManager';
 import type { LevelKit } from '../../game/kit/levelKit';
 import type { ScareDirector } from '../../game/scares/director';
@@ -63,7 +63,8 @@ export class InnPhone {
       await playNode(ctx, 'phone_night_static');
     } else {
       const tone = dialTone(ctx.audio, PHONE);
-      if (!state.hasFlag('editor_called') && dayOf(state) !== 3) await playNode(ctx, 'phone_idle');
+      if (checkStory({ flag: 'knows_brodard', notFlag: 'brodard_called' }, state)) await playNode(ctx, 'phone_not_here');
+      else if (!state.hasFlag('editor_called') && dayOf(state) !== 3) await playNode(ctx, 'phone_idle');
       else await ctx.say('A dial tone.');
       tone.stop();
     }

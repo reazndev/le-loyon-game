@@ -3,11 +3,19 @@ import { GameState } from '../game/state';
 import { checkStory, derived, derivedFlags, expandDerived, holds, storyFlags } from './flags';
 
 describe('derived flags', () => {
-  it('suspects_empty_coffin needs two of the three coffin clues', () => {
+  it('suspects_empty_coffin needs two of the four coffin clues', () => {
     const state = new GameState();
     state.setFlag('read_register');
     expect(derived.suspects_empty_coffin(state)).toBe(false);
     state.setFlag('odile_talked');
+    expect(derived.suspects_empty_coffin(state)).toBe(true);
+  });
+
+  it('suspects_empty_coffin counts the call to Brodard as a clue', () => {
+    const state = new GameState();
+    state.setFlag('brodard_called');
+    expect(derived.suspects_empty_coffin(state)).toBe(false);
+    state.setFlag('bernard_light_coffin');
     expect(derived.suspects_empty_coffin(state)).toBe(true);
   });
 
@@ -29,6 +37,9 @@ describe('derived flags', () => {
     state.takeItem('food_parcel');
     expect(holds('has_food', state)).toBe(false);
     expect(holds('has_shovel', state)).toBe(false);
+    state.giveItem('minet');
+    expect(holds('has_minet', state)).toBe(true);
+    expect(holds('has_taxcard', state)).toBe(false);
   });
 
   it('pro_knows_village needs both prologue clues', () => {

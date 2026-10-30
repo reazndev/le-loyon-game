@@ -16,6 +16,11 @@ const PAINTED_WOOD = 0x8e7e64;
 
 /** Set when the player sits in the confessional, so `chu_confessional` can follow. */
 export const SAT_IN_CONFESSIONAL: StoryFlag = 'sat_in_confessional';
+/** Set when a draft puts out one of the votive candles; it stays out from then on. */
+export const CANDLE_OUT = 'chu_candle_out';
+/** The burning cup nearest the aisle, the one the draft reaches. */
+const GUTTERING = 7;
+const GUTTER_SECONDS = 1.4;
 
 export function buildNave(kit: LevelKit, ctx: SceneContext): void {
   pews(kit);
@@ -110,15 +115,29 @@ function sideAltar(kit: LevelKit, ctx: SceneContext): void {
   const burning = [2, 7, 11];
   cups.forEach((cup, i) => {
     kit.cylinder({ r: 0.028, h: i % 4 === 0 ? 0.03 : 0.07, sides: 5 }).texture('plaster_wall', { tile: 0.3 }).color(0xb8ae98).at(cup.x, 0.94, cup.z);
-    if (burning.includes(i)) flame(kit, cup.x, 1.03, cup.z);
+    if (burning.includes(i) && i !== GUTTERING) flame(kit, cup.x, 1.03, cup.z);
   });
+  const dying = cups[GUTTERING]!;
+  const guttering = flame(kit, dying.x, 1.03, dying.z).map((part) => part.dynamic());
+  // From full (1) to out (0): it sputters as it goes, and the wall loses a third of its light.
+  let left = ctx.state.hasFlag(CANDLE_OUT) ? 0 : 1;
+  everyFrame(kit, (dt) => {
+    if (!ctx.state.hasFlag(CANDLE_OUT) || left === 0) return;
+    left = Math.max(0, left - dt / GUTTER_SECONDS);
+    const sputter = left > 0 && Math.random() < 0.45;
+    guttering.forEach((part) => {
+      part.object.visible = left > 0 && !sputter;
+      part.object.scale.setScalar(0.4 + left * 0.6);
+    });
+  });
+  if (left === 0) guttering.forEach((part) => (part.object.visible = false));
   // Lit by the player: hidden until `lit_candle` is set, so kept out of the batch.
   const mine = cups[13]!;
   const flameParts = flame(kit, mine.x, 1.03, mine.z).map((part) => part.dynamic());
   everyFrame(kit, () => flameParts.forEach((part) => (part.object.visible = ctx.state.hasFlag('lit_candle'))));
-  // Three small flames in still air: the light on the wall wavers, it never gutters.
+  // Three small flames in still air: the light on the wall wavers, until a draft takes one.
   const light = kit.light({ color: 0xffa858, intensity: 1.1, range: 4.2 }).at(rack.x - 0.3, 1.4, rack.z);
-  animateLight(kit, light, null, (t) => flameLevel(t, 3));
+  animateLight(kit, light, null, (t) => (flameLevel(t, 3) * (2 + left)) / 3);
   kit.hotspot({ prompt: 'Look at the candles', radius: 0.5, onInteract: () => playNode(ctx, 'church_candles') }).at(rack.x, 0, rack.z);
 }
 

@@ -13,6 +13,7 @@ import { fountainWater, televisionThroughWall } from './sounds';
 import { tvMurmur } from '../inn/sounds';
 import { squareAmbient } from './ambient';
 import { villageLife } from './people';
+import { postRound } from './post';
 import { streetClutter } from './clutter';
 import { greenery } from './greenery';
 import { hints } from './hints';
@@ -62,12 +63,14 @@ export const villageSquareScene = defineScene({
     exits(kit);
     villagers(kit, ctx, phase);
     villageLife(kit, ctx, phase, windows);
+    if (phase === 'day2' || phase === 'day3') postRound(kit, ctx);
 
     lift = stageBeats(kit, ctx, phase, {
       curtain: home.curtain,
       houseTwoLight: houseTwo.upstairs,
       phoneLamp: street.phoneLamp,
       presbyteryLamp: night ? abbe.lamp : null,
+      bell: church.bell,
     });
 
     const ambience = villageAmbience(kit, ctx, {

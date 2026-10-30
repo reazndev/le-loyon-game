@@ -1,3 +1,4 @@
+import { suddenLife } from '../../game/ambient';
 import { SphereGeometry, type CanvasTexture } from 'three';
 import type { LevelKit } from '../../game/kit/levelKit';
 import type { ScareAction } from '../../game/scares/beats';
@@ -8,10 +9,12 @@ import { lostInTheFog } from '../forest_path/lost';
 import { playNode } from '../forest_path/play';
 import { handText, paintedTexture } from '../forest_path/scrawl';
 import { unspent } from '../forest_path/spent';
-import { distanceToTrails, pointAlong, yawToward, type Trail } from '../forest_path/trail';
+import { distanceToTrails, nearestOnTrails, pointAlong, yawToward, type Trail } from '../forest_path/trail';
 import { dressTrack, keepClear } from './dressing';
+import { forkBoulder, highSeat } from './fork';
 import { hints } from './hints';
-import { larch } from './larch';
+import { CROWN_RADIUS, larch } from './larch';
+import { trunkCreak } from '../../game/ambient/sounds';
 import { scatter } from '../../game/kit/scatter';
 import {
   enclose,
@@ -47,13 +50,23 @@ export const track: Trail = [
   [1.6, -2],
   [0, -9.5],
 ];
+/**
+ * At the track's second bend it turns right round a boulder and goes on to the larch. Straight
+ * ahead, left of the boulder, 25 m of mud climb to a hunter's high seat and stop. It forks here
+ * rather than lower down because the left of the lower track is the watcher's sightline.
+ */
+const deadEnd: Trail = [track[2]!, [-5.3, 2.6], [-9.6, -0.6], [-14.6, -2.6], [-21.6, -4.4]];
+const trails = [track, deadEnd];
+const BOULDER = { x: -2.85, z: 1.55 };
+const SEAT = { x: -23.4, z: -5 };
 const LARCH = { x: 0.4, z: -14.8 };
 const GRAVE = { x: 0.2, z: -12.4 };
 const area: Area = { x: 0, z: -4.5, w: 60, d: 61 };
 
 const inClearing = (x: number, z: number) => Math.max(0, Math.hypot(x - LARCH.x, z - LARCH.z + 1.5) - 5.5);
+const atSeat = (x: number, z: number) => Math.max(0, Math.hypot(x - SEAT.x, z - SEAT.z) - 2.6);
 const slope = (_x: number, z: number) => 0.12 * (18 - z);
-const calm = (x: number, z: number) => Math.min(distanceToTrails([track], x, z), inClearing(x, z));
+const calm = (x: number, z: number) => Math.min(distanceToTrails(trails, x, z), inClearing(x, z), atSeat(x, z));
 const height = woodsHeight(slope, calm);
 
 /** Walking back down: where the player is `meters` up the track, facing downhill. */
@@ -121,6 +134,13 @@ function stageLarch(kit: LevelKit, ctx: SceneContext): ScareDirector {
       // Crows roosting in the spruce over the track, halfway up to the larch.
       startle('deep_crows', 'crows', { x: -1.7, z: 5, r: 4 }, { x: -5.7, y: 7, z: 1 }),
       { id: 'for3_grave', when: { after: Number.POSITIVE_INFINITY }, do: [{ silence: 6 }] },
+      // In under the crown the whole tree groans overhead, loud enough to look up.
+      {
+        id: 'deep_larch_creak',
+        when: { enter: { ...LARCH, r: CROWN_RADIUS } },
+        repeat: 30,
+        do: [{ run: () => trunkCreak(ctx.audio, { x: LARCH.x, y: height(LARCH.x, LARCH.z) + 6, z: LARCH.z }, 1.4) }],
+      },
       {
         id: 'for3_watched',
         when: { enter: { ...markers.for3_watched_trigger_1, r: 2.5 } },
@@ -145,11 +165,13 @@ export const forestDeepScene = defineScene({
   atmosphere: forestAtmosphere,
 
   build(kit, ctx) {
+    suddenLife(kit, ctx, 'forest');
     kit.ground('grass', 0);
     forestFloor(kit, area, height);
     trailStrip(kit, track, 0.75, height);
+    trailStrip(kit, deadEnd, 0.6, height);
 
-    const onTrack = (x: number, z: number) => distanceToTrails([track], x, z) < 2.4;
+    const onTrack = (x: number, z: number) => distanceToTrails(trails, x, z) < 2.4;
     // Nothing grows between the track and where the watcher stands, so the fog alone hides him.
     const sightlines: Trail[] = [
       [[watchedFrom1.x, watchedFrom1.z], [markers.for3_watched_1.x, markers.for3_watched_1.z]],
@@ -158,40 +180,42 @@ export const forestDeepScene = defineScene({
     const inSight = (x: number, z: number, margin: number) => distanceToTrails(sightlines, x, z) < margin;
     const near = (x: number, z: number) => calm(x, z) < 10;
     const spruceClear = (x: number, z: number) => calm(x, z) < 4.2 || inSight(x, z, 3);
-    const avoid = (x: number, z: number) => onTrack(x, z) || inClearing(x, z) < 1 || inSight(x, z, 1.2);
+    const avoid = (x: number, z: number) => onTrack(x, z) || inClearing(x, z) < 1 || atSeat(x, z) < 1 || inSight(x, z, 1.2);
     woodland(kit, { area, seed: 'larch', avoid, near, spruceClear, spruce: 420, beech: 40, distant: 880 });
     const watchers = (x: number, z: number) => inSight(x, z, 3) || [markers.for3_watched_1, markers.for3_watched_2].some((m) => Math.hypot(x - m.x, z - m.z) < 3);
-    leaningBeeches(kit, { area, seed: 'larch', trails: [track], count: 11, from: 2, to: 3.6, avoid: (x, z) => inClearing(x, z) < 2 || inSight(x, z, 2) });
-    spruceWall(kit, { area, seed: 'larch', trails: [track], from: 10, to: 24, count: 160, avoid: (x, z) => watchers(x, z) || inClearing(x, z) < 6 });
+    leaningBeeches(kit, { area, seed: 'larch', trails, count: 11, from: 2, to: 3.6, avoid: (x, z) => inClearing(x, z) < 2 || inSight(x, z, 2) });
+    spruceWall(kit, { area, seed: 'larch', trails, from: 10, to: 24, count: 160, avoid: (x, z) => watchers(x, z) || inClearing(x, z) < 6 });
     const offTrack = (inner: number, outer: number) => (x: number, z: number) => {
       const d = calm(x, z);
-      return distanceToTrails([track], x, z) < inner || inClearing(x, z) < 0.2 || d > outer || inSight(x, z, 1.5);
+      return distanceToTrails(trails, x, z) < inner || inClearing(x, z) < 0.2 || atSeat(x, z) < 0.2 || Math.hypot(x - BOULDER.x, z - BOULDER.z) < 2 || d > outer || inSight(x, z, 1.5);
     };
     const props = keepClear(track);
     undergrowth(kit, area, { seed: 'larch-low', count: 560, mix: lowPlants, spacing: 0.75, avoid: (x, z) => offTrack(0.9, 9)(x, z) || props.low(x, z) });
     undergrowth(kit, area, { seed: 'larch-tall', count: 640, mix: tallPlants, spacing: 1, avoid: (x, z) => offTrack(1.7, 14)(x, z) || props.tall(x, z) || props.low(x, z) });
     mossPatches(kit, height, scatter({ ...area, count: 56, seed: 'larch-moss', spacing: 2.4, avoid: offTrack(1.2, 10) }));
     fallenLog(kit, 6, 11, 30, 4);
-    fallenLog(kit, -4.5, 1, -60, 5);
+    fallenLog(kit, -7, -5.2, 165, 5);
     rock(kit, 4.6, 8.6, 0.6, 'larch-rock-1');
     rock(kit, -3.8, -6, 0.5, 'larch-rock-2');
     dressTrack(kit, ctx, track, height);
+    forkBoulder(kit, ctx, BOULDER);
+    highSeat(kit, ctx, SEAT, nearestOnTrails([deadEnd], SEAT.x, SEAT.z));
 
     const scares = stageLarch(kit, ctx);
     larch(kit, LARCH);
     grave(kit, ctx, scares);
-    hints(kit, ctx, { larch: LARCH, grave: GRAVE, offTrack: (x, z) => calm(x, z) > 6 });
+    hints(kit, ctx, { larch: LARCH, grave: GRAVE, boulder: BOULDER, rightFork: pointAlong(track, 19), seat: SEAT, offTrack: (x, z) => calm(x, z) > 6 });
 
     enclose(kit, area);
     kit.exit({ w: 6, d: 1, to: 'bunker_exterior', spawn: 'from_track' }).at(0, 0, 19.2);
 
     forestAmbience(kit, ctx);
     nightMist(kit, ctx);
-    mistAlong(kit, ctx, track, height);
     nightSky(kit, ctx);
+    mistAlong(kit, ctx, track, height);
   },
 
-  update: lostInTheFog([track]),
+  update: lostInTheFog(trails),
 });
 
 /** A mound of fieldstones the length of a man, a cross of split branches, a jam jar, pine cones. */

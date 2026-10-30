@@ -182,6 +182,29 @@ export function radiatorKnock(audio: AudioManager, at: Point3, volume = 0.8): vo
   });
 }
 
+/**
+ * Steam pushing through a radiator's bleed valve: a hiss that swells and falls twice, a spit of
+ * water, then a knock in the pipe. From across a dark room the two swells are a breath in and out.
+ */
+export function radiatorHiss(audio: AudioManager, at: Point3, volume = 0.5): void {
+  oneShot(audio, { at, volume }, 4, (out, t) => {
+    noiseBurst(audio, out, { start: t, duration: 1.2, type: 'highpass', frequency: 3600, gain: 0.22, attack: 0.5 });
+    noiseBurst(audio, out, { start: t + 1.6, duration: 1.1, type: 'bandpass', frequency: 4400, q: 1.5, gain: 0.16, attack: 0.3 });
+    [2.9, 3.0, 3.16].forEach((s) => noiseBurst(audio, out, { start: t + s, duration: 0.03, type: 'bandpass', frequency: vary(2600, 0.2), q: 4, gain: 0.3 }));
+  });
+  setTimeout(() => radiatorKnock(audio, at, volume), 3400);
+}
+
+/** An old fridge's compressor kicking in: a heavy knock, the motor shuddering up, and the bottles in the door rattling. */
+export function fridgeKick(audio: AudioManager, at: Point3, volume = 1): void {
+  oneShot(audio, { at, volume }, 2.5, (out, t) => {
+    thump(audio, out, t, 75, 1);
+    noiseBurst(audio, out, { start: t, duration: 0.15, type: 'lowpass', frequency: 300, gain: 0.7 });
+    tone(audio, out, { type: 'sawtooth', frequency: 38, to: 50, start: t + 0.05, duration: 1.6, gain: 0.12, attack: 0.05 });
+    [0.08, 0.15, 0.24, 0.36].forEach((s, i) => tone(audio, out, { frequency: vary(2400, 0.2), start: t + s, duration: 0.12, gain: 0.05 / (i + 1) }));
+  });
+}
+
 /** The Swiss PTT ring: two short bursts of the bell, then a pause. Rings until stopped. */
 export function phoneRing(audio: AudioManager, at: Point3, volume = 0.7): SoundHandle {
   const output = audio.output({ bus: 'sfx', volume, at, refDistance: 1.4 });

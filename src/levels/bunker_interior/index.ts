@@ -26,7 +26,9 @@ import { floorMask, heapPoses, maskPile, uprightMask, type HeapOptions, type Mas
 import { beerCans, bench, bunkStack, ceilingRuns, chair, graffiti, locker, stencil, stubs, table, wires } from './props';
 import { neighbors, roomAt, type Opening, type Room } from './rooms';
 import { hints } from './hints';
-import { fortBeats } from './scares';
+import { logbook } from './logbook';
+import { darkBeats, fortBeats } from './scares';
+import { lookBack } from '../../game/scares/lookBack';
 import { startle } from '../../game/scares/startles';
 
 /**
@@ -83,6 +85,7 @@ const KP3 = { x: 12.15, z: -31, hinge: -31.45 };
 const HEAP: Omit<HeapOptions, 'count' | 'seed'> = { x: 6.4, z: -24.75, rx: 2.7, rz: 1.45, height: 1, lookAt: { x: 10.6, y: 1.6, z: -27.4 } };
 const TENT_SHEET = { x: -7.6, z: -17.85 };
 const MIRROR = { x: -9.3, z: -13.02 };
+const CHART = { x: -4, z: -13.02 };
 /** Where Marc stands in the passage while he talks through the open door: well back, never within 3 m. */
 const MARC_BACK = { x: 15.2, z: -31 };
 /** Where the reporter stands to see Marc through the open door: square to the doorway, 4 m from him. */
@@ -132,6 +135,14 @@ export const markers = {
   bun2_door_listen: { beat: 'bun2_door_listen', x: KP3.x + 1.5, y: 1, z: KP3.z, yaw: 90, note: 'Listening at K.P. 3: slow breathing, or the wind in a shaft, while the narration says so.' },
   bun3_tentsheet: { beat: 'bun3_tentsheet', ...TENT_SHEET, yaw: 180, note: 'Night 3: the hook is bare. The scene leaves the tent sheet out.' },
   bun3_masks: { beat: 'bun3_masks', x: 3.35, y: 1.45, z: -25.1, yaw: -90, note: 'Night 3: the clean shelf still has six; the seventh space is empty. Looking at it drops every sound.' },
+  bun3_logbook_cup: {
+    beat: 'bun3_logbook_cup',
+    x: 9.6,
+    y: 0.05,
+    z: -33.6,
+    yaw: 0,
+    note: 'Night 3, closing the logbook reply: a tin cup set down on the concrete here at the dormitory end, once.',
+  },
   bun3_phone: { beat: 'bun3_phone', x: 18, y: 1.3, z: -31, yaw: 90, note: 'Night 3, after turning the guard room phone crank: a phone rings once, here, deep in the fort.' },
   bun3_drum: {
     beat: 'bun3_drum',
@@ -197,7 +208,7 @@ export const bunkerInteriorScene = defineScene({
     machineRoom(kit, ctx, phase, kp3);
     casemate(kit, ctx, phase);
     fortClutter(kit);
-    hints(kit, ctx, phase, { cupboard: CUPBOARD, door: KP3, battery: BATTERY, kp3 });
+    hints(kit, ctx, phase, { cupboard: CUPBOARD, door: KP3, battery: BATTERY, chart: CHART, kp3 });
 
     kit.ambience('drone', { volume: 0.16 });
     vents(kit, ctx);
@@ -205,7 +216,7 @@ export const bunkerInteriorScene = defineScene({
     updates.push(dripInTheNextRoom(rooms, openings));
     scares = kit.use(
       scareDirector(
-        unspent(ctx.state, [...fortBeats(ctx, { markers, cupboard: { x: CUPBOARD.x, y: 0.4, z: CUPBOARD.z }, slideMask, voice: kp3.voice }), startle('bunker_rats', 'rats', { x: 4, z: -31, r: 2 }, { x: 10, y: 0.2, z: -32 })]),
+        unspent(ctx.state, [...fortBeats(ctx, { markers, cupboard: { x: CUPBOARD.x, y: 0.4, z: CUPBOARD.z }, slideMask, voice: kp3.voice }), startle('bunker_rats', 'rats', { x: 4, z: -31, r: 2 }, { x: 10, y: 0.2, z: -32 }), ...darkBeats(ctx, isNight(phase))]),
         { random: { surface: 'stone' } },
       ),
     );
@@ -296,11 +307,12 @@ function guardRoom(kit: LevelKit, ctx: SceneContext, phase: StoryPhase): void {
   chair(kit, -4.3, -16.7, 180);
   chair(kit, -2.6, -14.2, 40, true);
   locker(kit, -2.1, -13.3, 180).collider();
-  kit.box({ w: 0.26, h: 0.05, d: 0.34 }).color(0x5a5446).at(-4.5, 0.77, -17.5).rotY(-8);
   stubs(kit, { x: -4, z: -17.45, w: 1.2, d: 0.5 }, 0.77, 9, 'guard-desk');
   stubs(kit, { x: -4, z: -15, w: 4, d: 3.5 }, 0, 14, 'guard-floor');
   beerCans(kit, { x: -4, z: -15.4, w: 4.4, d: 4 }, 16, 'guard-cans');
-  kit.hotspot({ prompt: 'Read the logbook', radius: 0.35, onInteract: () => playNode(ctx, 'fort_logbook') }).at(-4.5, 0, -17.4);
+  logbook(kit, ctx, phase, () => {
+    if (phase === 'night3' && !ctx.state.hasFlag('fort_logbook_cup')) fire('bun3_logbook_cup');
+  });
 
   // The field telephone in its leather case, the wire running into the wall.
   kit.box({ w: 0.16, h: 0.26, d: 0.24 }).color(0x4a3a2a).at(-6.42, 1.15, -15.2);
@@ -317,13 +329,19 @@ function guardRoom(kit: LevelKit, ctx: SceneContext, phase: StoryPhase): void {
     })
     .at(-6.2, 0, -15.2);
 
-  valleyChart(kit).at(-4, 0.95, -13.02).rotY(180);
-  kit.hotspot({ prompt: 'Look at the chart', radius: 0.45, onInteract: () => playNode(ctx, 'fort_chart') }).at(-4, 0, -13.3);
+  // After the letter the reporter knows to look for the larch, and the chart shows it.
+  const larch = ctx.state.hasFlag('read_gremaud_letter');
+  valleyChart(kit, larch).at(CHART.x, 0.95, CHART.z).rotY(180);
+  kit.hotspot({ prompt: 'Look at the chart', radius: 0.45, onInteract: () => playNode(ctx, larch ? 'fort_chart_larch' : 'fort_chart') }).at(CHART.x, 0, CHART.z - 0.28);
   stencil(kit, ['LATRINEN', 'LATRINES'], 0.8).at(-6.48, 1.6, -15.2).rotY(90);
 }
 
-/** The wall chart of the valley under yellowed plastic, fields of fire in red grease pencil. */
-function valleyChart(kit: LevelKit) {
+/**
+ * The wall chart of the valley under yellowed plastic, fields of fire in red grease pencil. With
+ * `larch`, the small tree up the slope marked "Rp 3", the dot for the boulder, and the track
+ * drawn past it on the right.
+ */
+function valleyChart(kit: LevelKit, larch: boolean) {
   return scrawl(kit, { w: 1.1, h: 0.8 }, [88, 64], (g) => {
     g.fillStyle = '#b8ac84';
     g.fillRect(0, 0, 88, 64);
@@ -347,6 +365,17 @@ function valleyChart(kit: LevelKit) {
       g.stroke();
     });
     handText(g, 'A 3417', 4, 58, { size: 8, color: '#3a3428', font: 'monospace' });
+    if (!larch) return;
+    // The fort is the apex of the fields of fire; the slope behind it is up and left.
+    g.fillStyle = '#2a2620';
+    g.fillRect(15, 12, 2, 2);
+    handText(g, 'bloc', 13, 17, { size: 4, color: '#2a2620', font: 'monospace' });
+    g.fillStyle = '#a02a20';
+    [[19, 9], [18, 8], [17, 7], [15, 6], [13, 6], [11, 7]].forEach(([x, y]) => g.fillRect(x!, y!, 1, 1));
+    g.fillRect(8, 3, 1, 7);
+    g.fillRect(7, 5, 3, 1);
+    g.fillRect(6, 7, 5, 1);
+    handText(g, 'Rp 3', 11, 3, { size: 5, color: '#a02a20', font: 'monospace' });
   });
 }
 
@@ -681,13 +710,14 @@ function maskStore(kit: LevelKit, ctx: SceneContext, phase: StoryPhase): () => v
       [3.6, -24.0, 170],
     ].map(([x, z, yaw]) => floorMask(x!, z!, yaw!)),
     // Hung by their straps along the north wall, at the height of a face.
-    ...[4.1, 4.75, 5.4, 6.05, 6.7, 7.35].map((x, i) => uprightMask(x, 1.58 - (i % 2) * 0.04, -27.27, 180, 0.12)),
+    ...HOOKS.map((x, i) => uprightMask(x, hookedAt(i), HOOK_Z, 180, 0.12)).filter((_, i) => i !== SWINGER),
     // The clean shelf: six, and a gap where a seventh was.
     ...[-26.55, -26.15, -25.75, -25.35, -24.55, -24.15].map((z) => uprightMask(3.22, 1.58, z, -90)),
   ];
   // A 130k-triangle heap: drawn only from the rooms that can see it, not through the walls.
   updates.push(onlyNear(maskPile(kit, poses, 'mask-store').object, 'masks'));
-  [4.1, 4.75, 5.4, 6.05, 6.7, 7.35].forEach((x) => kit.box({ w: 0.03, h: 0.03, d: 0.06 }).color(0x2a2a26).at(x, 1.74, -27.37));
+  HOOKS.forEach((x) => kit.box({ w: 0.03, h: 0.03, d: 0.06 }).color(0x2a2a26).at(x, HOOK_Y, HOOK_Z - 0.1));
+  swingingMask(kit, ctx, phase);
 
   // A heap mound under the masks, so no floor shows through, and a barrier round its core.
   kit.mesh(heapMound()).texture('concrete_floor', { tile: 1 }).color(0x3e3830).at(HEAP.x, 0, HEAP.z);
@@ -717,6 +747,45 @@ function maskStore(kit: LevelKit, ctx: SceneContext, phase: StoryPhase): () => v
   wires(kit, [[11.46, -23.4], [11.46, -27.4]], 1.9);
   if (phase === 'day2') turnToLeave(ctx);
   return slidingMask(kit, ctx);
+}
+
+/** Hooks along the mask store's north wall, each with a mask hung by its straps at face height. */
+const HOOKS = [4.1, 4.75, 5.4, 6.05, 6.7, 7.35];
+const HOOK_Y = 1.74;
+const HOOK_Z = -27.27;
+const hookedAt = (i: number) => 1.58 - (i % 2) * 0.04;
+/** The hooked mask built on its own, so it can swing. */
+const SWINGER = 3;
+/** Set once the mask has swung, so it swings once in the game. */
+const MASK_SWUNG = 'bun_mask_swung';
+
+/**
+ * One hooked mask, hung on its own pivot. Once the player has seen the row and looked away, it
+ * is swinging on its strap when they look back, as if brushed in passing, and slowly settles.
+ * Not on day 2, which has the mask sliding off the heap.
+ */
+function swingingMask(kit: LevelKit, ctx: SceneContext, phase: StoryPhase): void {
+  const x = HOOKS[SWINGER]!;
+  const y = hookedAt(SWINGER);
+  const pivot = kit
+    .group((g) => void maskPile(g, [uprightMask(0, y - HOOK_Y, 0, 180, 0.12)], 'mask-swing'))
+    .at(x, HOOK_Y, HOOK_Z)
+    .dynamic();
+  if (phase === 'day2' || ctx.state.hasFlag(MASK_SWUNG)) return;
+  let swing = -1;
+  updates.push((dt) => {
+    if (swing < 0 || swing > 30) return;
+    swing += dt;
+    pivot.object.rotation.z = 0.32 * Math.exp(-swing / 5) * Math.sin(swing * 2.4);
+  });
+  lookBack(kit, ctx, {
+    at: { x, y, z: HOOK_Z },
+    within: 8,
+    change: () => {
+      swing = 0;
+      ctx.state.setFlag(MASK_SWUNG);
+    },
+  });
 }
 
 /** Shows `object` only while the player is in `room` or one opening away from it. */

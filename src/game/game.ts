@@ -10,6 +10,7 @@ import { keepFrameFitted } from '../engine/render/frame';
 import { GameRenderer } from '../engine/render/renderer';
 import { loadUiFont } from '../engine/ui/font';
 import { Overlay, type HudButton } from '../engine/ui/overlay';
+import { brushSound } from './ambient/touches';
 import { PolaroidCamera } from './camera/camera';
 import { GameUi, type PauseAction } from './gameUi';
 import { itemInfo } from './items';
@@ -46,6 +47,8 @@ export const CONTINUE_SLOTS = [SAVE_SLOT, AUTO_SLOT, 'sleep'];
 const FLASHLIGHT_FOLLOW = 9;
 /** How far the beam jolts off its aim when running flat out, as a fraction of the way to the side. */
 const TORCH_SHAKE = 0.05;
+/** Average seconds between blinks. Fewer than real people blink, so it reads without getting in the way. */
+const BLINK_EVERY = 8;
 
 /** Owns every system and runs the frame loop. */
 export class Game {
@@ -55,6 +58,8 @@ export class Game {
   readonly input = new Input();
   readonly audio = new AudioManager();
   private readonly breathing = new Breathing(this.audio);
+  /** Seconds to the reporter's next blink. */
+  private nextBlink = BLINK_EVERY;
   readonly renderer: GameRenderer;
   readonly overlay: Overlay;
   readonly ui: GameUi;
@@ -235,6 +240,11 @@ export class Game {
     const speed = Math.hypot(at.x - before.x, at.z - before.z) / Math.max(dt, 1e-4);
     const running = input.isDown('fast') && !player.crouched && speed > 2;
     this.breathing.update(dt, running, world.cold);
+    this.nextBlink -= dt;
+    if (this.nextBlink <= 0) {
+      this.nextBlink = BLINK_EVERY * (0.6 + Math.random() * 0.9);
+      this.overlay.blink();
+    }
     this.shakeTarget = running ? 1 : speed > 0.3 ? 0.2 : 0;
     world.triggers.update(at);
 
@@ -335,6 +345,12 @@ export class Game {
       say: (lines, speaker) => this.ui.say(lines, speaker),
       notify: (text) => this.overlay.notify(text),
       jolt: () => this.overlay.jolt(),
+      torchOut: (seconds) => this.world.lights.torchOut(seconds),
+      brush: (kind) => {
+        this.overlay.brush(kind);
+        brushSound(this.audio, kind);
+      },
+      blink: (hold) => this.overlay.blink(hold),
       get time() {
         return game.scenes.time;
       },

@@ -3,6 +3,7 @@ import type { AudioManager } from '../engine/audio/audioManager';
 import type { Action } from '../engine/input/bindings';
 import type { Input } from '../engine/input/input';
 import type { Player } from '../engine/player';
+import type { BrushKind } from '../engine/ui/overlay';
 import type { Atmosphere } from '../engine/render/atmosphere';
 import type { DialogueScript } from './dialogue';
 import type { ScreenHandle } from './gameUi';
@@ -33,6 +34,12 @@ export interface SceneContext {
   say(lines: string | string[], speaker?: string): Promise<void>;
   /** A white flash and the frame shaking, for a jumpscare that is a sound. */
   jolt(): void;
+  /** The torch stutters, goes dark for `seconds`, and stutters back on. Does nothing while it is off. */
+  torchOut(seconds: number): void;
+  /** Something brushes the reporter's face: a branch sweeping past, or a cobweb across the eyes. */
+  brush(kind: BrushKind): void;
+  /** The reporter blinks. With `hold`, the eyes close slowly and stay shut that many seconds. */
+  blink(hold?: number): void;
   /** Shows a short line in the corner of the screen. */
   notify(text: string): void;
   /** Seconds since this scene finished loading. */

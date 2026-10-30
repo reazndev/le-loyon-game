@@ -93,5 +93,16 @@ export const nodes = {
   christine_shop: {
     speaker: speakers.christine,
     lines: ["Bread, milk, Gruyère, cigarettes, batteries. That's the shop."],
+    choices: [
+      { text: 'A taxcard, please.', next: 'christine_taxcard' },
+      // Choices can't be cancelled, so the taxcard offer needs a way out beside it.
+      { text: 'Nothing, thanks.', if: { notFlag: 'has_taxcard' } },
+    ],
+  },
+  christine_taxcard: {
+    speaker: speakers.christine,
+    if: { notFlag: 'has_taxcard' },
+    effects: { give: 'taxcard' },
+    lines: ['A taxcard. Ten francs. The box on the square eats them, mind. Talk fast.'],
   },
 } satisfies Record<string, ScriptNode>;

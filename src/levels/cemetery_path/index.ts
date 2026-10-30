@@ -1,7 +1,7 @@
 import type { Placed } from '../../game/kit/builders';
 import { ivyCover, thicket, VERGE_PLANTS, WILD_PLANTS, yew } from '../../game/kit/foliage';
 import type { LevelKit } from '../../game/kit/levelKit';
-import { crows } from '../../game/ambient';
+import { crows, suddenLife } from '../../game/ambient';
 import { scatter, spotsAlong } from '../../game/kit/scatter';
 import { watchmanPatrol, type Patrol } from '../../game/patrol/patrol';
 import { scareDirector } from '../../game/scares/director';
@@ -19,6 +19,7 @@ import { hints } from './hints';
 import { crossOfferings, fenceSign } from './props';
 import { billboards } from '../forest_path/woods';
 import { startle } from '../../game/scares/startles';
+import { decoy, decoySighting } from '../../game/scares/decoys';
 
 /**
  * Chemin du cimetière. A gravel path climbs from behind the church in two short switchbacks between
@@ -36,6 +37,8 @@ const path: Trail = [
   [0, -37.5],
 ];
 const CROSS = { x: 1, z: -24.5 };
+/** A hunter's high seat where the meadow meets the spruce west of the wall, its open front to the upper switchbacks. */
+const STAND = { x: -22.5, z: -42, yaw: yawToward(18.5, 12.5) };
 const CHURCH = { x: -1, z: -7, w: 15, d: 9 };
 const SIDE_DOOR = { x: 2.5, z: CHURCH.z - CHURCH.d / 2 };
 const GATE_Z = -40;
@@ -60,6 +63,7 @@ export const cemeteryPathScene = defineScene({
   atmosphere: hillAtmosphere,
 
   build(kit, ctx) {
+    suddenLife(kit, ctx, 'cemetery');
     const phase = storyPhase(ctx.state);
     const night = isNight(phase);
     saveNightTwoStart(ctx, 'cemetery_path');
@@ -84,6 +88,7 @@ export const cemeteryPathScene = defineScene({
     });
     fenceVerges(kit, fenced, 1.9);
     meadow(kit);
+    decoy(kit, 'hunters_stand', STAND);
 
     kit.exit({ w: 6, d: 1, to: 'cemetery', spawn: 'front_gate' }).at(0, 0, GATE_Z + 1.2);
     kit.exit({ w: 1, d: 6, to: 'village_square', spawn: 'church_door' }).at(-9.5, 0, -15);
@@ -228,7 +233,16 @@ function cemeteryWall(kit: LevelKit): void {
 function stagePath(kit: LevelKit, phase: StoryPhase): Patrol | null {
   if (!isNight(phase)) return null;
   // An owl in the yew at the first bend, screeching as the reporter comes round it.
-  kit.use(scareDirector([startle('path_owl', 'owl', { x: 6.3, z: -20.8, r: 3 }, { x: 9.5, y: 5, z: -19.5 })], { random: { surface: 'gravel' } }));
+  kit.use(
+    scareDirector(
+      [
+        startle('path_owl', 'owl', { x: 6.3, z: -20.8, r: 3 }, { x: 9.5, y: 5, z: -19.5 }),
+        // From the top switchbacks, someone sitting up in the high seat, watching the path.
+        decoySighting('stand', 'hunters_stand', { ...STAND, y: height(STAND.x, STAND.z) }),
+      ],
+      { random: { surface: 'gravel' } },
+    ),
+  );
   if (phase !== 'night2') return null;
   const ahead = (meters: number) => {
     const p = pointAlong(path, meters);

@@ -655,6 +655,48 @@ DIPHTÉRIE 1887`,
     text: `J.-P. G.
 14.I.1997`,
   },
+  doc_bulletin_november: {
+    title: 'Parish bulletin, November',
+    text: [
+      `PAROISSE SAINT-MAURICE - LEURS
+Bulletin paroissial - novembre 1998
+
+Samedi 21 novembre, 18 h
+Messe anniversaire pour les défunts du mois.
+Nous prions pour :
+   Ernest Kolly (1995)
+   Marc Chassot (1995)
+   Joseph Python (1997)
+et pour tous les défunts de la paroisse.`,
+      `Chœur mixte : répétition mardi 20 h.
+Nous cherchons toujours des ténors.
+
+Quête du dimanche : en faveur des missions.`,
+    ],
+    translation: [
+      `SAINT-MAURICE PARISH, LEURS. Parish bulletin, November 1998. Saturday 21 November, 6 pm. Anniversary mass for the dead of the month. We pray for: Ernest Kolly (1995), Marc Chassot (1995), Joseph Python (1997), and for all the dead of the parish.`,
+      `Mixed choir: rehearsal Tuesday 8 pm. We are still looking for tenors. Sunday collection: for the missions.`,
+    ],
+  },
+  doc_ruth_note: {
+    title: 'Card from Ruth',
+    text: `Ten more. The fog is not a photo.
+A person is a photo.
+Keep the receipts.
+R.`,
+  },
+  doc_directory_vauchy: {
+    title: 'Phone book, Vauchy',
+    text: `VAUCHY FR                                   026
+
+Bovet Marcel, agric., Le Crêt ............. 915 11 62
+Brodard Aloys, menuiserie-ébénisterie,
+   cercueils, rte de l'Église 4 ........... 915 23 07
+Brodard Hélène, couture ................... 915 30 44
+Café du Lion d'Or ......................... 915 12 01
+Clément Roger, transports ................. 915 18 90`,
+    translation: `VAUCHY FR, area code 026. Bovet Marcel, farmer, Le Crêt. Brodard Aloys, carpentry and cabinet making, coffins, 4 church road. Brodard Hélène, dressmaker. Café du Lion d'Or. Clément Roger, haulage.`,
+  },
 } satisfies Record<string, DocumentSource>;
 
 export type DocumentId = keyof typeof sources;

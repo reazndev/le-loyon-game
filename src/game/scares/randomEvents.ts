@@ -1,5 +1,5 @@
 /** The random sound events between fixed beats, from the table in docs/script/07-scares.md. */
-export type RandomEventId = 'step' | 'branch' | 'silence' | 'breath';
+export type RandomEventId = 'step' | 'branch' | 'crack' | 'silence' | 'breath';
 
 export interface PoolEntry {
   id: RandomEventId;
@@ -9,16 +9,17 @@ export interface PoolEntry {
 }
 
 export const defaultPool: PoolEntry[] = [
-  { id: 'step', weight: 0.4 },
-  { id: 'branch', weight: 0.35 },
-  { id: 'silence', weight: 0.2 },
+  { id: 'step', weight: 0.35 },
+  { id: 'branch', weight: 0.3 },
+  { id: 'crack', weight: 0.2 },
+  { id: 'silence', weight: 0.15 },
   { id: 'breath', weight: 0.05, limit: 1 },
 ];
 
 export interface RandomEventOptions {
-  /** Least seconds between two events. Default 75. */
+  /** Least seconds between two events. Default 40. */
   gap?: number;
-  /** Chance of an event in each eligible window. Default 0.06. */
+  /** Chance of an event in each eligible window. Default 0.15. */
   chance?: number;
   /** Window length in seconds. Default 10. */
   window?: number;
@@ -43,8 +44,8 @@ export class RandomEvents {
     options: RandomEventOptions = {},
     private readonly random: () => number = Math.random,
   ) {
-    this.gap = options.gap ?? 75;
-    this.chance = options.chance ?? 0.06;
+    this.gap = options.gap ?? 40;
+    this.chance = options.chance ?? 0.15;
     this.window = options.window ?? 10;
     this.pool = options.pool ?? defaultPool;
   }

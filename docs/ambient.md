@@ -78,7 +78,23 @@ The square uses all of this in `village_square/people.ts`, and fewer people come
 
 ## Startles
 
-`startle(id, kind, zone, from)` in `src/game/scares/startles.ts` is a scare beat for a scare director. The first time the player walks into `zone`, something goes off at `from`: `'crows'` or `'pigeons'` bursting out of a tree or a roof, an `'owl'` screeching overhead, a `'deer'` crashing away through the undergrowth, or `'rats'` scattering. Each fires once per game. Put `from` in the tree, the rafters, or the bush the noise belongs to, close to the path, so the scare has a cause the player can see.
+`startle(id, kind, zone, from)` in `src/game/scares/startles.ts` is a scare beat for a scare director. The first time the player walks into `zone`, something goes off at `from`, seen as well as heard: `'crows'` or `'pigeons'` bursting out of a tree or a roof, an `'owl'` swooping low over the player's head, a `'deer'`, `'fox'`, or `'hare'` bolting away, `'rats'` running along the floor, or just a `'crack'` (a branch) or `'creak'` (floorboards). Each fires once per game. Put `from` in the tree, the rafters, or the bush the noise belongs to, close to the path, so the scare has a cause the player can see. Loud kinds closer than 7 m also flash and shake the frame.
+
+The animals come from one hidden pool per scene, `critters(ctx)` in `src/game/ambient/critters.ts`.
+
+`suddenLife(kit, ctx, setting)` in `src/game/ambient/suddenLife.ts` sets the same startles off at random near the player: about every minute in the forest at night, half as often by day, and at least 20 s apart. `wildlife()` calls it for every outdoor scene. Interiors call it with `'indoors'` for rats and creaking boards. The table of what lives where and how often is at the top of the file.
+
+## Close calls
+
+These make the player think it is him for a moment. Each one is something ordinary.
+
+- `eyesInBeam(kit, ctx, { every })` in `eyes.ts`: at night, about once a minute, a pair of small eyes shines 10 to 20 m off inside the torch beam, at a deer's, a fox's, or a hare's height. They stay lit for one to three seconds while the beam is on them. Then they go out, or the animal bolts from the spot. They never show with the torch off. `suddenLife` calls it for every outdoor setting but the village.
+- `touches(kit, ctx, every)` in `touches.ts`: a branch brushes the reporter's face now and then while they walk. `suddenLife` calls it in the forest, about every 90 s.
+- `ctx.brush('branch' | 'web')`: a dark twig sweeps across part of the frame with a leaf rustle and a small knock, or pale cobweb threads cover the view and fade over two seconds. A beat can do it with `{ brush: 'web' }`.
+- `ctx.torchOut(seconds)`: the torch stutters, dies for `seconds`, and stutters back on, the same way its loose contact fails at random. Nothing happens if it is off. A beat can do it with `{ torch: 3 }`.
+- `ctx.blink(hold)`: with `hold`, the eyes close slowly, stay shut that many seconds, and open again. Without it, a normal blink.
+- `decoy(kit, kind, { x, z, yaw })` in `src/game/scares/decoys.ts` builds a prop that reads as a man standing in the fog: `'scarecrow'`, `'coat_on_post'`, `'snagged_cape'` (camo cloth on a dead branch, stirring a little), or `'hunters_stand'` (a raised hide with a dark shape in it). It stays put. `decoySighting(id, kind, at, zone)` is its beat: the first time the player looks at it from within 25 m, the ambience drops out for a few seconds and a low swell (`sfx_sting_low`) plays. Nothing else happens. Give `at.y` where the ground is not at 0.
+- `lookBack(kit, ctx, { at, change, if, away })` in `src/game/scares/lookBack.ts`: once the player has seen `at`, `change` runs the first time `at` has been out of view for `away` seconds (default 2). Use it to turn a chair, leave a door ajar, or switch a television on. `if` holds it back until a condition is true.
 
 ## Sound layers
 

@@ -1,6 +1,7 @@
 import type { AudioManager, Output } from '../engine/audio/audioManager';
 
-const url = (name: string) => `${import.meta.env.BASE_URL}assets/audio/breath/${name}.ogg`;
+/** A breathing recording by name, for scenes that play one themselves. */
+export const breathUrl = (name: string) => `${import.meta.env.BASE_URL}assets/audio/breath/${name}.ogg`;
 
 /** Breathing loops from a little out of breath to gasping. They play together, faded by how winded the reporter is. */
 const LOOPS = ['tired', 'fast', 'faster'] as const;
@@ -47,14 +48,14 @@ export class Breathing {
     this.nextCold = COLD_EVERY * (0.5 + Math.random());
     if (!cold || this.panting) return;
     const shiver = Math.random() < 0.55;
-    this.audio.play(url(shiver ? `shiver_${pick(SHIVERS)}` : `sniff_${pick(SNIFFS)}`), { bus: 'sfx', volume: shiver ? 0.3 : 0.25 });
+    this.audio.play(breathUrl(shiver ? `shiver_${pick(SHIVERS)}` : `sniff_${pick(SNIFFS)}`), { bus: 'sfx', volume: shiver ? 0.3 : 0.25 });
   }
 
   /** Starts all three loops silent, each from a random point so they never line up. */
   private startLoops(): Output[] {
     return LOOPS.map((name) => {
       const output = this.audio.output({ bus: 'sfx', volume: 0 });
-      void this.audio.load(url(name)).then((buffer) => {
+      void this.audio.load(breathUrl(name)).then((buffer) => {
         const source = this.audio.context.createBufferSource();
         source.buffer = buffer;
         source.loop = true;

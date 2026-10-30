@@ -18,3 +18,6 @@ export function unspent(state: StateView, beats: Beat[]): Beat[] {
     .filter((beat) => !isSpent(state, beat.id))
     .map((beat) => ({ ...beat, do: [{ run: () => void spent.add(key(state, beat.id)) }, ...beat.do] }));
 }
+
+/** A beat that plays once in the whole game, not once a day: it sets a flag named after itself. */
+export const oncePerGame = (beat: Beat): Beat => ({ ...beat, set: beat.id });

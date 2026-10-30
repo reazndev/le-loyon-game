@@ -1,4 +1,4 @@
-import type { MeshBuilder } from '../../game/kit/builders';
+import type { MeshBuilder, Placed } from '../../game/kit/builders';
 import type { LevelKit } from '../../game/kit/levelKit';
 import type { SceneContext } from '../../game/scene';
 import { fogWindow } from '../../game/kit/windows';
@@ -6,7 +6,7 @@ import { playNode } from '../forest_path/play';
 import { cafeLit, darkOutside, type InnDressing } from './dressing';
 import { bottles, cafeTable, chair, placeSetting } from './furniture';
 import { floorAndCeiling, pendantLamp, skirting, wall, type Finish } from './interior';
-import { CAFE, COUNTER, FRONT_DOOR, KITCHEN_DOOR, STAIRS, STUBLI_DOOR, SUPPER_TABLE, TABLES } from './layout';
+import { CAFE, CAFE_RADIATOR, COUNTER, FRONT_DOOR, KITCHEN_DOOR, STAIRS, STUBLI_DOOR, SUPPER_TABLE, TABLES } from './layout';
 
 /** The café on the ground floor: six tables, the counter, the television on its bracket. */
 
@@ -19,8 +19,13 @@ export const PANELLED: Finish = {
 
 const WINDOW = { w: 1.15, h: 1.05, y: 1.0 };
 
-/** Builds the café and returns the television's screen, for the picture on it. */
-export function buildCafe(kit: LevelKit, ctx: SceneContext, dressing: InnDressing, justAte: boolean): MeshBuilder {
+/** The café parts the night changes: the television's screen and the spare chair by the stübli door. */
+export interface CafeParts {
+  tvScreen: MeshBuilder;
+  spareChair: Placed;
+}
+
+export function buildCafe(kit: LevelKit, ctx: SceneContext, dressing: InnDressing, justAte: boolean): CafeParts {
   const { x0, x1, z0, z1, h } = CAFE;
   const night = !cafeLit(dressing);
 
@@ -56,7 +61,7 @@ export function buildCafe(kit: LevelKit, ctx: SceneContext, dressing: InnDressin
 
   counter(kit, dressing);
   kitchenDoor(kit, ctx, dressing);
-  const tvScreen = decor(kit, dressing);
+  const parts = decor(kit, dressing);
 
   // Lamps over the tables. At night and on the third evening only the kitchen door glows.
   [
@@ -66,7 +71,7 @@ export function buildCafe(kit: LevelKit, ctx: SceneContext, dressing: InnDressin
     { x: 2.6, z: -2.6 },
   ].forEach((p) => pendantLamp(kit, { x: p.x, y: h, z: p.z }, { on: !night, intensity: 1.35, range: 5.5, drop: 0.7 }));
   if (dressing.endingMorning) kit.light({ color: 0x9aa0a4, intensity: 0.8, range: 7 }).at(0, 2, 2.5);
-  return tvScreen;
+  return parts;
 }
 
 function counter(kit: LevelKit, dressing: InnDressing): void {
@@ -118,7 +123,7 @@ function kitchenDoor(kit: LevelKit, ctx: SceneContext, dressing: InnDressing): v
     .at(KITCHEN_DOOR.x - 1.2, 0, COUNTER.z + 0.7);
 }
 
-function decor(kit: LevelKit, dressing: InnDressing): MeshBuilder {
+function decor(kit: LevelKit, dressing: InnDressing): CafeParts {
   const lit = cafeLit(dressing);
   // The television on its bracket in the corner, the local channel with the sound off.
   kit.box({ w: 0.06, h: 0.06, d: 0.5 }).color(0x2a2a2a).at(CAFE.x1 - 0.25, 2.05, -0.6);
@@ -144,8 +149,9 @@ function decor(kit: LevelKit, dressing: InnDressing): MeshBuilder {
     kit.box({ w: 0.2, h: 0.28, d: 0.02 }).texture('rust_metal', { tile: 0.3 }).color(0x6a6a64).at(rack.x + 0.12, 0, rack.z + 0.1);
   }
   // A spare chair by the stübli door, and the guest book on a stand.
-  chair(kit, CAFE.x0 + 0.4, 1.4, -90);
+  const spareChair = chair(kit, CAFE.x0 + 0.4, 1.4, -90).dynamic();
   kit.box({ w: 0.3, h: 0.95, d: 0.25 }).texture('wood_planks', { tile: 0.5 }).color(0x5a4030).at(1.2, 0, CAFE.z1 - 0.35).collider();
   kit.box({ w: 0.3, h: 0.03, d: 0.22 }).color(0x6a2a24).at(1.2, 0.95, CAFE.z1 - 0.35);
-  return screen;
+  kit.box({ w: 0.8, h: 0.5, d: 0.1 }).texture('rust_metal', { tile: 0.3 }).color(0xd0ccc0).at(CAFE_RADIATOR.x, 0.2, CAFE_RADIATOR.z).rotY(90).collider();
+  return { tvScreen: screen, spareChair };
 }

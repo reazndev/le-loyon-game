@@ -1,5 +1,6 @@
 import { Color } from 'three';
 import { dialogues } from '../../content';
+import type { Point3 } from '../../engine/audio/audioManager';
 import { bark } from '../../engine/characters/voices';
 import type { MeshBuilder } from '../../game/kit/builders';
 import type { LevelKit } from '../../game/kit/levelKit';
@@ -9,8 +10,10 @@ import { playSound } from '../../game/scares/sounds';
 import type { SceneContext } from '../../game/scene';
 import { everyFrame } from '../church/everyFrame';
 import { isNight, type StoryPhase } from '../forest_path/story';
-import { CHURCH, HOUSE_2, PHONE_BOX, SQUARE } from './layout';
-import { dialTone, moped, phoneRing, scoped, type MovingSound } from './sounds';
+import { towerBell } from '../church/sounds';
+import { CHURCH, HOUSE_1, HOUSE_2, PHONE_BOX, SQUARE } from './layout';
+import { brodardCall } from './phonebox';
+import { dialTone, moped, phoneRing, scoped, shutterBang, type MovingSound } from './sounds';
 import { startle } from '../../game/scares/startles';
 
 /**
@@ -27,6 +30,8 @@ export interface SquareParts {
   phoneLamp: MeshBuilder | null;
   /** The abbé's lamp; a shadow passes it now and then. */
   presbyteryLamp: MeshBuilder | null;
+  /** The tower's bell, for the strike overhead. */
+  bell: Point3;
 }
 
 /** Where the moped idles on day 2, behind the houses east of the square, out of sight. */
@@ -47,6 +52,20 @@ export function stageBeats(kit: LevelKit, ctx: SceneContext, phase: StoryPhase, 
   const beats: Beat[] = night
     ? [startle('square_tower', 'pigeons', { x: -CHURCH.w / 2 - 1, z: CHURCH.front + 2, r: 3 }, { x: CHURCH.x, y: 16, z: CHURCH.front - 2 })]
     : [];
+  // Once each game: the bell striking right overhead at the church door, and a shutter on house 1 slamming in the wind.
+  beats.push({
+    id: 'vil_tower_strike',
+    when: { enter: { x: CHURCH.x, z: CHURCH.front + 2.5, r: 2.5 } },
+    do: [{ run: () => towerBell(audio, parts.bell, 3) }, { after: 1.65, run: (c) => c.jolt() }, { after: 1.7, startle: 'pigeons', from: parts.bell }],
+    set: 'vil_tower_strike',
+  });
+  if (phase !== 'day1')
+    beats.push({
+      id: 'vil_shutter',
+      when: { enter: { x: HOUSE_1.x + HOUSE_1.d / 2 + 1.5, z: HOUSE_1.z, w: 3, d: 8 } },
+      do: [{ run: () => shutterBang(audio, { x: HOUSE_1.x + HOUSE_1.d / 2, y: 4.4, z: HOUSE_1.z + 1.6 }) }],
+      set: 'vil_shutter',
+    });
   if (phase === 'day1')
     beats.push({ id: 'vil_curtain', when: { enter: { x: 9.6, z: 10.5, r: 3.5 } }, do: [{ run: () => void twitch() }] });
   if (phase === 'day2')
@@ -75,6 +94,14 @@ export function stageBeats(kit: LevelKit, ctx: SceneContext, phase: StoryPhase, 
       when: { enter: { x: HOUSE_2.x, z: 10.5, w: 10, d: 4 } },
       do: [{ run: () => bark(audio, { at: { x: HOUSE_2.x + 1, y: 1, z: HOUSE_2.z - 2.5 }, volume: 1 }), after: 0.6 }],
     });
+  // Someone on the line (A6): once the call is over, the square goes quiet and the box light blinks.
+  if (!night)
+    beats.push({
+      id: 'vil_line_breath',
+      when: { flag: 'brodard_called' },
+      do: [{ silence: 6 }, { run: () => void blink() }],
+      set: 'vil_line_breath',
+    });
   if (phase === 'night2')
     beats.push({
       id: 'vil_phonebox',
@@ -89,6 +116,7 @@ export function stageBeats(kit: LevelKit, ctx: SceneContext, phase: StoryPhase, 
       ],
     });
   kit.use(scareDirector(beats, night ? { random: { surface: 'stone' } } : {}));
+  const call = brodardCall(kit, ctx);
 
   const twitch = async () => {
     curtainOffset = 0.32;
@@ -97,6 +125,12 @@ export function stageBeats(kit: LevelKit, ctx: SceneContext, phase: StoryPhase, 
   };
   const curtainHome = parts.curtain?.object.position.x ?? 0;
   const lamp = parts.phoneLamp;
+  const blink = async () => {
+    if (!lamp) return;
+    lamp.object.visible = false;
+    await wait(0.15);
+    lamp.object.visible = true;
+  };
   const abbe = parts.presbyteryLamp;
   const abbeLit = new Color(abbe?.mesh.material.uniforms.uColor.value ?? 0xffffff);
   let shadow = -1;
@@ -107,7 +141,7 @@ export function stageBeats(kit: LevelKit, ctx: SceneContext, phase: StoryPhase, 
     if (parts.curtain) parts.curtain.object.position.x += (curtainHome + curtainOffset - parts.curtain.object.position.x) * Math.min(1, dt * 3);
     // A light upstairs goes off as the reporter comes close (door_house_2).
     if (!night && parts.houseTwoLight?.object.visible && Math.hypot(p.x - HOUSE_2.x, p.z - (HOUSE_2.z - HOUSE_2.d / 2)) < 9) parts.houseTwoLight.object.visible = false;
-    if (lamp && Math.random() < dt * 1.4) lamp.object.visible = Math.random() < 0.85;
+    if (night && lamp && Math.random() < dt * 1.4) lamp.object.visible = Math.random() < 0.85;
     if (abbe && !ctx.paused) {
       shadowWait -= dt;
       if (shadowWait < 0 && shadow < 0) shadow = 0;
@@ -150,6 +184,7 @@ export function stageBeats(kit: LevelKit, ctx: SceneContext, phase: StoryPhase, 
       await ctx.dialogue(dialogues.phone_night_static);
       return;
     }
+    if (!night && call.wanted()) return call.use();
     await ctx.dialogue(night ? dialogues.square_phonebox_night : dialogues.square_phonebox);
   };
 }

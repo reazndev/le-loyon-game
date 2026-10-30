@@ -1,6 +1,6 @@
 import type { LevelKit } from '../../game/kit/levelKit';
 import type { SceneContext } from '../../game/scene';
-import { distantTraffic, dustMotes, fliesOver, loop, miceInTheWalls, particles, weather } from '../../game/ambient';
+import { distantTraffic, dustMotes, fliesOver, loop, miceInTheWalls, particles, suddenLife, weather } from '../../game/ambient';
 import { rain } from '../../game/ambient/sounds';
 import { clockTick } from '../inn/sounds';
 import { secondHand } from '../laiterie/secondHand';
@@ -13,6 +13,7 @@ import { BENCH, ROOM } from './layout';
  * car going by on the road outside the bay doors.
  */
 export function garageAmbient(kit: LevelKit, ctx: SceneContext, open: boolean): void {
+  suddenLife(kit, ctx, 'indoors');
   secondHand(kit, { x: CLOCK.x, y: CLOCK.y, z: CLOCK.z + 0.045 }, 0.17);
   loop(kit, () => clockTick(ctx.audio, CLOCK, 0.18));
   fliesOver(kit, ctx, SANDWICH);

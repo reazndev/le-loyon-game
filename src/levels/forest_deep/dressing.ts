@@ -9,8 +9,8 @@ import type { Height } from '../forest_path/woods';
 export function trackProps(track: Trail) {
   const at = (meters: number, side: number) => beside(track, meters, side);
   return {
-    /** A short run of fence nobody mends, along the left of the track, its last post down. */
-    fence: [15, 18, 21].map((meters) => [at(meters, -2.5).x, at(meters, -2.5).z] as const) as Trail,
+    /** A short run of fence nobody mends, inside the bend past the boulder, its last post down. */
+    fence: [16, 18.5, 21].map((meters) => [at(meters, 2.5).x, at(meters, 2.5).z] as const) as Trail,
     stumps: [
       { ...at(8, 1.8), size: 1.1 },
       { ...at(24, -1.8), size: 0.9 },

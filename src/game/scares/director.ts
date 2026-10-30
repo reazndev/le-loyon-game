@@ -1,6 +1,7 @@
 import { Vector3 } from 'three';
 import type { Point3 } from '../../engine/audio/audioManager';
 import type { Surface } from '../../engine/physics/ground';
+import { critters, type Critters } from '../ambient/critters';
 import { cameraFar } from '../../engine/render/atmosphere';
 import { ps1Uniforms } from '../../engine/render/ps1Uniforms';
 import type { KitContext } from '../kit/builders';
@@ -10,6 +11,7 @@ import { Figure, type Viewer } from './figure';
 import { fogSight, liveFog } from './fogSight';
 import { RandomEvents, type RandomEventId, type RandomEventOptions } from './randomEvents';
 import { otherStep, playSound } from './sounds';
+import { startleAt } from './startles';
 
 export interface DirectorOptions {
   /** Random sound events between beats, for outdoor night scenes and the bunker. */
@@ -19,7 +21,7 @@ export interface DirectorOptions {
 const SILENCE_FADE = 1.5;
 const SILENCE_RETURN = 3;
 /** Fixed beats keep random events away for this long. */
-const AFTER_BEAT = 60;
+const AFTER_BEAT = 30;
 
 interface Timer {
   at: number;
@@ -34,6 +36,7 @@ export class ScareDirector {
   private readonly tracker: BeatTracker;
   private readonly random: RandomEvents | null;
   private readonly figures = new Map<FigureSpec, NpcBuilder>();
+  private readonly critters: Critters;
   private running: Figure[] = [];
   private timers: Timer[] = [];
   private clock = 0;
@@ -47,6 +50,7 @@ export class ScareDirector {
   ) {
     this.tracker = new BeatTracker(beats);
     this.random = options.random ? new RandomEvents(options.random) : null;
+    this.critters = critters(ctx);
     beats.flatMap((beat) => beat.do).forEach((action) => {
       if ('figure' in action) this.figures.set(action.figure, this.castFigure(action.figure));
     });
@@ -101,6 +105,12 @@ export class ScareDirector {
       this.silence(action.silence);
     } else if ('fog' in action) {
       this.changeFog(action.fog);
+    } else if ('startle' in action) {
+      startleAt(scene, this.critters, action.startle, action.from);
+    } else if ('torch' in action) {
+      scene.torchOut(action.torch);
+    } else if ('brush' in action) {
+      scene.brush(action.brush);
     } else if ('stinger' in action) {
       const at = this.place(action.at ?? 'behind', 2);
       playSound(audio, action.stinger === true ? 'sfx_hit' : action.stinger, { at, volume: 2 });
@@ -114,7 +124,10 @@ export class ScareDirector {
     const side = (['behind', 'left', 'right'] as const)[Math.floor(Math.random() * 3)]!;
     if (event === 'step') this.stalk(surface, 2 + Math.floor(Math.random() * 3), 6 + Math.random() * 4);
     else if (event === 'branch') playSound(this.ctx.audio, 'sfx_branch', { at: this.place(side, 15 + Math.random() * 15) });
-    else if (event === 'silence') this.silence(8);
+    else if (event === 'crack') {
+      playSound(this.ctx.audio, 'sfx_branch', { at: this.place(side, 4 + Math.random() * 2), volume: 2.2 });
+      this.ctx.scene.jolt();
+    } else if (event === 'silence') this.silence(8);
     else playSound(this.ctx.audio, 'sfx_breath_mask', { at: this.place(side, 9), volume: 0.4 });
   }
 

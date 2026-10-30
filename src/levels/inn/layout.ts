@@ -58,3 +58,7 @@ export const YANNICK_SEAT = { x: -6.8, z: -0.24, height: 0.45 };
 export const BED = { x: 8.55, z: -9.9 };
 export const ROOM3_DESK = { x: 6.55, z: -10.25 };
 export const RADIATOR = { x: 9.45, y: UPPER + 0.3, z: -8.6 };
+/** The café's radiator, under the east window. */
+export const CAFE_RADIATOR = { x: CAFE.x1 - 0.14, y: 0.45, z: 1.8 };
+/** The reporter's coat on its hook by the door of room 3, the one thing behind them at the window. */
+export const ROOM3_COAT = { x: ROOM3.x0 + 0.12, y: UPPER + 1.05, z: -9.7 };

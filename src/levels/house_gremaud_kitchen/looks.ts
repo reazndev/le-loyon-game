@@ -6,6 +6,7 @@ export const looks = {
   photo: 'Gremaud in a dark suit with the syndic\'s sash. He looks like he wants the photo over with.',
   calendar: "The commune's calendar for 1997, still on January. Nothing is written on the fourteenth.",
   chair: 'The second chair is pushed in square to the table. The cushion has no dent in it.',
+  chairMoved: "The second chair is pulled out from the table, turned a little toward the room. I'm sure it was pushed in.",
   crucifix: 'A crucifix over his place at the table, with a sprig of dry box behind it.',
   clock: "The kitchen clock. It's the loudest thing in the house.",
   stove: 'An enamel stove, still warm. The wood box beside it is full.',

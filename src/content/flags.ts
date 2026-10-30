@@ -80,6 +80,34 @@ export const storyFlags = [
   'sat_in_confessional',
   'chu_confessional',
   'chu_after_mass',
+  // Additions in docs/script/08-additions.md.
+  'simone_met',
+  'knows_brodard',
+  'saw_register_gap',
+  'simone_asked_help',
+  'simone_printed',
+  'chu_harmonium_reed',
+  'josiane_met',
+  'josiane_seen',
+  'josiane_letters',
+  'josiane_letterbox',
+  'read_directory_vauchy',
+  'brodard_called',
+  'vil_line_breath',
+  'germaine_met',
+  'minet_missing',
+  'heard_minet',
+  'cellar_code_hint',
+  'minet_returned',
+  'germaine_letterbox',
+  'opened_cellar',
+  'cel_hatch_slam',
+  'wrote_in_logbook',
+  'logbook_wrote_harm',
+  'logbook_wrote_who',
+  'read_logbook_reply',
+  'fort_logbook_cup',
+  'read_chart_larch',
 ] as const;
 
 export type StoryFlag = (typeof storyFlags)[number];
@@ -96,24 +124,30 @@ export const counts = {
   film_shots: { min: 0, max: 10 },
   /** Computed by the desktop agent when the player connects at the inn. */
   forum_stage: { min: 1, max: 6 },
+  /** The day the reporter wrote in the fort's logbook, so the answer appears from the next day on. */
+  logbook_day: { min: 0, max: 3 },
 } as const;
 
 export type CountName = keyof typeof counts;
 
-const twoOf = (a: StoryFlag, b: StoryFlag, c: StoryFlag): Condition => ({
-  any: [{ flag: [a, b] }, { flag: [a, c] }, { flag: [b, c] }],
+/** Holds when at least two of the flags are set. */
+const twoOf = (...flags: StoryFlag[]): Condition => ({
+  any: flags.flatMap((a, i) => flags.slice(i + 1).map((b) => ({ flag: [a, b] }))),
 });
 
 /** Flags that follow from other state. The game never stores them; read them with `holds` or `checkStory`. */
 export const derivedFlags = {
   pro_knows_village: { flag: ['pro_read_thread_bus', 'pro_read_homepage'] },
-  suspects_empty_coffin: twoOf('read_register', 'bernard_light_coffin', 'odile_talked'),
+  suspects_empty_coffin: twoOf('read_register', 'bernard_light_coffin', 'odile_talked', 'brodard_called'),
   has_evidence: { any: [{ item: 'gremaud_letter' }, ...strongEvidence.map((item) => ({ item }))] },
   has_shovel: { item: 'shovel' },
   has_food: { item: 'food_parcel' },
   has_bunker_key: { item: 'bunker_key' },
   has_legion_tag: { item: 'legion_tag' },
   has_ring: { item: 'ring' },
+  has_burials_book: { item: 'burials_book' },
+  has_taxcard: { item: 'taxcard' },
+  has_minet: { item: 'minet' },
 } satisfies Record<string, Condition>;
 
 export type DerivedFlag = keyof typeof derivedFlags;

@@ -32,7 +32,7 @@ export function stepsPastRoom3(): { at: number; x: number; z: number }[] {
  * The inn's beats from 07-scares.md. `inn_radiator` plays in the bed sequence (see turns.ts);
  * the inn and the church are never given random events.
  */
-export function stageBeats(kit: LevelKit, ctx: SceneContext, dressing: InnDressing): ScareDirector {
+export function stageBeats(kit: LevelKit, ctx: SceneContext, dressing: InnDressing, extra: Beat[] = []): ScareDirector {
   const nightTwoBack = dressing.phase === 'night2' && ctx.state.hasFlag('opened_coffin');
   const upstairs: Beat = {
     id: 'inn_upstairs_steps',
@@ -60,6 +60,7 @@ export function stageBeats(kit: LevelKit, ctx: SceneContext, dressing: InnDressi
       ],
     },
     ...(nightTwoBack ? [upstairs] : []),
+    ...extra,
   ];
   return kit.use(scareDirector(beats));
 }

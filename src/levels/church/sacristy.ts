@@ -1,12 +1,19 @@
 import type { LevelKit } from '../../game/kit/levelKit';
 import type { SceneContext } from '../../game/scene';
 import { playNode } from '../forest_path/play';
-import { OFFICE, RAISED, REGISTER_CUPBOARD, SACRISTY, WALL } from './layout';
-import { readRegisters } from './registers';
+import { everyFrame } from './everyFrame';
+import { OFFICE, PRINTER, RAISED, REGISTER_CUPBOARD, SACRISTY, WALL } from './layout';
+import { burialsGap, burialsInOffice, readRegisters } from './registers';
+import { simoneSpot } from './simone';
 
 /** The sacristy with the register cupboard (P2), and the parish office next door. */
 
 const SPINES = [0x4a2420, 0x222a3a, 0x263a2a, 0x263a2a, 0x4a2420, 0x18171a, 0x222a3a, 0x263a2a, 0x4a2420, 0x263a2a];
+const BURIALS_GREEN = 0x263a2a;
+/** The shelf at eye height starts with the three burials books that matter, 1995 to 1997. */
+const BURIALS_SHELF = 2;
+const BURIALS_SPINES = [0.075, 0.07, 0.08];
+const BURIALS_WIDTH = BURIALS_SPINES.reduce((sum, thick) => sum + thick + 0.008, 0);
 
 /** The cupboard stays locked on day 1; from day 2 the key is in the lock. */
 const cupboardOpen = (ctx: SceneContext) => ctx.state.count('day') >= 2;
@@ -59,7 +66,7 @@ function registerCupboard(kit: LevelKit, ctx: SceneContext, floor: number): void
   kit.barrier({ w: w + 0.1, d: 0.5 }).at(x, 0, z);
   [0.1, 0.62, 1.14, 1.66].forEach((y, shelf) => {
     kit.box({ w, h: 0.03, d: 0.44 }).color(0x5a4a3e).at(x, floor + y, z);
-    let cursor = x - w / 2 + 0.08;
+    let cursor = x - w / 2 + 0.08 + (shelf === BURIALS_SHELF ? BURIALS_WIDTH : 0);
     let i = shelf * 3;
     while (cursor < x + w / 2 - 0.1) {
       const thick = 0.05 + ((i * 7) % 5) * 0.012;
@@ -76,9 +83,29 @@ function registerCupboard(kit: LevelKit, ctx: SceneContext, floor: number): void
   });
   if (open) kit.box({ w: 0.03, h: 0.08, d: 0.04 }).color(0xb09a58).at(x + w / 2 + 0.06, floor + 1.1, z + 0.3);
 
+  // A2: the green books are in the office on day 2, and Simone's slip stands in the gap.
+  const shelfY = floor + [0.1, 0.62, 1.14, 1.66][BURIALS_SHELF]! + 0.03;
+  let cursor = x - w / 2 + 0.08;
+  const burials = BURIALS_SPINES.map((thick) => {
+    const spine = kit.box({ w: thick, h: 0.42, d: 0.3 }).color(BURIALS_GREEN).at(cursor + thick / 2, shelfY, z - 0.02).dynamic();
+    cursor += thick + 0.008;
+    return spine;
+  });
+  const slip = kit
+    .box({ w: 0.008, h: 0.15, d: 0.12 })
+    .color(0xd8d2c0)
+    .at(x - w / 2 + 0.08 + BURIALS_WIDTH / 2, shelfY, z + 0.12)
+    .rotY(12)
+    .dynamic();
+  everyFrame(kit, () => {
+    const gap = burialsGap(ctx.state);
+    burials.forEach((spine) => (spine.object.visible = !gap));
+    slip.object.visible = gap;
+  });
+
   kit
     .hotspot({
-      prompt: () => (cupboardOpen(ctx) ? 'Read the registers' : 'Look at the cupboard'),
+      prompt: () => (!cupboardOpen(ctx) ? 'Look at the cupboard' : ctx.state.hasItem('burials_book') ? 'Put the burials books back' : 'Read the registers'),
       radius: 0.6,
       onInteract: () => (cupboardOpen(ctx) ? readRegisters(ctx) : ctx.say('Locked. The abbé said after morning mass.')),
     })
@@ -117,7 +144,55 @@ function office(kit: LevelKit, ctx: SceneContext, floor: number): void {
   kit.box({ w: 0.2, h: 0.16, d: 0.02 }).color(0x5a4a3a).at(cabinet.x, floor + 1.3, cabinet.z).rotY(75);
   kit.box({ w: 0.16, h: 0.12, d: 0.01 }).color(0x8a8678).at(cabinet.x - 0.012, floor + 1.32, cabinet.z).rotY(75);
 
-  kit.hotspot({ prompt: 'Look at the computer', radius: 0.35, onInteract: () => playNode(ctx, 'office_computer') }).at(desk.x - 0.05, 0, desk.z);
+  printerStand(kit, floor);
+  // A2: on day 2 the bulletin is up on the screen and the burials books are on the desk.
+  const page = kit.group((g) => {
+    g.box({ w: 0.28, h: 0.21, d: 0.004 }).color(0x2830a0).unlit();
+    [0.15, 0.12, 0.09, 0.06].forEach((y, i) => g.box({ w: 0.2 - (i % 2) * 0.05, h: 0.012, d: 0.004 }).color(0xc8ccd8).unlit().at(-0.02, y, 0.002));
+  });
+  page.at(desk.x - 0.05, top + 0.2, desk.z + 0.117).dynamic();
+  const books = [0, 1, 2].map((i) =>
+    kit
+      .box({ w: 0.27, h: 0.055, d: 0.36 })
+      .color(BURIALS_GREEN)
+      .at(desk.x - 0.48, top + 0.02 + i * 0.056, desk.z - 0.14)
+      .rotY(-6 + i * 5)
+      .dynamic(),
+  );
+  everyFrame(kit, () => {
+    page.object.visible = simoneSpot(ctx.state) === 'office';
+    books.forEach((book) => (book.object.visible = burialsInOffice(ctx.state)));
+  });
+
+  const printing = () => ctx.state.hasFlag('simone_asked_help') && !ctx.state.hasFlag('simone_printed');
+  kit
+    .hotspot({
+      prompt: () => (printing() ? 'Use the computer' : 'Look at the computer'),
+      radius: 0.35,
+      // While she sits at it, the computer is hers until she asks for help.
+      enabled: () => printing() || simoneSpot(ctx.state) !== 'office',
+      onInteract: () => playNode(ctx, printing() ? 'office_computer_print' : 'office_computer'),
+    })
+    .at(desk.x - 0.05, 0, desk.z);
   kit.hotspot({ prompt: 'Look at the papers', radius: 0.3, onInteract: () => playNode(ctx, 'office_desk') }).at(desk.x - 0.55, 0, desk.z + 0.05);
   kit.hotspot({ prompt: 'Look at the photo', radius: 0.35, onInteract: () => playNode(ctx, 'office_photo') }).at(cabinet.x, 0, cabinet.z);
+}
+
+/** The dot-matrix printer on a little table of its own, the fanfold paper in its box underneath. */
+function printerStand(kit: LevelKit, floor: number): void {
+  const { x, z } = PRINTER;
+  kit.box({ w: 0.56, h: 0.03, d: 0.44 }).texture('pew_wood', { tile: 1 }).color(0x7e7060).at(x, floor + 0.62, z);
+  [
+    [-0.25, -0.19],
+    [0.25, -0.19],
+    [-0.25, 0.19],
+    [0.25, 0.19],
+  ].forEach(([dx, dz]) => kit.box({ w: 0.04, h: 0.62, d: 0.04 }).color(0x5a4c40).at(x + dx!, floor, z + dz!));
+  kit.barrier({ w: 0.56, d: 0.44 }).at(x, 0, z);
+  const top = floor + 0.65;
+  kit.box({ w: 0.44, h: 0.12, d: 0.3 }).color(0xbab29e).at(x, top, z - 0.02);
+  kit.box({ w: 0.36, h: 0.025, d: 0.06 }).color(0x2a2a28).at(x, top + 0.12, z + 0.02);
+  kit.box({ w: 0.24, h: 0.004, d: 0.12 }).color(0xe0dccc).at(x, top + 0.145, z + 0.06).rotY(2);
+  kit.box({ w: 0.32, h: 0.16, d: 0.26 }).color(0x9a8a6a).at(x, floor, z);
+  kit.box({ w: 0.27, h: 0.08, d: 0.22 }).color(0xe0dccc).at(x, floor + 0.16, z);
 }
