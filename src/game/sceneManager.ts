@@ -19,6 +19,8 @@ export interface SceneManagerDeps {
   overlay: Overlay;
   renderer: GameRenderer;
   context: SceneContext;
+  /** Runs once a scene has loaded and the player stands in it. */
+  onLoaded?: () => void;
 }
 
 /** Loads scenes by id, with a fade to black and an audio fade between them. */
@@ -68,6 +70,7 @@ export class SceneManager {
     this.applyAtmosphere();
     this.placePlayer(scene, where);
     this.time = 0;
+    this.deps.onLoaded?.();
 
     FADED_BUSES.forEach((bus) => audio.fadeBus(bus, audio.busLevel(bus), fadeSeconds));
     this.busy = false;

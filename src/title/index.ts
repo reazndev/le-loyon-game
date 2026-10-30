@@ -1,11 +1,9 @@
 import { click, drone } from '../engine/audio/generators';
-import { SAVE_SLOT, type Game } from '../game/game';
+import { CONTINUE_SLOTS, type Game } from '../game/game';
 import { isDesktopApp } from '../game/platform';
 import { latestSave } from '../game/save';
 import { TitleScreen } from './titleScreen';
 
-/** The slots "Continue" looks in: the pause menu's save, and the one made on waking at the inn. */
-const CONTINUE_SLOTS = [SAVE_SLOT, 'sleep'];
 const NEW_GAME_SCENE = 'home';
 
 interface TitleOption {

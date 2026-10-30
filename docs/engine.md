@@ -338,7 +338,7 @@ registerItems({ cemetery_key: { name: 'Cemetery key', description: 'Heavy, with 
 
 Items from the script register themselves when anything imports `src/content`.
 
-Saves go to `localStorage` under `le-loyon.save.<slot>`, as JSON with a `version`. A save holds flags, counts, inventory, photos, scene, time, and pose. The pause menu saves and loads slot `main`. Slot `sleep` is the save made when the reporter wakes at the inn and when they set out on night 2; the caught screen loads it. "Continue" on the title loads whichever of the two is newer (`latestSave` in `src/game/save.ts`). When the format changes, raise `SAVE_VERSION` in `src/game/save.ts` and add a migration from the old version to `migrations`, so old saves keep loading.
+Saves go to `localStorage` under `le-loyon.save.<slot>`, as JSON with a `version`. A save holds flags, counts, inventory, photos, scene, time, and pose. The pause menu saves to slot `main`. Slot `auto` is written every time a scene finishes loading, so a browser player who closes the tab loses at most one area. Slot `sleep` is the save made when the reporter wakes at the inn and when they set out on night 2; the caught screen loads it. "Continue" on the title and "Load game" in the pause menu load the newest of the three (`CONTINUE_SLOTS` in `src/game/game.ts`, `latestSave` in `src/game/save.ts`). When the format changes, raise `SAVE_VERSION` in `src/game/save.ts` and add a migration from the old version to `migrations`, so old saves keep loading.
 
 ## Story state from the content
 

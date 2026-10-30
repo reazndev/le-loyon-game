@@ -14,7 +14,7 @@ import { PolaroidCamera } from './camera/camera';
 import { GameUi, type PauseAction } from './gameUi';
 import { itemInfo } from './items';
 import { isDesktopApp } from './platform';
-import { readSave, writeSave } from './save';
+import { latestSave, readSave, writeSave } from './save';
 import { brightnessFactor, loadSettings, saveSettings, STEPS, type Settings } from './settings';
 import type { Scene, SceneContext } from './scene';
 import { SceneManager } from './sceneManager';
@@ -32,6 +32,10 @@ export interface StartOptions {
 
 /** The slot the pause menu saves to and loads from. */
 export const SAVE_SLOT = 'main';
+/** Written on entering each scene, so closing the tab never loses more than one area. */
+export const AUTO_SLOT = 'auto';
+/** The slots Continue and Load game pick the newest of: the pause menu's save, the autosave, and waking at the inn. */
+export const CONTINUE_SLOTS = [SAVE_SLOT, AUTO_SLOT, 'sleep'];
 
 /** Owns every system and runs the frame loop. */
 export class Game {
@@ -71,6 +75,7 @@ export class Game {
       overlay: this.overlay,
       renderer: this.renderer,
       context: this.context,
+      onLoaded: () => this.writeSlot(AUTO_SLOT),
     });
     this.scenes.register(...scenes);
     this.camera = new PolaroidCamera({
@@ -112,13 +117,17 @@ export class Game {
   }
 
   save(): void {
-    this.state.player = this.pose();
-    writeSave(localStorage, SAVE_SLOT, this.state.snapshot());
+    this.writeSlot(SAVE_SLOT);
     this.overlay.notify('Saved.');
   }
 
-  /** Loads a save slot. Returns false when there is no readable save. */
-  async load(slot = SAVE_SLOT): Promise<boolean> {
+  private writeSlot(slot: string): void {
+    this.state.player = this.pose();
+    writeSave(localStorage, slot, this.state.snapshot());
+  }
+
+  /** Loads a save slot, by default the newest one. Returns false when there is no readable save. */
+  async load(slot = latestSave(localStorage, CONTINUE_SLOTS)?.slot ?? SAVE_SLOT): Promise<boolean> {
     const file = readSave(localStorage, slot);
     if (!file) {
       this.overlay.notify('No saved game.');
