@@ -20,7 +20,7 @@ const raymondNear = (s) =>
   );
 export const inHole = (s) => s.eval(() => window.__game.pose().y < -0.25);
 
-async function torchOff(s) {
+export async function torchOff(s) {
   if (await s.eval(() => window.__game.game.world.lights.flashlightOn)) await s.key('KeyF');
 }
 

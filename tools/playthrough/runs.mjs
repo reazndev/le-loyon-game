@@ -1,4 +1,4 @@
-import { atGrave, climbOut, DIG_SPEED, HOLE, holdAtGrave, inHole, whenRaymondIsGone } from './grave.mjs';
+import { atGrave, climbOut, DIG_SPEED, HOLE, holdAtGrave, inHole, torchOff, whenRaymondIsGone } from './grave.mjs';
 import { StageError } from './session.mjs';
 import {
   downToInn,

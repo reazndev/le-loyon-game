@@ -197,8 +197,10 @@ export class Session {
     if (wrong.length) throw new StageError(`Counts: ${wrong.map(([name, value]) => `${name} is ${state.counts[name] ?? 0}, expected ${value}`).join('; ')}`);
   }
 
-  /** Saves the 640x480 frame as docs/screenshots/flow-<name>.png. */
+  /** Saves the 640x480 frame as docs/screenshots/flow-<name>.png, once any line on screen has typed out. */
   async shot(name) {
+    await this.until(() => !window.__game.game.overlay.dialogue.typing, 'the line to type out');
+    await this.frames(10);
     const path = resolve(SHOTS, `flow-${name}.png`);
     mkdirSync(dirname(path), { recursive: true });
     await this.page.locator('#frame').screenshot({ path });
