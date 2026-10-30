@@ -180,7 +180,8 @@ void main() {
   #endif
 
   #if defined(MIST)
-    vec3 lit = uFogColor * uFogTint + vGlow;
+    // Lit, but not so much that it washes out the shapes behind it.
+    vec3 lit = uFogColor * uFogTint + vGlow * 0.55;
   #elif defined(FOG_TINT)
     vec3 lit = uFogColor * uFogTint + vGlow * 0.35;
   #else

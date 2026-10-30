@@ -290,8 +290,8 @@ export class Game {
     const camera = this.player.camera;
     const forward = camera.getWorldDirection(new Vector3());
     const right = new Vector3().crossVectors(forward, camera.up).normalize();
-    // Held at chest height, a little to the right, so the beam has some parallax.
-    const hand = camera.position.clone().addScaledVector(right, 0.18).add(new Vector3(0, -0.35, 0));
+    // Held low and to the right, so what it lights throws its shadow up and to the left, where it shows.
+    const hand = camera.position.clone().addScaledVector(right, 0.32).add(new Vector3(0, -0.5, 0));
     const aim = forward.clone().add(new Vector3(0, -0.06, 0)).normalize();
     // Snaps on a scene change or a sharp turn, such as a cutscene cut, instead of sweeping across.
     if (this.scenes.busy || this.beam.dot(aim) < 0) this.beam.copy(aim);

@@ -11,7 +11,7 @@ import {
   type Side,
   type Texture,
 } from 'three';
-import { MAX_POINT_LIGHTS, ps1Uniforms } from './ps1Uniforms';
+import { MAX_POINT_LIGHTS, ps1Uniforms, SHADOW_SIZE } from './ps1Uniforms';
 
 const vertexShader = /* glsl */ `
 uniform vec2 uSnap;
@@ -137,6 +137,10 @@ uniform float uSpotRange;
 uniform vec2 uSpotCos;
 uniform float uSpotFogGlow;
 uniform float uLightFogGlow;
+uniform sampler2D uShadowMap;
+uniform mat4 uShadowMatrix;
+uniform float uShadowPass;
+uniform float uShadowOn;
 
 varying vec2 vUv;
 varying vec3 vLight;
@@ -152,6 +156,24 @@ float diffuse(vec3 n, vec3 l) {
   return clamp((dot(n, l) + 0.25) / 1.25, 0.0, 1.0);
 }
 
+// How much of this point the torch can see, 0 to 1: anything behind something closer to the
+// torch is in its shadow. Four samples soften the edge by about a texel.
+float spotVisible(float spotDist) {
+  if (uShadowOn < 0.5) return 1.0;
+  vec4 p = uShadowMatrix * vec4(vWorldPos, 1.0);
+  if (p.w <= 0.0) return 1.0;
+  vec2 uv = p.xy / p.w * 0.5 + 0.5;
+  if (uv.x < 0.0 || uv.y < 0.0 || uv.x > 1.0 || uv.y > 1.0) return 1.0;
+  float d = spotDist / uSpotRange - 0.025;
+  vec2 texel = vec2(${(1 / SHADOW_SIZE).toFixed(6)});
+  float seen = 0.0;
+  seen += step(d, texture2D(uShadowMap, uv + vec2(-0.5, -0.5) * texel).r);
+  seen += step(d, texture2D(uShadowMap, uv + vec2(0.5, -0.5) * texel).r);
+  seen += step(d, texture2D(uShadowMap, uv + vec2(-0.5, 0.5) * texel).r);
+  seen += step(d, texture2D(uShadowMap, uv + vec2(0.5, 0.5) * texel).r);
+  return seen * 0.25;
+}
+
 // The flashlight is lit per pixel, unlike the lamps: per vertex its spot hopped between vertices.
 vec3 spotLight() {
   vec3 toSpot = uSpotPos - vWorldPos;
@@ -160,7 +182,8 @@ vec3 spotLight() {
   float cone = smoothstep(uSpotCos.x, uSpotCos.y, dot(-spotL, uSpotDir));
   // Cubed, so it stays bright close by and drops away fast: a few meters out is already dim.
   float falloff = clamp(1.0 - spotDist / uSpotRange, 0.0, 1.0);
-  return uSpotColor * cone * falloff * falloff * falloff * diffuse(normalize(vWorldNormal), spotL);
+  if (cone * falloff <= 0.0) return vec3(0.0);
+  return uSpotColor * cone * falloff * falloff * falloff * diffuse(normalize(vWorldNormal), spotL) * spotVisible(spotDist);
 }
 
 // Snapping moves vertices on screen but not in depth, so close surfaces such as a rug on a floor
@@ -207,10 +230,18 @@ void main() {
   float fog = fogAmount(vViewDist);
 
   #ifdef GLOW
+    // Halos are light in the air; they cast nothing.
+    if (uShadowPass > 0.5) discard;
     // Additive halo. It is light scattered by the fog itself, so fog only dims it partly.
     gl_FragColor = vec4(texel.rgb * texel.a * uColor * (1.0 - fog * 0.6), 1.0);
   #else
     if (texel.a < uAlphaTest) discard;
+    if (uShadowPass > 0.5) {
+      // The torch's view keeps only how far each surface is from it.
+      gl_FragDepth = gl_FragCoord.z;
+      gl_FragColor = vec4(length(vWorldPos - uSpotPos) / uSpotRange, 0.0, 0.0, 1.0);
+      return;
+    }
     gl_FragDepth = trueDepth();
     #ifdef UNLIT
       vec3 light = vLight;
@@ -274,6 +305,8 @@ export function createPs1Material(options: Ps1MaterialOptions = {}): Ps1Material
     side: options.side ?? FrontSide,
     vertexColors: options.vertexColors ?? false,
   }) as Ps1Material;
+  // Only PS1 surfaces cast the torch's shadows; `GameRenderer` hides everything else in that pass.
+  material.userData.ps1 = true;
   setDefine(material, 'UNLIT', options.unlit ?? false);
   setDefine(material, 'BILLBOARD', options.billboard ?? false);
   if (options.glow) {

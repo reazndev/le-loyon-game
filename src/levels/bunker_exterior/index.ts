@@ -169,9 +169,9 @@ export const bunkerExteriorScene = defineScene({
 
     forestAmbience(kit, ctx);
     nightMist(kit, ctx);
+    nightSky(kit, ctx);
   },
 
-    nightSky(kit, ctx);
   update: lostInTheFog(trails),
 });
 

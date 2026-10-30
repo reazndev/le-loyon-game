@@ -1,6 +1,8 @@
-import { Color, Vector2, Vector3 } from 'three';
+import { Color, Matrix4, Vector2, Vector3, type Texture } from 'three';
 
 export const MAX_POINT_LIGHTS = 8;
+/** Width and height of the torch's view, in texels. */
+export const SHADOW_SIZE = 512;
 
 /**
  * Uniforms shared by every PS1 material. Materials hold references to these objects, so the
@@ -27,5 +29,13 @@ export const ps1Uniforms = {
   uSpotRange: { value: 10 },
   uSpotCos: { value: new Vector2(0.9, 0.97) },
   uSpotFogGlow: { value: 0.36 },
+  /** What the torch can see, as distance from it over its range; see `GameRenderer`. */
+  uShadowMap: { value: null as Texture | null },
+  /** World to the torch's clip space. */
+  uShadowMatrix: { value: new Matrix4() },
+  /** 1 while the torch's view is being drawn, 0 for the frame itself. */
+  uShadowPass: { value: 0 },
+  /** 1 when this frame has a torch view to test against. */
+  uShadowOn: { value: 0 },
   uLightFogGlow: { value: 0.22 },
 };
