@@ -251,8 +251,8 @@ body {
 /* The compass rests on the map's top edge, half of it out of the corner. */
 .ui-nav-compass {
   position: absolute;
-  right: 26px;
-  bottom: 78px;
+  right: 16px;
+  bottom: 70px;
   pointer-events: auto;
   cursor: pointer;
   transition: transform 0.25s ease-out;
@@ -268,40 +268,23 @@ body {
 
 .ui-compass-dial {
   position: relative;
-  width: 40px;
-  height: 40px;
-  border: 3px solid #8a7240;
-  border-radius: 50%;
-  background: radial-gradient(#e6dcc0, #b8a880);
-  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.6);
+  width: 64px;
+  height: 64px;
+  background-size: 100% 100%;
+  image-rendering: pixelated;
+  filter: drop-shadow(2px 2px 0 rgba(0, 0, 0, 0.6));
 }
 
+/* The needle sprite pivots on its brass pin, which sits a little above the dial's center. */
 .ui-compass-needle {
   position: absolute;
-  inset: 0;
-}
-
-/* A red tip that points the way, and a dark tail. */
-.ui-compass-needle::before,
-.ui-compass-needle::after {
-  content: '';
-  position: absolute;
-  left: 50%;
-  width: 0;
-  height: 0;
-  border-left: 4px solid transparent;
-  border-right: 4px solid transparent;
-  transform: translateX(-50%);
-}
-
-.ui-compass-needle::before {
-  top: 3px;
-  border-bottom: 15px solid #b8392c;
-}
-
-.ui-compass-needle::after {
-  bottom: 3px;
-  border-top: 15px solid #3a3426;
+  left: 7%;
+  top: 13.6%;
+  width: 86%;
+  height: 86%;
+  background-size: 100% 100%;
+  image-rendering: pixelated;
+  transform-origin: 50% 47.8%;
 }
 
 .ui-nav-compass.lost .ui-compass-needle {
@@ -336,8 +319,8 @@ body {
 
 .ui-nav[data-held='compass'] .ui-nav-compass {
   right: 50%;
-  bottom: -40px;
-  transform: translateX(50%) perspective(400px) rotateX(28deg) scale(4.4);
+  bottom: 8px;
+  transform: translateX(50%) perspective(400px) rotateX(28deg) scale(4);
   transform-origin: 50% 100%;
 }
 

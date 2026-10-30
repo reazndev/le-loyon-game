@@ -38,7 +38,10 @@ export class NavigationHud {
     this.map = el('canvas', 'ui-nav-canvas', mapCard);
     this.mapKey = el('span', 'ui-key ui-nav-key', mapCard);
     this.compass = el('div', 'ui-nav-compass', this.root);
-    this.needle = el('div', 'ui-compass-needle', el('div', 'ui-compass-dial', this.compass));
+    const dial = el('div', 'ui-compass-dial', this.compass);
+    dial.style.backgroundImage = 'url(assets/textures/compass_body.png)';
+    this.needle = el('div', 'ui-compass-needle', dial);
+    this.needle.style.backgroundImage = 'url(assets/textures/compass_needle.png)';
     this.compassKey = el('span', 'ui-key ui-nav-key', this.compass);
     mapCard.addEventListener('click', () => this.toggle('map'));
     this.compass.addEventListener('click', () => this.toggle('compass'));

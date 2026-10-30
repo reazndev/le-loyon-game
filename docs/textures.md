@@ -27,6 +27,7 @@ All in `public/assets/textures/`. Tiling textures are 128x128 unless noted.
 | Bunker | `concrete_bunker`, `concrete_floor`, `tunnel_vault`, `tiles_white`, `rust_metal` |
 | Single objects, not tiling, 96 px wide | `door_wood`, `window_dark`, `window_lit`, `bunker_door` |
 | Le Loyon | `camo_cape` (tiling), `gas_mask` (128 px cutout with alpha, front view) |
+| HUD sprites, 64 px with alpha | `compass_body` (brass case and dial, no needle), `compass_needle` (red tip up, pivot at 47.8% height) |
 | Sprites with alpha | `tree_spruce`, `tree_beech_bare`, `tree_birch` (96 px wide, tall), `fern_dead`, `bush`, `grass_tuft` (64 px wide) |
 | Foliage cards with alpha, for dense forest | `branch_spruce` (cut off at its top edge; hide that edge against the trunk), `branch_spruce_full` (whole horizontal spray with clean edges, 96x72, for cards that turn freely), `branch_beech`, `bramble`, `undergrowth` (96 px wide; undergrowth has a flat bottom edge meant to sit in the ground), `ivy_clump`, `hanging_lichen`, `sapling_spruce` (64 px), `tree_dead_snag` (96 px, tall), `leaf_cluster`, `tree_larch` |
 | Forest tiling | `spruce_wall` (a wall of dark spruce branches for far layers), `moss_floor` |
@@ -47,4 +48,5 @@ FLORA balance on 2026-10-30: $5.13. Budget for the build: $4.50.
 | 2026-10-30 | Faces: Yannick, driver, Christine, Odile | FLUX 3 Image Klein | 4 | $0.036 |
 | 2026-10-30 | Foliage for the dense forest | FLUX 3 Image Klein | 12 | $0.108 |
 | 2026-10-30 | Monique's new portrait, a clean spruce branch | FLUX 3 Image Klein | 2 | $0.018 |
-| | **Total** | | 75 | **$0.82** |
+| 2026-10-30 | Pixel compass body and needle | FLUX 3 Image Klein | 2 | $0.018 |
+| | **Total** | | 77 | **$0.84** |
