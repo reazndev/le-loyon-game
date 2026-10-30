@@ -1,0 +1,35 @@
+import type { LevelKit } from '../../game/kit/levelKit';
+import type { SceneContext } from '../../game/scene';
+import { breathVapor, crows, drizzle, fallingLeaves, fogWisps, loop, particles, weather, windSway } from '../../game/ambient';
+import { rain } from '../../game/ambient/sounds';
+import { radio, tvMurmur } from '../inn/sounds';
+import { DOOR } from './house';
+
+/**
+ * The doorstep's own layers over the village's: mist on the lawn, drizzle from night 2 with rain
+ * on the porch roof, leaves off the apple tree and two crows on the garden wall by day, and the
+ * house heard through its front wall: Odile's radio by day, and at night, with every window
+ * dark, a television turned very low upstairs.
+ */
+export function doorstepAmbient(kit: LevelKit, ctx: SceneContext, apple: { x: number; z: number }, gate: { x: number; z: number }): void {
+  const night = ctx.state.time === 'night';
+  const sky = weather(ctx.state);
+  windSway(kit, 0.5 + sky.wind);
+  particles(kit, fogWisps(night ? { opacity: 0.3 } : {}));
+  if (sky.breath) breathVapor(kit, ctx);
+  if (sky.drizzle) {
+    particles(kit, drizzle());
+    loop(kit, () => rain(ctx.audio, { surface: 'leaves', volume: 0.18 }));
+    loop(kit, () => rain(ctx.audio, { at: { x: DOOR.x, y: 2.6, z: DOOR.z }, surface: 'tin', volume: 0.22 }));
+  }
+  if (night) {
+    loop(kit, () => tvMurmur(ctx.audio, { x: DOOR.x + 2.4, y: 3.6, z: DOOR.z - 2.4 }, 0.1));
+    return;
+  }
+  loop(kit, () => radio(ctx.audio, { x: DOOR.x + 1.6, y: 1.3, z: DOOR.z - 2.2 }, 0.14));
+  particles(kit, fallingLeaves({ follow: false, box: [4.5, 4.6, 4.5], count: 10, seed: 'gremaud-apple-leaves' })).at(apple.x, 2.35, apple.z);
+  crows(kit, ctx, [
+    { x: gate.x + 5.8, z: gate.z, y: 0.55, yaw: 150 },
+    { x: gate.x - 6.6, z: gate.z, y: 0.55, yaw: 220 },
+  ], 45);
+}

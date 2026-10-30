@@ -12,6 +12,8 @@ import { house, palette, woodpile } from '../village_square/houses';
 import { milkCan } from '../village_square/props';
 import { road } from '../village_square/road';
 import { doorBell, lockTwice } from '../village_square/sounds';
+import { doorstepAmbient } from './ambient';
+import { doorstepClutter } from './clutter';
 import { doorstep } from './doorstep';
 import { DOOR, gremaudHouse, type GremaudHouse } from './house';
 
@@ -23,6 +25,7 @@ import { DOOR, gremaudHouse, type GremaudHouse } from './house';
  */
 
 const GATE = { x: DOOR.x, z: 12 };
+const APPLE = { x: 3.4, z: 8.6 };
 const ODILE = { x: DOOR.x + 0.15, z: DOOR.z - 0.6 };
 /** The inn's back wall, across the hedge on the left. */
 const INN_BACK = { x: -13.5, z: 2 };
@@ -39,9 +42,13 @@ export const houseGremaudScene = defineScene({
   build(kit, ctx) {
     const night = isNight(storyPhase(ctx.state));
     kit.ground('grass');
-    garden(kit);
-    const home = gremaudHouse(kit, (slot) => (!night && slot.face === 'back' && slot.floor === 0 ? 'lit' : 'dark'));
-    innYard(kit, night);
+    // The door leaf and the curtain upstairs are marked dynamic inside the house, so they still move.
+    const home = kit.batch((still) => {
+      garden(still);
+      innYard(still, night);
+      doorstepClutter(still, GATE, !night);
+      return gremaudHouse(still, (slot) => (!night && slot.face === 'back' && slot.floor === 0 ? 'lit' : 'dark'));
+    });
     frontDoor(kit, ctx, home);
 
     kit.exit({ w: 10, d: 1, to: 'village_square', spawn: 'from_gremaud' }).at(GATE.x, 0, 18.4);
@@ -53,6 +60,7 @@ export const houseGremaudScene = defineScene({
     ].forEach(({ x, z, w, d }) => kit.barrier({ w, d }).at(x, 0, z));
 
     villageAmbience(kit, ctx, { bell: { x: -30, y: 14, z: 40 } });
+    doorstepAmbient(kit, ctx, APPLE, GATE);
   },
 });
 
@@ -73,7 +81,7 @@ function garden(kit: LevelKit): void {
   // The gate leaf stands open against the wall.
   kit.box({ w: 1.1, h: 1.0, d: 0.03 }).texture('iron_fence', { tile: [1.1, 1] }).cutout().doubleSided().color(0x3a3a38).at(GATE.x + 0.65, 0.05, GATE.z - 0.55).rotY(90);
 
-  kit.trees(bareTree('gremaud-apple', { height: 4.6, crownBase: 1.3, spread: 1.6, leaves: 0.4, ivy: true }), [{ x: 3.4, z: 8.6, yaw: 40 }]).collider();
+  kit.trees(bareTree('gremaud-apple', { height: 4.6, crownBase: 1.3, spread: 1.6, leaves: 0.4, ivy: true }), [{ ...APPLE, yaw: 40 }]).collider();
   scatter({ x: 0, z: 8, w: 9, d: 6, count: 10, seed: 'gremaud-lawn', spacing: 1.4, scale: [0.5, 0.8], avoid: (x) => Math.abs(x - GATE.x) < 1.2 }).forEach((s) =>
     kit.sprite('grass_tuft', { w: 0.6 * s.scale!, h: 0.35 * s.scale! }).color(0x7e806a).at(s.x, 0, s.z),
   );
