@@ -8,9 +8,6 @@ import type { CharacterModel } from './model';
 /**
  * The looks of the cast in docs/script/00-overview.md. Clothes are what a Fribourg village
  * wore in November 1998: work blues, loden, cardigans, dark Sunday coats.
- *
- * Face stand-ins: Yannick uses `face_young_woman` under his hood and the PostBus driver uses
- * `face_mechanic`, until faces of their own exist.
  */
 export const humanLooks = {
   overney: {
@@ -40,7 +37,7 @@ export const humanLooks = {
     apron: 0xbcb7a6,
   },
   yannick: {
-    face: 'face_young_woman',
+    face: 'face_young_man',
     faceTint: 0x9a9690,
     height: 1.75,
     build: 0.88,
@@ -74,7 +71,7 @@ export const humanLooks = {
     overalls: 0x36424e,
   },
   christine: {
-    face: 'face_young_woman',
+    face: 'face_shopkeeper',
     height: 1.66,
     skin: 0xb89c88,
     hair: 0x5a4632,
@@ -85,7 +82,7 @@ export const humanLooks = {
     coat: { color: 0xb4b2a8, length: 0.45 },
   },
   odile: {
-    face: 'face_old_woman',
+    face: 'face_widow',
     height: 1.6,
     build: 0.95,
     stoop: 0.18,
@@ -111,7 +108,7 @@ export const humanLooks = {
     coat: { color: 0x3c4830, length: 0.55 },
   },
   driver: {
-    face: 'face_mechanic',
+    face: 'face_driver',
     height: 1.77,
     build: 1.05,
     skin: 0xae8c76,

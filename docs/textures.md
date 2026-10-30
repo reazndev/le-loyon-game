@@ -28,7 +28,7 @@ All in `public/assets/textures/`. Tiling textures are 128x128 unless noted.
 | Single objects, not tiling, 96 px wide | `door_wood`, `window_dark`, `window_lit`, `bunker_door` |
 | Le Loyon | `camo_cape` (tiling), `gas_mask` (128 px cutout with alpha, front view) |
 | Sprites with alpha | `tree_spruce`, `tree_beech_bare`, `tree_birch` (96 px wide, tall), `fern_dead`, `bush`, `grass_tuft` (64 px wide) |
-| NPC faces, 64x64 | `face_priest`, `face_farmer`, `face_innkeeper`, `face_mechanic`, `face_old_woman`, `face_watchman`, `face_young_woman` |
+| NPC faces, 64x64 | `face_priest`, `face_farmer`, `face_innkeeper`, `face_mechanic`, `face_old_woman`, `face_watchman`, `face_young_woman`, `face_young_man`, `face_driver`, `face_shopkeeper`, `face_widow` |
 | Forum photos | `photo_sighting_path`, `photo_sighting_field`, `photo_sighting_cemetery` (320 px JPEG, low quality on purpose) in `public/assets/photos/`, for the 90s web pages |
 
 ## Spend log
@@ -42,4 +42,5 @@ FLORA balance on 2026-10-30: $5.13. Budget for the build: $4.50.
 | 2026-10-30 | Batch 2: interiors, doors, windows, cape, mask | FLUX 3 Image Klein | 20 | $0.18 |
 | 2026-10-30 | Batch 3: tree and plant sprites, NPC faces | FLUX 3 Image Klein | 13 | $0.117 |
 | 2026-10-30 | Forum sighting photos | GPT Image 2.5 | 3 | $0.165 |
-| | **Total** | | 57 | **$0.65** |
+| 2026-10-30 | Faces: Yannick, driver, Christine, Odile | FLUX 3 Image Klein | 4 | $0.036 |
+| | **Total** | | 61 | **$0.69** |
