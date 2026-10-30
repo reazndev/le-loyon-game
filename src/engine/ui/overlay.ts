@@ -34,6 +34,11 @@ export class Overlay {
   private readonly notice: HTMLElement;
   private readonly goal: HTMLElement;
   private readonly hud: HTMLElement;
+  private readonly compass: HTMLElement;
+  private readonly needle: HTMLElement;
+  private readonly compassText: HTMLElement;
+  /** Whether the compass shows large in the middle of the frame, with the step under it. */
+  compassOpen = false;
   private hudShown = '';
   private readonly flashLayer: HTMLElement;
   private readonly fader: HTMLElement;
@@ -50,6 +55,11 @@ export class Overlay {
     this.dialogue = new DialogueBox(this.root);
     this.goal = el('div', 'ui-goal', this.root);
     this.hud = el('div', 'ui-hud', this.root);
+    this.compass = el('div', 'ui-compass', this.root);
+    const dial = el('div', 'ui-compass-dial', this.compass);
+    this.needle = el('div', 'ui-compass-needle', dial);
+    this.compassText = el('div', 'ui-compass-text', this.compass);
+    dial.addEventListener('click', () => (this.compassOpen = !this.compassOpen));
     this.notice = el('div', 'ui-notice', this.root);
     this.flashLayer = el('div', 'ui-flash', this.root);
     // Last, so the fade covers everything else.
@@ -78,6 +88,19 @@ export class Overlay {
   showGoal(text: string | null): void {
     if (this.goal.textContent !== (text ?? '')) this.goal.textContent = text ?? '';
     this.goal.hidden = text === null;
+  }
+
+  /**
+   * The compass: small in the bottom-right corner, or large when open. The needle turns
+   * `bearing` degrees to the right of straight ahead. Null hides it.
+   */
+  showCompass(bearing: number | null, key: string, step: string | null): void {
+    this.compass.hidden = bearing === null;
+    if (bearing === null) return;
+    this.compass.classList.toggle('open', this.compassOpen);
+    this.needle.style.transform = `rotate(${Math.round(bearing)}deg)`;
+    const text = this.compassOpen ? (step ?? '') : key;
+    if (this.compassText.textContent !== text) this.compassText.textContent = text;
   }
 
   /** Buttons in the top-left corner, each with its key, that work with a click too. Null hides them. */

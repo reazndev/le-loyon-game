@@ -96,6 +96,12 @@ export class Placed {
     return this;
   }
 
+  /** Marks this as the way to another scene, so the compass can point at it. */
+  leadsTo(scene: string): this {
+    this.ctx.world.exits.push({ to: scene, object: this.object });
+    return this;
+  }
+
   /** Turns around the vertical axis. Positive turns counterclockwise seen from above. */
   rotY(degrees: number): this {
     this.object.rotation.y = MathUtils.degToRad(degrees);

@@ -1,3 +1,4 @@
+import type { Object3D } from 'three';
 import { Scene as ThreeScene } from 'three';
 import { SoundScope } from '../engine/audio/audioManager';
 import { Interactions } from '../engine/interactions';
@@ -19,6 +20,8 @@ export class World {
   readonly textures = new TextureLibrary();
   /** Per-frame work that belongs to the scene, such as animated characters. */
   readonly updates = new Set<(dt: number) => void>();
+  /** The ways out of the scene and where each leads, for the compass. */
+  readonly exits: { to: string; object: Object3D }[] = [];
 
   clear(): void {
     this.scene.clear();
@@ -29,5 +32,6 @@ export class World {
     this.lights.clear();
     this.sounds.stopAll(0.3);
     this.updates.clear();
+    this.exits.length = 0;
   }
 }

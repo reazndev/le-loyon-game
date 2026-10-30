@@ -90,6 +90,7 @@ export function churchFront(kit: LevelKit, ctx: SceneContext, night: boolean): C
     .texture('door_wood', { tile: [0.8, 2.8] })
     .color(0x8a7a68)
     .at(CHURCH.x, 0.18, CHURCH.front + 0.08)
+    .leadsTo('church')
     .interact({ prompt: 'Open the door', radius: 1, onInteract: () => (night ? playNode(ctx, 'church_locked') : ctx.goTo('church', 'from_square')) });
   return { bell: { x: CHURCH.x, y: 15, z: towerZ } };
 }

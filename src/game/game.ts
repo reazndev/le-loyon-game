@@ -2,7 +2,7 @@ import { Vector3 } from 'three';
 import { AudioManager } from '../engine/audio/audioManager';
 import { playFootstep } from '../engine/audio/footsteps';
 import { click } from '../engine/audio/generators';
-import { hintsLabel, interactLabel, notebookLabel } from '../engine/input/bindings';
+import { compassLabel, hintsLabel, interactLabel, notebookLabel } from '../engine/input/bindings';
 import { Input, type Movement } from '../engine/input/input';
 import { promptText } from '../engine/interactions';
 import { Player } from '../engine/player';
@@ -14,7 +14,8 @@ import { PolaroidCamera } from './camera/camera';
 import { GameUi, type PauseAction } from './gameUi';
 import { itemInfo } from './items';
 import { isDesktopApp } from './platform';
-import { currentGoal } from './notebook';
+import { bearing, compassTarget } from './compass';
+import { currentGoal, nextStep } from './notebook';
 import { latestSave, readSave, writeSave } from './save';
 import { brightnessFactor, loadSettings, saveSettings, STEPS, type Settings } from './settings';
 import type { Scene, SceneContext } from './scene';
@@ -196,6 +197,7 @@ export class Game {
     const playing = !this.ui.open && !this.scenes.busy && this.state.scene !== 'home';
     this.overlay.showGoal(playing ? currentGoal(this.state) : null);
     this.overlay.showHud(playing ? this.hudButtons() : null);
+    this.updateCompass(playing);
     this.scenes.update(dt);
 
     this.updateSenses();
@@ -231,7 +233,17 @@ export class Game {
     else if (input.pressed('inventory')) this.ui.openInventory();
     else if (input.pressed('notebook') && this.state.hasItem('notebook')) void this.ui.openNotebook();
     else if (input.pressed('hints')) void this.ui.openHints();
+    else if (input.pressed('compass')) this.overlay.compassOpen = !this.overlay.compassOpen;
     else if (input.pressed('pause')) this.ui.openPause(this.pauseActions());
+  }
+
+  /** Points the compass at the next step: the person to talk to, or the way out toward them. */
+  private updateCompass(playing: boolean): void {
+    const step = playing ? nextStep(this.state) : undefined;
+    const from = this.player.position;
+    const target = compassTarget(this.world, this.state.scene, step, from);
+    const turn = target && from.distanceTo(target) > 2 ? bearing(from, this.player.forward(), target) : null;
+    this.overlay.showCompass(turn, compassLabel[this.input.lastDevice], step?.text ?? null);
   }
 
   private hudButtons(): HudButton[] {

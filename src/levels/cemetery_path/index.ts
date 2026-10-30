@@ -138,6 +138,7 @@ function church(kit: LevelKit, ctx: SceneContext, night: boolean): void {
     .at(SIDE_DOOR.x, 0, SIDE_DOOR.z - 0.05)
     .onGround()
     .collider()
+    .leadsTo('church')
     .interact({
       prompt: 'Open the door',
       radius: 0.5,

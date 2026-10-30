@@ -58,6 +58,10 @@ CHALLAND M. Who is Challand?`,
 export interface NotebookGoal {
   text: string;
   if: Condition;
+  /** The scene the step happens in, for the compass. */
+  to?: string;
+  /** A character there to point at, by cast id. */
+  who?: string;
 }
 
 const day = (n: number): CountTest[] => [['day', n === 1 ? '<=' : '==', n], ['night', '==', 0]];
@@ -68,31 +72,31 @@ const night = (n: number): CountTest[] => [['night', '==', n]];
  * condition holds is the one shown, so each day lists its unfinished steps in the order to take them.
  */
 export const notebookGoals: NotebookGoal[] = [
-  { if: { count: day(1), notFlag: 'inn_checked_in' }, text: 'Go to the inn on the square and talk to the innkeeper.' },
-  { if: { count: day(1), notFlag: 'abbe_told_graves' }, text: 'Go to the church and talk to the priest.' },
+  { if: { count: day(1), notFlag: 'inn_checked_in' }, text: 'Go to the inn on the square and talk to the innkeeper.', to: 'inn', who: 'monique' },
+  { if: { count: day(1), notFlag: 'abbe_told_graves' }, text: 'Go to the church and talk to the priest.', to: 'church', who: 'overney' },
   { if: { count: day(1), notFlag: 'dinner_day1' }, text: 'Talk to people around the village: the dairy shop, the garage, the farm. Then ask the innkeeper for supper.' },
-  { if: { count: night(1), not: { flag: ['read_grave_menoud', 'read_grave_gremaud', 'read_grave_chassot'] } }, text: 'Go up to the cemetery and read the three graves the priest told you about.' },
+  { if: { count: night(1), not: { flag: ['read_grave_menoud', 'read_grave_gremaud', 'read_grave_chassot'] } }, text: 'Go up to the cemetery and read the three graves the priest told you about.', to: 'cemetery' },
   { if: { count: night(1), notFlag: ['met_raymond', 'first_sighting', 'skipped_follow', 'found_bunker'] }, text: 'Wait by the graves. Listen.' },
   { if: { count: night(1), notFlag: ['first_sighting', 'skipped_follow', 'found_bunker'] }, text: 'Stay a while. Watch the back wall, by the forest.' },
-  { if: { count: night(1), notFlag: ['found_bunker', 'skipped_follow'] }, text: 'Follow the figure out through the back gate.' },
-  { if: { count: night(1) }, text: 'Go back to the inn and sleep in room 3.' },
-  { if: { count: day(2), notFlag: 'read_register' }, text: 'Go to the church after morning mass and ask the priest to see the register.' },
-  { if: { count: day(2), notFlag: ['suspects_empty_coffin', 'odile_talked'] }, text: "Visit the syndic's widow at the Gremaud house." },
-  { if: { count: day(2), notFlag: 'suspects_empty_coffin' }, text: 'Ask the farmer at the Yerly farm about the coffin he carried.' },
-  { if: { count: day(2), notItem: 'shovel', flag: 'heifer_missing', notFlag: 'heifer_returned' }, text: "Find the farmer's lost heifer at the forest edge above the Yerly field and lead her home." },
-  { if: { count: day(2), notItem: 'shovel' }, text: 'Go to the Yerly farm and ask the farmer for a spade.' },
-  { if: { count: day(2), flag: 'found_bunker', notFlag: 'found_hidden_door' }, text: 'Go back to the barn in the forest while it is light and search the bunker.' },
-  { if: { count: day(2), notFlag: 'found_hidden_door' }, text: 'Go into the forest past the cemetery while it is light.' },
-  { if: { count: day(2) }, text: 'Ask the innkeeper for supper. Then go to the Chassot grave.' },
-  { if: { count: night(2), notFlag: 'opened_coffin' }, text: "Dig up Marc's side of the Chassot grave. Turn the torch off and hide when you hear the bell." },
+  { if: { count: night(1), notFlag: ['found_bunker', 'skipped_follow'] }, text: 'Follow the figure out through the back gate.', to: 'forest_path' },
+  { if: { count: night(1) }, text: 'Go back to the inn and sleep in room 3.', to: 'inn' },
+  { if: { count: day(2), notFlag: 'read_register' }, text: 'Go to the church after morning mass and ask the priest to see the register.', to: 'church', who: 'overney' },
+  { if: { count: day(2), notFlag: ['suspects_empty_coffin', 'odile_talked'] }, text: "Visit the syndic's widow at the Gremaud house.", to: 'house_gremaud_kitchen' },
+  { if: { count: day(2), notFlag: 'suspects_empty_coffin' }, text: 'Ask the farmer at the Yerly farm about the coffin he carried.', to: 'yerly_farm', who: 'bernard' },
+  { if: { count: day(2), notItem: 'shovel', flag: 'heifer_missing', notFlag: 'heifer_returned' }, text: "Find the farmer's lost heifer at the forest edge above the Yerly field and lead her home.", to: 'yerly_farm', who: 'marquise' },
+  { if: { count: day(2), notItem: 'shovel' }, text: 'Go to the Yerly farm and ask the farmer for a spade.', to: 'yerly_farm', who: 'bernard' },
+  { if: { count: day(2), flag: 'found_bunker', notFlag: 'found_hidden_door' }, text: 'Go back to the barn in the forest while it is light and search the bunker.', to: 'bunker_interior' },
+  { if: { count: day(2), notFlag: 'found_hidden_door' }, text: 'Go into the forest past the cemetery while it is light.', to: 'bunker_interior' },
+  { if: { count: day(2) }, text: 'Ask the innkeeper for supper. Then go to the Chassot grave.', to: 'inn', who: 'monique' },
+  { if: { count: night(2), notFlag: 'opened_coffin' }, text: "Dig up Marc's side of the Chassot grave. Turn the torch off and hide when you hear the bell.", to: 'cemetery' },
   { if: { count: night(2), notItem: 'bunker_key' }, text: 'Open the box in the coffin.' },
   { if: { count: night(2), notFlag: 'grave_refilled' }, text: 'Fill the grave back in before the watchman sees it. Then go to bed.' },
-  { if: { count: night(2) }, text: 'Go back to the inn and sleep.' },
-  { if: { count: day(3), notFlag: 'found_forest_grave', not: { flag: 'editor_called', item: 'food_parcel' } }, text: 'Climb the forest above the fort and find the larch from the letter.' },
-  { if: { count: day(3), notFlag: 'met_veilleur', notItem: 'food_parcel' }, text: 'Buy bread at the dairy shop, or ask the innkeeper for food. Then go back to the inn.' },
-  { if: { count: day(3), notFlag: 'met_veilleur' }, text: "Use the computer in the inn's back room before it gets dark." },
-  { if: { count: night(3), notFlag: 'entered_hidden_room' }, text: 'Go to the K.P. 3 door in the bunker. Knock three times, wait, then once.' },
+  { if: { count: night(2) }, text: 'Go back to the inn and sleep.', to: 'inn' },
+  { if: { count: day(3), notFlag: 'found_forest_grave', not: { flag: 'editor_called', item: 'food_parcel' } }, text: 'Climb the forest above the fort and find the larch from the letter.', to: 'forest_deep' },
+  { if: { count: day(3), notFlag: 'met_veilleur', notItem: 'food_parcel' }, text: 'Buy bread at the dairy shop, or ask the innkeeper for food. Then go back to the inn.', to: 'laiterie', who: 'christine' },
+  { if: { count: day(3), notFlag: 'met_veilleur' }, text: "Use the computer in the inn's back room before it gets dark.", to: 'inn' },
+  { if: { count: night(3), notFlag: 'entered_hidden_room' }, text: 'Go to the K.P. 3 door in the bunker. Knock three times, wait, then once.', to: 'bunker_hidden' },
   { if: { count: night(3), notFlag: 'met_marc' }, text: 'Look around the room.' },
   { if: { flag: 'met_marc', count: [['day', '<=', 3]] }, text: 'Leave through the tunnel before it gets light.' },
-  { if: { count: [['day', '==', 4]] }, text: "Call your editor from the phone in the inn's back room." },
+  { if: { count: [['day', '==', 4]] }, text: "Call your editor from the phone in the inn's back room.", to: 'inn' },
 ];

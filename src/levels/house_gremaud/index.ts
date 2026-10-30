@@ -162,7 +162,7 @@ function frontDoor(kit: LevelKit, ctx: SceneContext, home: GremaudHouse): void {
     }
     busy = false;
   };
-  kit.hotspot({ prompt: 'Ring the bell', radius: 0.9, enabled: () => !busy, onInteract: () => void answer() }).at(DOOR.x, 0, DOOR.z + 0.7);
+  kit.hotspot({ prompt: 'Ring the bell', radius: 0.9, enabled: () => !busy, onInteract: () => void answer() }).at(DOOR.x, 0, DOOR.z + 0.7).leadsTo('house_gremaud_kitchen');
   // The porch is wide enough to walk into; the closed door stops the player.
   kit.barrier({ w: DOOR.w, d: 0.2 }).at(DOOR.x, 0, DOOR.z - 0.1);
 }

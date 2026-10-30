@@ -144,6 +144,7 @@ export class LevelKit {
     const w = options.w ?? 1;
     const h = options.h ?? 2.1;
     return this.box({ w, h, d: 0.08 })
+      .leadsTo(options.to)
       .texture(options.texture ?? 'door_wood', { tile: [w, h] })
       .collider()
       .interact({
@@ -158,7 +159,7 @@ export class LevelKit {
 
   /** An area that loads another scene when the player walks into it. */
   exit(options: Area & { to: string; spawn?: string }): TriggerBuilder {
-    return this.trigger(options).onEnter(() => this.ctx.goTo(options.to, options.spawn));
+    return this.trigger(options).leadsTo(options.to).onEnter(() => this.ctx.goTo(options.to, options.spawn));
   }
 
   /** Builds children relative to a group. Place the group as a whole with `at` and `rotY`. */

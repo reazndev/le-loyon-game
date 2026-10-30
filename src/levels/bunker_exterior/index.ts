@@ -260,7 +260,8 @@ function fort(kit: LevelKit, ctx: SceneContext, phase: StoryPhase, scares: Scare
         ctx.goTo('bunker_interior', 'from_entrance');
       },
     })
-    .at(0.2, 0, doorZ);
+    .at(0.2, 0, doorZ)
+    .leadsTo('bunker_interior');
   kit.hotspot({ prompt: 'Read the plate', radius: 0.25, onInteract: () => playNode(ctx, 'fort_plate') }).at(-0.45, 0, doorZ);
   kit.hotspot({ prompt: 'Look at the graffiti', radius: 0.6, onInteract: () => playNode(ctx, 'fort_graffiti') }).at(2.2, 0, FRONT + 0.4);
 }
@@ -380,7 +381,8 @@ function thicket(kit: LevelKit, ctx: SceneContext, phase: StoryPhase): void {
       onInteract: () =>
         open ? ctx.goTo('forest_deep', 'from_fort') : ctx.say("The track goes on up into the thicket. In this fog I'd lose myself in a minute."),
     })
-    .at(THICKET.x, 0, THICKET.z + 0.9);
+    .at(THICKET.x, 0, THICKET.z + 0.9)
+    .leadsTo('forest_deep');
 }
 
 export const scenes = [bunkerExteriorScene];

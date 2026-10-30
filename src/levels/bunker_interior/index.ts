@@ -560,7 +560,8 @@ function kp3Door(kit: LevelKit, ctx: SceneContext, phase: StoryPhase): Kp3Door {
         ctx.goTo('bunker_hidden', 'from_dormitory');
       },
     })
-    .at(KP3.x - 0.3, 0, KP3.z + 0.3);
+    .at(KP3.x - 0.3, 0, KP3.z + 0.3)
+    .leadsTo('bunker_hidden');
 
   // Knocks are judged once the player has stopped for a while.
   updates.push(() => {

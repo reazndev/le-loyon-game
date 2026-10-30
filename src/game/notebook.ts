@@ -1,4 +1,4 @@
-import { checkStory, holds, notebook, notebookGoals, type Flag, type NotebookEntry } from '../content';
+import { checkStory, holds, notebook, notebookGoals, type Flag, type NotebookEntry, type NotebookGoal } from '../content';
 import { BOOK_PAGE, paginate } from '../content/paginate';
 import type { StateView } from './conditions';
 import type { ReadableDocument } from './documentPages';
@@ -10,9 +10,14 @@ export function unlockedNotes(state: StateView): string[] {
     .map(([, entry]) => entry.text);
 }
 
+/** The step the reporter means to take next, or undefined when the story has nothing left to do. */
+export function nextStep(state: StateView): NotebookGoal | undefined {
+  return notebookGoals.find((goal) => checkStory(goal.if, state));
+}
+
 /** What the reporter means to do next, or null when the story has nothing left to do. */
 export function currentGoal(state: StateView): string | null {
-  return notebookGoals.find((goal) => checkStory(goal.if, state))?.text ?? null;
+  return nextStep(state)?.text ?? null;
 }
 
 const controls = [

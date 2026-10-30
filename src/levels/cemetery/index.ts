@@ -168,8 +168,8 @@ function exits(kit: LevelKit, ctx: SceneContext, phase: StoryPhase, gate: BackGa
     if (to === 'cemetery_path' && phase === 'night1' && state.hasFlag('first_sighting') && !state.hasFlag('found_bunker')) state.setFlag('skipped_follow');
     ctx.goTo(to, spawn);
   };
-  kit.trigger({ w: 7, d: 1 }).at(0, 0, FRONT_Z + 5.5).onEnter(() => void leave('cemetery_path', 'from_cemetery', { x: 0, z: -1.6 }));
-  kit.trigger({ w: 12, d: 1 }).at(BACK_GATE.x, 0, BACK_Z - 9).onEnter(() => {
+  kit.trigger({ w: 7, d: 1 }).at(0, 0, FRONT_Z + 5.5).leadsTo('cemetery_path').onEnter(() => void leave('cemetery_path', 'from_cemetery', { x: 0, z: -1.6 }));
+  kit.trigger({ w: 12, d: 1 }).at(BACK_GATE.x, 0, BACK_Z - 9).leadsTo('forest_path').onEnter(() => {
     if (gate.isOpen) void leave('forest_path', 'from_cemetery', { x: 0, z: 1.6 });
   });
 
