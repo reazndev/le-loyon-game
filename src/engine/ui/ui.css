@@ -57,15 +57,21 @@ body {
   text-align: center;
 }
 
+/* The label is centered both ways, so a one-letter key sits in the middle of its box. */
 .ui-key {
-  display: inline-block;
-  min-width: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-width: 18px;
+  height: 18px;
   padding: 0 3px;
   margin-right: 6px;
+  vertical-align: middle;
   color: #000;
   background: #c9c3b6;
   text-shadow: none;
-  line-height: 18px;
+  line-height: 1;
 }
 
 .ui-dialogue {
@@ -197,7 +203,6 @@ body {
   position: absolute;
   right: 0;
   bottom: 0;
-  filter: drop-shadow(2px 2px 0 rgba(0, 0, 0, 0.6));
   pointer-events: auto;
   cursor: pointer;
   transition: transform 0.25s ease-out;
@@ -208,6 +213,8 @@ body {
   width: 96px;
   height: 96px;
   image-rendering: pixelated;
+  /* On the map alone, so it doesn't double the letter on the key that sits on the map. */
+  filter: drop-shadow(2px 2px 0 rgba(0, 0, 0, 0.6));
 }
 
 /* The compass rests on the map's top edge, half of it out of the corner. */
@@ -224,8 +231,9 @@ body {
   position: absolute;
   left: -8px;
   top: -8px;
+  min-width: 14px;
+  height: 14px;
   font-size: 12px;
-  line-height: 14px;
 }
 
 .ui-compass-dial {
