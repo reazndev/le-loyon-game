@@ -2,6 +2,10 @@
 
 The plan Claude follows to build the game without the user. If a session restarts or its context gets compacted, read this file first and continue at the first unchecked step.
 
+## Status
+
+Stopped by the user on 2026-10-30 at 12:10 UTC ("good enough now"). Ambient pass B was cancelled after committing its scene work and the K.P. 3 fix; its final publish playthrough did not run. The watchdog is disabled. Packages rebuilt at 12:10 UTC in `release/`.
+
 ## Rules for the unattended run
 
 - The user left on 2026-10-30 and expects no questions. Claude makes every decision, records it in `docs/`, and moves on.
