@@ -2,6 +2,7 @@ import { dialogues, holds } from '../../content';
 import type { LevelKit } from '../../game/kit/levelKit';
 import { defineScene, type SceneContext } from '../../game/scene';
 import { isNight, storyPhase, type StoryPhase } from '../forest_path/story';
+import { playEnding } from '../inn/endingScreens';
 import { villageAmbience, villageAtmosphere } from './atmosphere';
 import { stageBeats } from './beats';
 import { churchFront, doorHouses, garage, gremaud, inn, laiterie, outlyingHouses, presbytery } from './buildings';
@@ -70,7 +71,8 @@ export const villageSquareScene = defineScene({
 
 /**
  * The timetable at the stop. From day 1 until Marc has been met, it is also the way home: the
- * last bus comes up out of the fog and the driver asks once. The leave ending follows.
+ * last bus comes up out of the fog and the driver asks once. On the ride out the reporter
+ * doesn't turn round (leave_epilogue), and the leave ending's screens follow.
  */
 function timetable(kit: LevelKit, ctx: SceneContext): void {
   const bus = departure(kit, ctx);
@@ -85,6 +87,9 @@ function timetable(kit: LevelKit, ctx: SceneContext): void {
         if (!ctx.state.hasFlag('ending_leave')) return;
         leaving = true;
         await bus();
+        await wait(3);
+        await ctx.dialogue(dialogues.leave_epilogue);
+        await playEnding(ctx, 'leave');
       },
     })
     .at(BUS_STOP.x - 1.6, 0, BUS_STOP.z - 0.8);
@@ -107,5 +112,7 @@ function villagers(kit: LevelKit, ctx: SceneContext, phase: StoryPhase): void {
     kit.npc('bari').at(-1.2, 0, 2.2).faceYaw(240);
   }
 }
+
+const wait = (seconds: number) => new Promise((resolve) => setTimeout(resolve, seconds * 1000));
 
 export const scenes = [villageSquareScene];

@@ -3,6 +3,7 @@ import type { Placed } from '../../game/kit/builders';
 import type { LevelKit } from '../../game/kit/levelKit';
 import type { SceneContext } from '../../game/scene';
 import { everyFrame } from '../church/everyFrame';
+import { showTitleCard } from '../home/titleCard';
 import { pointAlong, type Trail } from '../forest_path/trail';
 import type { VillageAmbience } from './atmosphere';
 import { BUS_STOP } from './layout';
@@ -144,7 +145,8 @@ export function arrival(kit: LevelKit, ctx: SceneContext, ambience: VillageAmbie
 }
 
 /**
- * The leave ending: the bus comes up out of the fog to the stop, and the driver asks once.
+ * The leave ending: the bus comes up out of the fog to the stop, the driver asks once, and the
+ * screen stays black while it pulls away.
  * Returns the call that starts it; the frame work is registered now, while the scene builds.
  */
 export function departure(kit: LevelKit, ctx: SceneContext): () => Promise<void> {
@@ -166,5 +168,9 @@ export function departure(kit: LevelKit, ctx: SceneContext): () => Promise<void>
     engine.throttle(0.6);
     await new Promise<void>((arrived) => (run = { drive: new Drive(ARRIVE, SPEED * 2), engine, arrived }));
     await ctx.dialogue(dialogues.driver_departure);
+    // The reporter gets on. The doors fold shut and the engine pulls away down the valley.
+    showTitleCard(ctx, []);
+    engine.throttle(0.8);
+    engine.stop(9);
   };
 }
