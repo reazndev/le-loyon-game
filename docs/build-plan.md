@@ -37,13 +37,17 @@ Debug hooks: `?scene=<id>&time=<day|night>&flags=a,b` loads any scene directly, 
 - [ ] **2. Areas.** Built in parallel by subagents, following `docs/agent-brief.md`.
   - Wave 1, started 2026-10-30 01:05 UTC: content data (`src/content`), desktop and prologue (`src/desktop`, `home`), characters, scares and patrol, forest and bunker.
   - Wave 1 done 01:50 local: content, characters/scares/patrol, forest/bunker. Desktop still running.
-  - Wave 2: church and cemetery started 00:50 UTC. Still to start after the 02:50 UTC reset: village outdoors (square, Chassot and Yerly farms, road, Gremaud house outside), village interiors (inn, laiterie, garage, Gremaud kitchen).
+  - Wave 2: church and cemetery done 01:52 UTC. Still to start after the 02:50 UTC reset: village outdoors (square, Chassot and Yerly farms, road, Gremaud house outside), village interiors (inn, laiterie, garage, Gremaud kitchen).
 - [ ] **3. Systems.** Le Loyon sightings and scare director, procedural sound and ambience, night watchman and grave digging, the dial-up forum during the game.
 - [ ] **4. Integration.** Known gaps from wave 1 to close here:
   - Engine UI: italic narration, French lines with the `{{subtitle}}` translation on its own line (`splitTranslation()` in content), and a document view (pages of up to 10 lines of 64 characters).
   - `docs/engine.md`: document counters, the `all` condition, `assign`/`add` effects, conditional lines, and `checkStory()`/`holds()` for derived flags.
   - Levels must use `checkStory()` or `holds()` for derived flags, and `doc_marc_notebook_restored` when `cupboard_restored` is set.
   - Replace any `// stand-in until src/content lands` code with real imports.
+  - Camera system: the Polaroid with `film_shots`, photo items, photo 7 at the treeline (cemetery night 1). Not built yet.
+  - Sleep save: write save slot `sleep` when the reporter wakes in room 3; the cemetery's caught screen loads it.
+  - Forest: swap distant cone trees for the `tree_spruce`/`tree_beech_bare` sprites where it helps; fill the forest and bunker `stageBeats` hooks with the scare director.
+  - Missing beats: two old women after morning mass (day 2), barn roofline from the fork when `skipped_follow`, gravel footsteps on the cemetery path, `fort_phone_crank` flag.
 - Step 4 scope: Script into content data, quest flow from start to all three endings, title screen, settings, save slots.
 - [ ] **5. QA.** Automated playthrough of every ending, screenshot review of every area, performance check, bug fixes.
 - [ ] **6. Packaging.** Linux AppImage and Windows build with electron-builder.
