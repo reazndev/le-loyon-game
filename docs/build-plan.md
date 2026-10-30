@@ -37,7 +37,7 @@ Debug hooks: `?scene=<id>&time=<day|night>&flags=a,b` loads any scene directly, 
 - [ ] **2. Areas.** Built in parallel by subagents, following `docs/agent-brief.md`.
   - Wave 1, started 2026-10-30 01:05 UTC: content data (`src/content`), desktop and prologue (`src/desktop`, `home`), characters, scares and patrol, forest and bunker.
   - Wave 1 done 01:50 local: content, characters/scares/patrol, forest/bunker. Desktop still running.
-  - Wave 2: church and cemetery done 01:52 UTC. Still to start after the 02:50 UTC reset: village outdoors (square, Chassot and Yerly farms, road, Gremaud house outside), village interiors (inn, laiterie, garage, Gremaud kitchen).
+  - Wave 2: church and cemetery done 01:52 UTC. Started 02:52 UTC after the reset: village outdoors (square, Chassot and Yerly farms, Gremaud house outside), village interiors (inn, laiterie, garage, Gremaud kitchen), and an engine UI agent (document view, italics, subtitles, Polaroid camera, notebook, title screen, engine.md update).
 - [ ] **3. Systems.** Le Loyon sightings and scare director, procedural sound and ambience, night watchman and grave digging, the dial-up forum during the game.
 - [ ] **4. Integration.** Known gaps from wave 1 to close here:
   - Engine UI: italic narration, French lines with the `{{subtitle}}` translation on its own line (`splitTranslation()` in content), and a document view (pages of up to 10 lines of 64 characters).
