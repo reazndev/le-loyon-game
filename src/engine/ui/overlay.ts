@@ -18,6 +18,7 @@ export class Overlay {
   readonly document: DocumentView;
   readonly dialogue: DialogueBox;
   private readonly notice: HTMLElement;
+  private readonly goal: HTMLElement;
   private readonly flashLayer: HTMLElement;
   private readonly fader: HTMLElement;
   private noticeTimer: ReturnType<typeof setTimeout> | null = null;
@@ -31,6 +32,7 @@ export class Overlay {
     this.photo = new PhotoView(this.root);
     this.document = new DocumentView(this.root);
     this.dialogue = new DialogueBox(this.root);
+    this.goal = el('div', 'ui-goal', this.root);
     this.notice = el('div', 'ui-notice', this.root);
     this.flashLayer = el('div', 'ui-flash', this.root);
     // Last, so the fade covers everything else.
@@ -53,6 +55,12 @@ export class Overlay {
   flash(): Promise<void> {
     this.flashLayer.style.opacity = '1';
     return fadeOpacity(this.flashLayer, 0, 0.55);
+  }
+
+  /** The reporter's next step, kept in the top-right corner while the player walks. Null hides it. */
+  showGoal(text: string | null): void {
+    if (this.goal.textContent !== (text ?? '')) this.goal.textContent = text ?? '';
+    this.goal.hidden = text === null;
   }
 
   /** Shows a short line in the corner, such as "Got: Brass key". */

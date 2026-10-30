@@ -14,6 +14,7 @@ import { PolaroidCamera } from './camera/camera';
 import { GameUi, type PauseAction } from './gameUi';
 import { itemInfo } from './items';
 import { isDesktopApp } from './platform';
+import { currentGoal } from './notebook';
 import { latestSave, readSave, writeSave } from './save';
 import { brightnessFactor, loadSettings, saveSettings, STEPS, type Settings } from './settings';
 import type { Scene, SceneContext } from './scene';
@@ -92,6 +93,12 @@ export class Game {
     this.applySettings(this.settings);
 
     this.audio.unlockOnGesture();
+    // A click on the frame captures the mouse for looking around; Esc lets it go.
+    frame.addEventListener('mousedown', () => {
+      if (this.ui.open || this.scenes.busy || document.pointerLockElement) return;
+      // Chromium returns a promise that rejects if the lock is refused; Firefox returns nothing.
+      Promise.resolve(frame.requestPointerLock()).catch(() => undefined);
+    });
     this.player.events.on('footstep', (step) =>
       playFootstep(this.audio, step.surface, { level: step.fast ? 1.25 : step.crouched ? 0.45 : 1 }),
     );
@@ -164,7 +171,7 @@ export class Game {
   /** Movement input with the invert turning setting applied. */
   movement(input: Input = this.input): Movement {
     const movement = input.movement();
-    return this.settings.invertTurning ? { ...movement, turn: -movement.turn } : movement;
+    return this.settings.invertTurning ? { ...movement, turn: -movement.turn, look: { ...movement.look, x: -movement.look.x } } : movement;
   }
 
   /** Resolves after `count` more frames have rendered. */
@@ -184,6 +191,7 @@ export class Game {
     if (this.ui.open) this.ui.update(dt, this.input);
     else if (!this.scenes.busy) this.updatePlay(dt);
     if (this.ui.open || this.scenes.busy) this.overlay.prompt.hide();
+    this.overlay.showGoal(this.ui.open || this.scenes.busy || this.state.scene === 'home' ? null : currentGoal(this.state));
     this.scenes.update(dt);
 
     this.updateSenses();
