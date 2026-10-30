@@ -1,3 +1,4 @@
+import type { MeshBuilder } from '../../game/kit/builders';
 import type { LevelKit } from '../../game/kit/levelKit';
 import type { SceneContext } from '../../game/scene';
 import { fogWindow } from '../../game/kit/windows';
@@ -18,7 +19,8 @@ export const PANELLED: Finish = {
 
 const WINDOW = { w: 1.15, h: 1.05, y: 1.0 };
 
-export function buildCafe(kit: LevelKit, ctx: SceneContext, dressing: InnDressing, justAte: boolean): void {
+/** Builds the café and returns the television's screen, for the picture on it. */
+export function buildCafe(kit: LevelKit, ctx: SceneContext, dressing: InnDressing, justAte: boolean): MeshBuilder {
   const { x0, x1, z0, z1, h } = CAFE;
   const night = !cafeLit(dressing);
 
@@ -54,7 +56,7 @@ export function buildCafe(kit: LevelKit, ctx: SceneContext, dressing: InnDressin
 
   counter(kit, dressing);
   kitchenDoor(kit, ctx, dressing);
-  decor(kit, dressing);
+  const tvScreen = decor(kit, dressing);
 
   // Lamps over the tables. At night and on the third evening only the kitchen door glows.
   [
@@ -64,6 +66,7 @@ export function buildCafe(kit: LevelKit, ctx: SceneContext, dressing: InnDressin
     { x: 2.6, z: -2.6 },
   ].forEach((p) => pendantLamp(kit, { x: p.x, y: h, z: p.z }, { on: !night, intensity: 1.35, range: 5.5, drop: 0.7 }));
   if (dressing.endingMorning) kit.light({ color: 0x9aa0a4, intensity: 0.8, range: 7 }).at(0, 2, 2.5);
+  return tvScreen;
 }
 
 function counter(kit: LevelKit, dressing: InnDressing): void {
@@ -115,12 +118,12 @@ function kitchenDoor(kit: LevelKit, ctx: SceneContext, dressing: InnDressing): v
     .at(KITCHEN_DOOR.x - 1.2, 0, COUNTER.z + 0.7);
 }
 
-function decor(kit: LevelKit, dressing: InnDressing): void {
+function decor(kit: LevelKit, dressing: InnDressing): MeshBuilder {
   const lit = cafeLit(dressing);
   // The television on its bracket in the corner, the local channel with the sound off.
   kit.box({ w: 0.06, h: 0.06, d: 0.5 }).color(0x2a2a2a).at(CAFE.x1 - 0.25, 2.05, -0.6);
   kit.box({ w: 0.5, h: 0.42, d: 0.48 }).color(0x3a3834).at(CAFE.x1 - 0.5, 2.0, -0.6).rotY(-90 + 25);
-  kit.box({ w: 0.38, h: 0.3, d: 0.01 }).color(lit ? 0x5a7088 : 0x0c0e10).unlit().at(CAFE.x1 - 0.76, 2.06, -0.48).rotY(-90 + 25);
+  const screen = kit.box({ w: 0.38, h: 0.3, d: 0.01 }).color(lit ? 0x5a7088 : 0x0c0e10).unlit().at(CAFE.x1 - 0.76, 2.06, -0.48).rotY(-90 + 25);
   if (lit) kit.glow(0.5, 0x1c2a38).at(CAFE.x1 - 0.85, 2.2, -0.44);
 
   // The dairy cooperative's calendar, the clock, a mounted chamois horn, the coat rack.
@@ -144,4 +147,5 @@ function decor(kit: LevelKit, dressing: InnDressing): void {
   chair(kit, CAFE.x0 + 0.4, 1.4, -90);
   kit.box({ w: 0.3, h: 0.95, d: 0.25 }).texture('wood_planks', { tile: 0.5 }).color(0x5a4030).at(1.2, 0, CAFE.z1 - 0.35).collider();
   kit.box({ w: 0.3, h: 0.03, d: 0.22 }).color(0x6a2a24).at(1.2, 0.95, CAFE.z1 - 0.35);
+  return screen;
 }

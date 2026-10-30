@@ -2,9 +2,11 @@ import { openInnComputer } from '../../desktop';
 import type { LevelKit } from '../../game/kit/levelKit';
 import { defineScene, type SceneContext } from '../../game/scene';
 import { everyFrame } from '../church/everyFrame';
+import { innAmbient } from './ambient';
 import { stageBeats } from './beats';
 import { buildCafe } from './cafe';
 import { placeCafeCast } from './cast';
+import { innClutter } from './clutter';
 import { veilleur } from './veilleur';
 import { cafeLit, dressInn, type InnDressing } from './dressing';
 import { loopSound } from './interior';
@@ -63,7 +65,8 @@ export const innScene = defineScene({
     const dressing = dressInn(state);
     const justAte = takeMealJustEaten();
 
-    buildCafe(kit, ctx, dressing, justAte);
+    const tvScreen = buildCafe(kit, ctx, dressing, justAte);
+    const curtain = innClutter(kit, dressing);
     placeCafeCast(kit, ctx, dressing);
     const scares = stageBeats(kit, ctx, dressing);
     const phone = new InnPhone(kit, ctx, dressing, scares);
@@ -73,6 +76,7 @@ export const innScene = defineScene({
     kit.door({ to: 'village_square', spawn: 'from_inn', w: FRONT_DOOR.w, h: FRONT_DOOR.h, prompt: 'Go out' }).at(FRONT_DOOR.x, 0, CAFE.z1 + 0.02);
 
     sounds(kit, dressing);
+    innAmbient(kit, ctx, dressing, { tvScreen, curtain });
     turnTheDay(kit, ctx, dressing, (moniqueHere) => phone.ring(moniqueHere), arrivingAtDawn);
   },
 });
