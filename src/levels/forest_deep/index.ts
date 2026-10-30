@@ -31,7 +31,7 @@ import {
   woodsHeight,
   type Area,
 } from '../forest_path/woods';
-import { screamer } from '../../game/scares/screamers';
+import { startle } from '../../game/scares/startles';
 
 /**
  * Bois-Noir, haut. The animal track above the fort winds up to a single larch, golden among
@@ -117,7 +117,8 @@ function stageLarch(kit: LevelKit, ctx: SceneContext): ScareDirector {
   const watcher = (at: { x: number; z: number }): ScareAction => ({ figure: { at, vanish: 'unseen', near: 8, timeout: 30 } });
   return kit.use(
     scareDirector(unspent(ctx.state, [
-      screamer('forest_deep', 35),
+      // Crows roosting in the spruce over the track, halfway up to the larch.
+      startle('deep_crows', 'crows', { x: 0, z: 10, r: 4 }, { x: -4, y: 7, z: 6 }),
       { id: 'for3_grave', when: { after: Number.POSITIVE_INFINITY }, do: [{ silence: 6 }] },
       {
         id: 'for3_watched',

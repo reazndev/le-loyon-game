@@ -6,6 +6,7 @@ import { animateLight, cat, crows, distantTraffic, fallingLeaves, mothsAround, o
 import { lampLevel } from './lampLevel';
 import { GREMAUD_GATE, INN, LAMP, MEMORIAL, PHONE_BOX } from './layout';
 import { LAMP_HEAD, type StreetLamp } from './props';
+import { wildlife } from '../../game/ambient/wildlife';
 
 export interface SquareMoving {
   lamp: StreetLamp;
@@ -20,6 +21,7 @@ export interface SquareMoving {
  * breath, and a car now and then on the valley road below.
  */
 export function squareAmbient(kit: LevelKit, ctx: SceneContext, moving: SquareMoving): void {
+  wildlife(kit, ctx, 'village');
   const night = ctx.state.time === 'night';
   const sky = outdoorWeather(kit, ctx, { rain: 0.18, tin: { at: { x: PHONE_BOX.x, y: 2.5, z: PHONE_BOX.z }, volume: 0.3 } });
   sway(kit, moving.sign, { axis: 'x', degrees: 2 + sky.wind * 5, speed: 0.18 });

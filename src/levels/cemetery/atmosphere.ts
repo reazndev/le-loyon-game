@@ -3,6 +3,7 @@ import type { LevelKit } from '../../game/kit/levelKit';
 import type { TimeOfDay } from '../../game/state';
 import type { SceneContext } from '../../game/scene';
 import { hourBells, outdoorWeather, weather } from '../../game/ambient';
+import { wildlife } from '../../game/ambient/wildlife';
 
 /**
  * The hill above the village, shared by the cemetery and the path up to it. By day it is grey and
@@ -27,7 +28,7 @@ export const hillAtmosphere: Record<TimeOfDay, Atmosphere> = {
  * The hill's air: very soft wind, stronger as the week goes on, mist low over the grass, and the
  * church bell from below. By day small sounds stay far off; at night they come closer, the
  * reporter's breath shows, and from night 2 a drizzle falls. `village` is the direction of the
- * church from the scene; `bells` false keeps the hour from ringing into a silence a beat builds.
+ * church from the scene; `bells` false keeps the hour and the animals out of a silence a beat builds.
  */
 export function hillAmbience(kit: LevelKit, ctx: SceneContext, village: { x: number; z: number }, bells = true): void {
   const night = ctx.state.time === 'night';
@@ -35,5 +36,7 @@ export function hillAmbience(kit: LevelKit, ctx: SceneContext, village: { x: num
   kit.ambience('wind', { volume: (night ? 0.12 : 0.18) + sky.wind * 0.2 });
   kit.ambience('crackle', night ? { interval: 9, volume: 0.3, distance: [5, 15] } : { interval: 14, volume: 0.22 });
   outdoorWeather(kit, ctx, { rain: 0.28 });
-  if (bells) hourBells(kit, ctx, village, night ? 0.35 : 0.45);
+  if (!bells) return;
+  hourBells(kit, ctx, village, night ? 0.35 : 0.45);
+  wildlife(kit, ctx, 'cemetery');
 }

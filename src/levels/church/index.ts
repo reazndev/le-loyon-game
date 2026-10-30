@@ -13,7 +13,7 @@ import { placeAbbe } from './overney';
 import { buildSacristy } from './sacristy';
 import { buildShell } from './shell';
 import { towerBell, towerClick, woodCreak } from './sounds';
-import { screamer } from '../../game/scares/screamers';
+import { startle } from '../../game/scares/startles';
 
 /**
  * Église Saint-Maurice. The nave, the Virgin's side altar, the confessional, the sacristy with
@@ -79,7 +79,8 @@ export const churchScene = defineScene({
     // chu_confessional: after sitting, a long quiet, then someone shifts their weight on the priest's side.
     kit.use(
       scareDirector([
-        screamer('church', 40),
+        // Pigeons in the roof timbers, startled by the first steps down the nave.
+        startle('church_pigeons', 'pigeons', { x: MAIN_DOOR.x, z: NAVE.z1 - 6, r: 2.5 }, { x: MAIN_DOOR.x + 1.5, y: NAVE.h - 0.5, z: NAVE.z1 - 9 }),
         {
           id: 'chu_confessional',
           when: { flag: SAT_IN_CONFESSIONAL },

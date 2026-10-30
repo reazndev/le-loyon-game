@@ -48,6 +48,21 @@ Each preset takes overrides: `particles(kit, drizzle({ count: 800 }))`. The spec
 - `distantDog(kit, ctx, every)` barks a few times far off.
 - `distantTraffic(kit, ctx, road, every)` sends a car or a tractor along a road the player never sees. `road` is two far points; the panner glides on the audio clock.
 
+## Wildlife
+
+`wildlife(kit, ctx, habitat)` in `wildlife.ts` is every animal around an outdoor scene. `habitat` is `'village'`, `'field'`, `'cemetery'`, or `'forest'`; the forest has the most.
+
+- Real calls from `recordings.ts`, each on its own random clock and from its own distance: crows, ravens, and a buzzard high up by day; tawny owls, a fox's scream, and a roe deer's bark at night.
+- Outside the village, something on four legs now and then crosses nearby through the undergrowth. Half the time it stops when it is closest, waits a few seconds, snaps a twig, and bolts.
+- In the forest and the cemetery, a bird or two takes off from a branch.
+- At night the whole place sometimes falls silent for half a minute or more. The silence ends with a twig snapping close behind.
+
+`animalCall(audio, animal, { at, volume, bus })` plays one call: a random take at a slightly different pitch each time. The files are trimmed takes in `public/assets/audio/wild/`; the source recordings and their licenses are in `docs/credits.md`.
+
+## Startles
+
+`startle(id, kind, zone, from)` in `src/game/scares/startles.ts` is a scare beat for a scare director. The first time the player walks into `zone`, something goes off at `from`: `'crows'` or `'pigeons'` bursting out of a tree or a roof, an `'owl'` screeching overhead, a `'deer'` crashing away through the undergrowth, or `'rats'` scattering. Each fires once per game. Put `from` in the tree, the rafters, or the bush the noise belongs to, close to the path, so the scare has a cause the player can see.
+
 ## Sound layers
 
 `loop(kit, () => handle)` starts a looping sound and stops it with the scene. Scene-level layers:
@@ -70,6 +85,8 @@ Sounds in `sounds.ts`, all synthesized:
 | `tubeTick(audio, at)` | One-shot |
 | `passingEngine(audio, from, to, { kind })` | One-shot that moves |
 | `distantBell(audio, at, strokes)` | One-shot |
+| `wingFlaps(audio, at, birds)` | One-shot |
+| `ratsScatter(audio, at)` | One-shot |
 
 `nowAndThen(kit, ctx, mean, work)` runs `work` at random, on average every `mean` seconds, never while a dialogue or menu is open. `around(ctx, distance, y)` gives a random point at that distance from the player.
 

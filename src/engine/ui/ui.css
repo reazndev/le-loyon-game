@@ -171,56 +171,18 @@ body {
   color: #fff;
 }
 
-.ui-screamer {
-  position: absolute;
-  inset: -20px;
-  overflow: hidden;
-  background: #000;
-  animation: ui-screamer-shake 0.06s steps(2) infinite;
+/* A hard knock to the frame, for a sudden loud noise. */
+.ui-jolt {
+  animation: ui-jolt-shake 0.05s steps(2) 10;
 }
 
-.ui-screamer-face {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 640px;
-  height: 640px;
-  image-rendering: pixelated;
-  transform: translate(-50%, -50%) scale(0.6);
-  animation: ui-screamer-lunge 0.25s ease-in forwards;
-}
-
-.ui-screamer-mask .ui-screamer-face {
-  filter: contrast(2.2) sepia(1) hue-rotate(-50deg) saturate(4);
-}
-
-.ui-screamer-stretch .ui-screamer-face {
-  filter: contrast(2.6) grayscale(1) brightness(1.3);
-  height: 900px;
-}
-
-.ui-screamer-invert .ui-screamer-face {
-  filter: invert(1) contrast(2.5) grayscale(1);
-  height: 820px;
-}
-
-@keyframes ui-screamer-lunge {
-  to {
-    transform: translate(-50%, -50%) scale(1.25);
-  }
-}
-
-@keyframes ui-screamer-shake {
+@keyframes ui-jolt-shake {
   0% {
-    transform: translate(-14px, 9px);
+    transform: translate(-6px, 4px);
   }
   100% {
-    transform: translate(12px, -11px);
+    transform: translate(6px, -4px);
   }
-}
-
-.ui-jolt {
-  animation: ui-screamer-shake 0.05s steps(2) 10;
 }
 
 .ui-nav {

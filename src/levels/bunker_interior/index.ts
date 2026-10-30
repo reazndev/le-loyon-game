@@ -27,7 +27,7 @@ import { beerCans, bench, bunkStack, ceilingRuns, chair, graffiti, locker, stenc
 import { neighbors, roomAt, type Opening, type Room } from './rooms';
 import { hints } from './hints';
 import { fortBeats } from './scares';
-import { screamer } from '../../game/scares/screamers';
+import { startle } from '../../game/scares/startles';
 
 /**
  * Fort, outer rooms. The vaulted entrance, the gas lock, one long corridor with the guard room
@@ -205,7 +205,7 @@ export const bunkerInteriorScene = defineScene({
     updates.push(dripInTheNextRoom(rooms, openings));
     scares = kit.use(
       scareDirector(
-        unspent(ctx.state, [...fortBeats(ctx, { markers, cupboard: { x: CUPBOARD.x, y: 0.4, z: CUPBOARD.z }, slideMask, voice: kp3.voice }), screamer('bunker', 50)]),
+        unspent(ctx.state, [...fortBeats(ctx, { markers, cupboard: { x: CUPBOARD.x, y: 0.4, z: CUPBOARD.z }, slideMask, voice: kp3.voice }), startle('bunker_rats', 'rats', { x: 4, z: -31, r: 2 }, { x: 10, y: 0.2, z: -32 })]),
         { random: { surface: 'stone' } },
       ),
     );

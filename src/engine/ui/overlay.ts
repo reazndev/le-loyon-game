@@ -14,14 +14,6 @@ export interface HudButton {
   run: () => void;
 }
 
-/** Faces for screamers, each with a CSS look that warps it. */
-const SCREAMER_FACES = [
-  { texture: 'gas_mask', look: 'ui-screamer-mask' },
-  { texture: 'face_old_woman', look: 'ui-screamer-stretch' },
-  { texture: 'face_widow', look: 'ui-screamer-stretch' },
-  { texture: 'face_watchman', look: 'ui-screamer-invert' },
-];
-
 /** The UI layer over the 3D frame, in 640x480 frame pixels. */
 export class Overlay {
   readonly root: HTMLElement;
@@ -114,20 +106,6 @@ export class Overlay {
     void frame.offsetWidth;
     frame.classList.add('ui-jolt');
     setTimeout(() => frame.classList.remove('ui-jolt'), 500);
-  }
-
-  /** A face from the textures fills the frame, shaking, for under a second. A different one each time. */
-  screamer(seconds = 0.8): Promise<void> {
-    const face = SCREAMER_FACES[Math.floor(Math.random() * SCREAMER_FACES.length)]!;
-    const layer = el('div', `ui-screamer ${face.look}`, this.root);
-    el('img', 'ui-screamer-face', layer).src = `assets/textures/${face.texture}.png`;
-    this.root.insertBefore(layer, this.fader);
-    return new Promise((resolve) =>
-      setTimeout(() => {
-        layer.remove();
-        resolve();
-      }, seconds * 1000),
-    );
   }
 
   /** Shows a short line in the corner, such as "Got: Brass key". */

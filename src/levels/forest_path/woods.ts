@@ -14,6 +14,7 @@ import type { TimeOfDay } from '../../game/state';
 import { around, breathVapor, caw, distantDog, distantTraffic, drizzle, fallingLeaves, fogWisps, hourBells, loop, nowAndThen, particles, weather, windInTrees, windSway } from '../../game/ambient';
 import { rain, waterDrop } from '../../game/ambient/sounds';
 import { distanceToTrails, nearestOnTrails, resample, type Trail } from './trail';
+import { wildlife } from '../../game/ambient/wildlife';
 
 /** Building blocks shared by every Bois-Noir scene: ground, path, trees, undergrowth, sound. */
 
@@ -417,6 +418,7 @@ export function enclose(kit: LevelKit, area: Area): void {
  * close by, the reporter's breath, and on wet nights drizzle and drops off the branches.
  */
 export function forestAmbience(kit: LevelKit, ctx: SceneContext): void {
+  wildlife(kit, ctx, 'forest');
   const night = ctx.state.time === 'night';
   const sky = weather(ctx.state);
   windInTrees(kit, ctx, sky.wind);

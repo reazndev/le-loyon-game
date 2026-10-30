@@ -2,6 +2,7 @@ import type { Point3 } from '../../engine/audio/audioManager';
 import { distantTraffic, outdoorWeather } from '../../game/ambient';
 import type { LevelKit } from '../../game/kit/levelKit';
 import type { SceneContext } from '../../game/scene';
+import { wildlife } from '../../game/ambient/wildlife';
 
 export interface FarmWeather {
   /** A tin roof or sheet the drizzle drums on. */
@@ -16,6 +17,7 @@ export interface FarmWeather {
  * drip, and the bell.
  */
 export function farmWeather(kit: LevelKit, ctx: SceneContext, { tin, road }: FarmWeather): void {
+  wildlife(kit, ctx, 'field');
   outdoorWeather(kit, ctx, { rain: 0.22, tin: { at: tin, volume: 0.35 } });
   distantTraffic(kit, ctx, road, ctx.state.time === 'night' ? 320 : 200);
 }

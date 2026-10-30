@@ -8,6 +8,7 @@ import { farmWeather } from '../yerly_farm/outdoors';
 import { chain, hayWagon, kennel, looseSheet, plough, roundBale, tool, wheelbarrow } from '../yerly_farm/props';
 import { chainRattle } from '../yerly_farm/sounds';
 import { GARDEN } from './garden';
+import { wildlife } from '../../game/ambient/wildlife';
 
 /**
  * Two years of nobody at the Chassot farm: the empty kennel with its chain in the nettles, milk
@@ -24,6 +25,7 @@ export interface ChassotPlan {
 }
 
 export function chassotAmbient(kit: LevelKit, ctx: SceneContext, { house, barnEast }: ChassotPlan): void {
+  wildlife(kit, ctx, 'field');
   const night = ctx.state.time === 'night';
   // Against the front wall right of the door, where the hedge doesn't hide it.
   const kennelAt = { x: house.x + 1.7, z: house.z + house.d / 2 + 0.53 };

@@ -3,6 +3,7 @@ import type { SceneContext } from '../../game/scene';
 import { crows, fallingLeaves, loop, outdoorWeather, particles } from '../../game/ambient';
 import { radio, tvMurmur } from '../inn/sounds';
 import { DOOR } from './house';
+import { wildlife } from '../../game/ambient/wildlife';
 
 /**
  * The doorstep's own layers over the village's: mist on the lawn, drizzle from night 2 with rain
@@ -11,6 +12,7 @@ import { DOOR } from './house';
  * dark, a television turned very low upstairs.
  */
 export function doorstepAmbient(kit: LevelKit, ctx: SceneContext, apple: { x: number; z: number }, gate: { x: number; z: number }): void {
+  wildlife(kit, ctx, 'village');
   const night = ctx.state.time === 'night';
   outdoorWeather(kit, ctx, { rain: 0.18, tin: { at: { x: DOOR.x, y: 2.6, z: DOOR.z }, volume: 0.22 } });
   if (night) {

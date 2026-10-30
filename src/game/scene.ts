@@ -33,8 +33,6 @@ export interface SceneContext {
   say(lines: string | string[], speaker?: string): Promise<void>;
   /** A white flash and the frame shaking, for a jumpscare that is a sound. */
   jolt(): void;
-  /** A face fills the screen with a loud scream for under a second. */
-  screamer(): Promise<void>;
   /** Shows a short line in the corner of the screen. */
   notify(text: string): void;
   /** Seconds since this scene finished loading. */

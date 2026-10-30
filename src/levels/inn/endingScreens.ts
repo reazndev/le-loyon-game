@@ -90,6 +90,11 @@ function creditsScreen(): HTMLElement {
     el('div', 'opacity:0.7', 'Leurs, canton of Fribourg, November 1998.'),
     el('div', 'opacity:0.7', 'Leurs and everyone in it are invented.'),
     el('div', 'opacity:0.45;font-size:12px;margin-top:24px', 'Dog bark: "Barking" by Piecesofuk, CC BY-SA 4.0, Wikimedia Commons.'),
+    el(
+      'div',
+      'opacity:0.45;font-size:12px;max-width:520px;text-align:center',
+      'Animal calls: Alvaro Ortiz Troncoso, Benoît Van Hecke, Marie-Lan Taÿ Pamart (xeno-canto), Livlandfahrer, 1bumer, FelixWilson. CC BY-SA, Wikimedia Commons.',
+    ),
   );
   return screen;
 }

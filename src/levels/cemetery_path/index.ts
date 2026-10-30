@@ -18,7 +18,7 @@ import { bench } from '../cemetery/clutter';
 import { hints } from './hints';
 import { crossOfferings, fenceSign } from './props';
 import { billboards } from '../forest_path/woods';
-import { screamer } from '../../game/scares/screamers';
+import { startle } from '../../game/scares/startles';
 
 /**
  * Chemin du cimetière. A gravel path climbs from behind the church in three switchbacks between
@@ -232,7 +232,8 @@ function cemeteryWall(kit: LevelKit): void {
 /** path_light_above on night 2: halfway up, a torch beam moving up toward the cemetery, and the bell. Returns his round. */
 function stagePath(kit: LevelKit, phase: StoryPhase): Patrol | null {
   if (!isNight(phase)) return null;
-  kit.use(scareDirector([screamer('cemetery_path', 14)], { random: { surface: 'gravel' } }));
+  // An owl in the yew at the first bend, screeching as the reporter comes round it.
+  kit.use(scareDirector([startle('path_owl', 'owl', { x: 12.5, z: 28.3, r: 3 }, { x: 16, y: 5, z: 30 })], { random: { surface: 'gravel' } }));
   if (phase !== 'night2') return null;
   const ahead = (meters: number) => {
     const p = pointAlong(path, meters);

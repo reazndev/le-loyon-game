@@ -265,3 +265,32 @@ export function distantBell(audio: AudioManager, at: Point3, strokes: number, vo
     }
   });
 }
+
+/**
+ * Birds taking off at once: each bird a run of wingbeats, soft thuds of air that speed up and
+ * fade as it climbs away. `birds` sets how many; a dozen pigeons sound like a door slamming.
+ */
+export function wingFlaps(audio: AudioManager, at: Point3, birds: number, volume = 0.8): void {
+  oneShot(audio, { at, volume, bus: 'sfx' }, 3, (out, t) => {
+    for (let bird = 0; bird < birds; bird++) {
+      const start = t + Math.random() * 0.35;
+      const rate = 7 + Math.random() * 5;
+      const beats = 6 + Math.floor(Math.random() * 8);
+      for (let i = 0; i < beats; i++) {
+        const level = (1 - i / beats) * (0.6 + Math.random() * 0.4);
+        noiseBurst(audio, out, { start: start + i / (rate + i * 0.4), duration: 0.06, type: 'bandpass', frequency: 500 + Math.random() * 900, q: 0.9, gain: 0.45 * level, attack: 0.015 });
+      }
+    }
+  });
+}
+
+/** Rats running for cover: claws skittering on concrete and a few thin squeaks. */
+export function ratsScatter(audio: AudioManager, at: Point3, volume = 0.9): void {
+  oneShot(audio, { at, volume, bus: 'sfx' }, 2.2, (out, t) => {
+    for (let i = 0; i < 26; i++) noiseBurst(audio, out, { start: t + Math.random() * 1.4, duration: 0.012, type: 'highpass', frequency: 3500, gain: 0.35 + Math.random() * 0.3 });
+    for (let i = 0; i < 4; i++) {
+      const f = 3800 + Math.random() * 1600;
+      tone(audio, out, { type: 'sine', frequency: f, to: f * 1.2, start: t + 0.1 + Math.random() * 1.1, duration: 0.06 + Math.random() * 0.05, gain: 0.12, attack: 0.005 });
+    }
+  });
+}
