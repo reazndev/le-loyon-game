@@ -60,6 +60,7 @@ export function graveStones(kit: LevelKit, handlers: GraveHandlers): { windmill:
         prompt: () => (handlers.digging() ? 'Dig' : 'Read the stone'),
         enabled: () => handlers.digging() || grave.doc !== undefined,
         radius: 1.3,
+        ...(grave.doc === 'grave_menoud' && handlers.lanternLit ? { photo: 'photo_lantern' } : {}),
         onInteract: () => (handlers.digging() ? handlers.dig(grave) : handlers.read(grave)),
       })
       .at(grave.x, 0, grave.z + 0.6);
@@ -179,7 +180,7 @@ function chassotPlot(kit: LevelKit, handlers: GraveHandlers): void {
   [-0.13, 0.13].forEach((dx) => kit.plane({ w: 0.11, d: 0.27 }).color(0x3a3630).at(GRAVE_FOOT.x + dx, 0.03, GRAVE_FOOT.z + 0.05));
 
   kit
-    .hotspot({ prompt: 'Read the stone', enabled: () => !handlers.digging(), radius: 1.3, onInteract: () => handlers.read(chassotGrave) })
+    .hotspot({ prompt: 'Read the stone', enabled: () => !handlers.digging(), radius: 1.3, photo: 'photo_grave_chassot', onInteract: () => handlers.read(chassotGrave) })
     .at(x, 0, z + 0.6);
   kit
     .hotspot({ prompt: 'Dig', enabled: handlers.digging, radius: 0.5, onInteract: () => handlers.dig(chassotGrave) })

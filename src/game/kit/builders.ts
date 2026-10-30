@@ -46,8 +46,9 @@ export interface InteractOptions {
   /**
    * What the camera makes of the object when it is in the viewfinder: a photo item id from the
    * script, such as `photo_lantern`, or a key of `miscPhotoCaptions`. Other shots make a misc photo.
+   * A function decides at the moment of the shot, for objects that change, such as an opened grave.
    */
-  photo?: string;
+  photo?: string | (() => string | undefined);
 }
 
 export interface TextureOptions {

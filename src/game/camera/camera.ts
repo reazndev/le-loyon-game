@@ -4,6 +4,7 @@ import type { AudioManager } from '../../engine/audio/audioManager';
 import { click } from '../../engine/audio/generators';
 import { cancelLabel, interactLabel } from '../../engine/input/bindings';
 import type { Input, Movement } from '../../engine/input/input';
+import { photoTarget } from '../../engine/interactions';
 import type { Player } from '../../engine/player';
 import { fadeOpacity } from '../../engine/ui/dom';
 import type { Overlay } from '../../engine/ui/overlay';
@@ -101,7 +102,8 @@ export class PolaroidCamera {
       return false;
     }
     const forward = player.forward();
-    const target = world.interactions.focus({ x: player.position.x, z: player.position.z }, { x: forward.x, z: forward.z })?.photo;
+    const focus = world.interactions.focus({ x: player.position.x, z: player.position.z }, { x: forward.x, z: forward.z });
+    const target = focus ? photoTarget(focus) : undefined;
     const shot = resolveShot({ scene: state.scene, state, taken: state.photos, ...(target ? { target } : {}) });
     state.setCount(FILM_COUNT, film - 1);
     finder.shots = film - 1;

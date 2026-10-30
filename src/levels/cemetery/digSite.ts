@@ -102,7 +102,13 @@ export class DigSite {
     });
 
     kit
-      .hotspot({ prompt: () => this.prompt(), enabled: () => this.prompt() !== '', radius: 0.9, onInteract: () => this.interact() })
+      .hotspot({
+        prompt: () => this.prompt(),
+        enabled: () => this.prompt() !== '',
+        radius: 0.9,
+        photo: () => (this.coffinOpen ? 'photo_empty_coffin' : undefined),
+        onInteract: () => this.interact(),
+      })
       .at(HOLE.x, 0, HOLE.z);
     kit
       .hotspot({
@@ -130,6 +136,12 @@ export class DigSite {
   private opened: boolean;
 
   private syncColliders: () => void = () => undefined;
+
+  /** The lid is off and the coffin lies open in the hole. */
+  private get coffinOpen(): boolean {
+    const { state } = this.ctx;
+    return state.hasFlag('opened_coffin') && holeOpen(state) && state.count('refill_stage') === 0;
+  }
 
   /** The hole is open and Raymond's torch would find it. */
   get visible(): boolean {

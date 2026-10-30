@@ -11,7 +11,7 @@ export interface Interactable {
   enabled?: () => boolean;
   onInteract: () => void | Promise<void>;
   /** What the camera makes of the object: a `photo_*` item id or a misc photo caption key. */
-  photo?: string;
+  photo?: string | (() => string | undefined);
 }
 
 /** How far past an object's radius the player can reach, in meters. */
@@ -62,4 +62,9 @@ export class Interactions {
 
 export function promptText(item: Interactable): string {
   return typeof item.prompt === 'function' ? item.prompt() : item.prompt;
+}
+
+/** What the camera makes of the object now, if anything. */
+export function photoTarget(item: Interactable): string | undefined {
+  return typeof item.photo === 'function' ? item.photo() : item.photo;
 }
