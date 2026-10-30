@@ -10,6 +10,9 @@ import { BUS_STOP, FOUNTAIN, GREMAUD_GATE, HOUSE_1, HOUSE_2, spawns } from './la
 import { bicycle } from './props';
 import { arrival, departure } from './postbus';
 import { fountainWater, televisionThroughWall } from './sounds';
+import { tvMurmur } from '../inn/sounds';
+import { squareAmbient } from './ambient';
+import { streetClutter } from './clutter';
 import { greenery } from './greenery';
 import { exits, ground, streetFurniture } from './streets';
 
@@ -37,14 +40,15 @@ export const villageSquareScene = defineScene({
     kit.ground('grass');
     let lift = (): Promise<void> => Promise.resolve();
     // Everything that stands still goes into one batch; the parts beats move are marked dynamic.
-    const { church, abbe, home, houseTwo, street } = kit.batch((still) => {
+    const { church, abbe, home, houseTwo, street, innFront } = kit.batch((still) => {
       ground(still);
       greenery(still);
-      inn(still, night);
       laiterie(still, night);
       garage(still, night);
       outlyingHouses(still, night);
+      streetClutter(still, night);
       return {
+        innFront: inn(still, night),
         church: churchFront(still, ctx, night),
         abbe: presbytery(still, night),
         home: gremaud(still, night),
@@ -68,9 +72,11 @@ export const villageSquareScene = defineScene({
       held: arriving,
       layers: [
         () => fountainWater(ctx.audio, { x: FOUNTAIN.x - 1.4, y: 0.8, z: FOUNTAIN.z }),
-        ...(night ? [] : [() => televisionThroughWall(ctx.audio, { x: HOUSE_1.x + 3.6, y: 1.4, z: HOUSE_1.z + 2.4 })]),
+        // Behind house 1's lit ground-floor window; at night the set is on low.
+        night ? () => tvMurmur(ctx.audio, HOUSE_1_TV, 0.16) : () => televisionThroughWall(ctx.audio, HOUSE_1_TV),
       ],
     });
+    squareAmbient(kit, ctx, { lamp: street.lamp, sign: innFront.sign });
     if (arriving) arrival(kit, ctx, ambience);
     timetable(kit, ctx);
   },
@@ -119,6 +125,9 @@ function villagers(kit: LevelKit, ctx: SceneContext, phase: StoryPhase): void {
     kit.npc('bari').at(-1.2, 0, 2.2).faceYaw(240);
   }
 }
+
+/** Inside house 1, behind the window lit by the television (front, ground floor, third column). */
+const HOUSE_1_TV = { x: HOUSE_1.x + 3.6, y: 1.4, z: HOUSE_1.z - 2.8 };
 
 const wait = (seconds: number) => new Promise((resolve) => setTimeout(resolve, seconds * 1000));
 

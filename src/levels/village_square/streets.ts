@@ -6,7 +6,7 @@ import type { SceneContext } from '../../game/scene';
 import { distanceToTrails } from '../forest_path/trail';
 import { billboards } from '../forest_path/woods';
 import { BOUNDS, BUS_STOP, churchLane, FOUNTAIN, gremaudLane, INN, INN_DOOR, LAMP, mainRoad, MEMORIAL, PHONE_BOX, ROAD_WIDTH, SQUARE } from './layout';
-import { bench, busStop, fountain, fribourgFlag, hikingSign, memorial, noticeCase, phoneBox, signpost, streetLamp, telegraphPole, waysideCross } from './props';
+import { bench, busStop, fountain, fribourgFlag, hikingSign, memorial, noticeCase, phoneBox, signpost, streetLamp, telegraphPole, waysideCross, type StreetLamp } from './props';
 import { road } from './road';
 
 /** The ground of the village: wet grass, the paved square, the road, the lanes, and the things on them. */
@@ -48,6 +48,8 @@ export function ground(kit: LevelKit): void {
 export interface Street {
   /** The phone box lamp, which flickers at night. */
   phoneLamp: MeshBuilder | null;
+  /** The street lamp, whose bulb fails now and then at night. */
+  lamp: StreetLamp;
 }
 
 /**
@@ -74,12 +76,13 @@ export function streetFurniture(kit: LevelKit, ctx: SceneContext, night: boolean
   memorial(kit).at(MEMORIAL.x, 0, MEMORIAL.z);
   kit.hotspot({ prompt: 'Read the plaque', radius: 0.8, onInteract: () => ctx.dialogue(dialogues.square_memorial) }).at(MEMORIAL.x, 0, MEMORIAL.z + 0.6);
   fribourgFlag(kit).at(MEMORIAL.x - 2, 0, MEMORIAL.z + 0.6);
-  streetLamp(kit, night).at(LAMP.x, 0, LAMP.z).rotY(-130);
+  const lamp = streetLamp(kit, night);
+  lamp.post.at(LAMP.x, 0, LAMP.z).rotY(LAMP.yaw);
   hikingSign(kit, [100, -10]).at(-8.2, 0, -9.4);
   noticeCase(kit).at(-11.8, 0, 2).rotY(90);
   bench(kit).at(3.4, 0, -6.4).rotY(200);
   landmarks(kit);
-  return { phoneLamp: parts.phoneLamp ?? null };
+  return { phoneLamp: parts.phoneLamp ?? null, lamp };
 }
 
 /**

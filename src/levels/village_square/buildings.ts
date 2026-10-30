@@ -1,5 +1,5 @@
 import { ConeGeometry } from 'three';
-import type { MeshBuilder } from '../../game/kit/builders';
+import type { MeshBuilder, Placed } from '../../game/kit/builders';
 import type { LevelKit } from '../../game/kit/levelKit';
 import type { SceneContext } from '../../game/scene';
 import { playNode } from '../forest_path/play';
@@ -120,8 +120,13 @@ export function presbytery(kit: LevelKit, night: boolean): Presbytery {
   return { lamp: parts.lamp ?? null };
 }
 
+export interface InnFront {
+  /** The hanging sign, from its hook on the arm, out of the batch so it can swing. */
+  sign: Placed;
+}
+
 /** The Auberge de la Croix-Blanche: green shutters, the hanging sign, the café lit by day. */
-export function inn(kit: LevelKit, night: boolean): void {
+export function inn(kit: LevelKit, night: boolean): InnFront {
   // Yannick's room is the last window upstairs, looking onto the square.
   const look = ({ face, floor, col }: WindowSlot): WindowLook => {
     if (face !== 'front') return night || floor > 0 ? 'dark' : 'lit';
@@ -150,11 +155,18 @@ export function inn(kit: LevelKit, night: boolean): void {
   lettering(kit, 7.6, 18).at(front - 0.05, 2.75, INN.z + 0.3).rotY(-90);
   // The hanging sign: a white cross on red, on an iron arm.
   kit.box({ w: 1.2, h: 0.05, d: 0.05 }).color(0x2a2826).at(front - 0.6, 3.9, INN_DOOR.z + 1.6);
-  kit.group((sign) => {
-    sign.box({ w: 0.8, h: 0.85, d: 0.04 }).color(0x8e2c26);
-    sign.box({ w: 0.14, h: 0.5, d: 0.05 }).color(0xd8d4c8).at(0, 0.17, 0);
-    sign.box({ w: 0.5, h: 0.14, d: 0.05 }).color(0xd8d4c8).at(0, 0.35, 0);
-  }).at(front - 0.8, 2.95, INN_DOOR.z + 1.6);
+  // The sign hangs from two rings under the arm, so it swings from the hook.
+  const sign = kit
+    .group((hook) =>
+      hook.batch((s) => {
+        [-0.3, 0.3].forEach((x) => s.box({ w: 0.03, h: 0.1, d: 0.03 }).color(0x2a2826).at(x, -0.1, 0));
+        s.box({ w: 0.8, h: 0.85, d: 0.04 }).color(0x8e2c26).at(0, -0.95, 0);
+        s.box({ w: 0.14, h: 0.5, d: 0.05 }).color(0xd8d4c8).at(0, -0.78, 0);
+        s.box({ w: 0.5, h: 0.14, d: 0.05 }).color(0xd8d4c8).at(0, -0.6, 0);
+      }),
+    )
+    .at(front - 0.8, 3.9, INN_DOOR.z + 1.6)
+    .dynamic();
   // A lamp on the arm over the sign, left on all night: the one warm light on the square's east side.
   kit.box({ w: 0.2, h: 0.12, d: 0.2 }).color(0x2a2826).at(front - 0.8, 3.9, INN_DOOR.z + 1.6);
   if (night) {
@@ -169,6 +181,7 @@ export function inn(kit: LevelKit, night: boolean): void {
   });
   woodpile(kit, 4).at(INN.x - 1, 0, INN.z - INN.w / 2 - 0.4).rotY(180);
   kit.door({ to: 'inn', spawn: 'from_square', prompt: 'Go in' }).at(front - 0.25, 0.16, INN_DOOR.z).rotY(-90);
+  return { sign };
 }
 
 /** The Gremaud house beside the inn, with its garden wall and the gate to the doorstep. */

@@ -27,7 +27,7 @@ export const HOUSE_2 = { x: -21, z: 16.5, w: 9, d: 8, yaw: 180 };
 export const PHONE_BOX = { x: 8, z: 6.6 };
 export const BUS_STOP = { x: -9.5, z: 13.6 };
 export const MEMORIAL = { x: -4.4, z: -11.2 };
-export const LAMP = { x: -6.4, z: -7.4 };
+export const LAMP = { x: -6.4, z: -7.4, yaw: -130 };
 
 /** The road through the village: in from the west, past the bus stop, then south. */
 export const mainRoad: Trail = [
