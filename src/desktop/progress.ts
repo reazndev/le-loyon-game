@@ -56,7 +56,7 @@ const hints: [flag: string, hint: string][] = [
   ['pro_read_mail', "Ruth's mail first. Courrier."],
   ['pro_read_board', 'That gas mask story was on the board. Navigator.'],
   ['pro_read_thread_bus', 'The GAS MASK MAN thread. Someone there knows the way.'],
-  ['pro_read_homepage', 'Cloudy said Stef has photos. Board, Links page.'],
+  ['pro_read_homepage', "Cloudy's reply links to Stef's photos."],
   ['pro_read_guestbook', "Stef's guestbook. Did someone from there sign it?"],
 ];
 

@@ -250,7 +250,7 @@ Below it, centered:
 - A hit counter of seven odometer digits: **0018223**.
 - Links in a row: [ Post a Message ] [ FAQ ] [ Rules ] [ Links ] [ Webring ]
 
-Then a horizontal rule (an animated GIF of a flaming line), then the message list. Messages are threaded with nested bullet lists. Each line shows: subject, author, date. Unread links are blue, visited are purple.
+Then a horizontal rule (an animated GIF of a flaming line), then the message list. The GAS MASK MAN thread has an animated NEW! badge in front of it so the player sees where to start. Messages are threaded with nested bullet lists. Each line shows: subject, author, date. Unread links are blue, visited are purple.
 
 ```
 * Lights over Lac de la Gruyere - FRIDAY NIGHT - Gaston 11/15/98
@@ -328,9 +328,8 @@ Posted by Cloudy on November 02, 1998 at 23:05:41:
 >Long army cape. GAS MASK. Not moving.
 
 There is a guy who has photos of this on his homepage!
-Stef something. Mountain biker. Search "Le Loyon" on
-the webring, his page is on it. Photos are very blurry
-but it's creepy.
+Stef, a mountain biker. Link below. Photos are very
+blurry but it's creepy.
 
   ___
  (o o)   Cloudy
@@ -499,7 +498,7 @@ Thank you. Hansruedi
 
 ## Page: Stéphane's homepage
 
-Reached from the board's Links page, from the Swiss Mysteries Webring, or from Cloudy's post (the webring link). The webring widget at the bottom of the board says "This site is a member of the SWISS MYSTERIES WEBRING [ << Prev | Random | Next >> | List Sites ]". "List Sites" shows five sites; three are dead (404), one is the board itself, one is Stef's page.
+Cloudy's post links straight to the LE LOYON subpage, so the player can't miss it. The homepage is also reached from the board's Links page and from the Swiss Mysteries Webring. The webring widget at the bottom of the board says "This site is a member of the SWISS MYSTERIES WEBRING [ << Prev | Random | Next >> | List Sites ]". "List Sites" shows five sites; three are dead (404), one is the board itself, one is Stef's page.
 
 `http://members.netcity.ch/~stefvtt/index.htm`
 
@@ -522,6 +521,8 @@ VTT - MUSIC - MYSTERY
 Hi! I'm Stephane, 24, from the Broye. I do mountain bike
 (VTT) every weekend, I listen to Depeche-style music and I
 like mysteries. This page is in english for my e-friends!
+
+NEW! MY PHOTOS OF "LE LOYON" NEW!   (large link to the subpage)
 
 [ My bike ]  [ My CDs ]  [ LE LOYON ]  [ Links ]  [ Guestbook ]
 
@@ -592,7 +593,7 @@ Under that, in blinking red:
 !!! IF YOU KNOW WHO HE IS, WRITE IN MY GUESTBOOK !!!
 ```
 
-Reading the Le Loyon page sets `pro_read_homepage`.
+The blinking line is itself a link to the guestbook. Reading the Le Loyon page sets `pro_read_homepage`.
 
 ### Subpage: Guestbook
 

@@ -66,7 +66,7 @@ describe('the checklist under the desktop', () => {
     expect(nextHint(state)).toContain('GAS MASK MAN');
     recordRead(state, 'pro_read_thread_bus');
     recordRead(state, 'pro_read_guestbook');
-    expect(nextHint(state)).toContain('Stef has photos');
+    expect(nextHint(state)).toContain("Stef's photos");
     expect(progressSteps(state)).toBe(4);
     recordRead(state, 'pro_read_homepage');
     expect(nextHint(state)).toBeNull();

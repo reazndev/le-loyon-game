@@ -1,6 +1,6 @@
 import { marbleTile } from '../../gfx/gifs';
 import { page, type Page, type Pages } from '../page';
-import { BOARD_INDEX, GUESTBOOK, STEF_BASE as BASE, STEF_HOME } from '../urls';
+import { BOARD_INDEX, GUESTBOOK, STEF_BASE as BASE, STEF_HOME, STEF_LOYON } from '../urls';
 import { webring } from './webring';
 
 /** Stef's homepage: yellow on blue marble, a MIDI tune, and the Le Loyon photos. */
@@ -9,7 +9,7 @@ const look: Partial<Page> = {
   colors: { text: '#f8e830', link: '#40f0f0', visited: '#ff90ff' },
 };
 
-const nav = `[ <a href="${BASE}bike.htm">My bike</a> ]  [ <a href="${BASE}cds.htm">My CDs</a> ]  [ <a href="${BASE}loyon.htm">LE LOYON</a> ]  [ <a href="${BASE}links.htm">Links</a> ]  [ <a href="${GUESTBOOK}">Guestbook</a> ]`;
+const nav = `[ <a href="${BASE}bike.htm">My bike</a> ]  [ <a href="${BASE}cds.htm">My CDs</a> ]  [ <a href="${STEF_LOYON}">LE LOYON</a> ]  [ <a href="${BASE}links.htm">Links</a> ]  [ <a href="${GUESTBOOK}">Guestbook</a> ]`;
 const back = `<center>[ <a href="${STEF_HOME}">Back to my homepage</a> ]</center>`;
 
 const cds: [string, string, number][] = [
@@ -96,6 +96,7 @@ export const stefPages: Pages = {
 Hi! I'm Stephane, 24, from the Broye. I do mountain bike<br>
 (VTT) every weekend, I listen to Depeche-style music and I<br>
 like mysteries. This page is in english for my e-friends!<br><br>
+<x-gif name="new"></x-gif> <a href="${STEF_LOYON}"><span class="big">MY PHOTOS OF "LE LOYON"</span></a> <x-gif name="new"></x-gif><br><br>
 ${nav}<br><br>
 <x-gif name="construction-banner"></x-gif><br><br>
 You are visitor number <x-counter digits="000412"></x-counter><br><br>
@@ -144,7 +145,7 @@ ${back}`,
 ${back}`,
     look,
   ),
-  [`${BASE}loyon.htm`]: {
+  [STEF_LOYON]: {
     title: 'LE LOYON',
     size: 12,
     background: '#000',
@@ -160,7 +161,7 @@ ${photos
   )
   .join('\n')}
 </tr></table><br>
-<center><font color="#ff3030" class="blink">!!! IF YOU KNOW WHO HE IS, WRITE IN MY GUESTBOOK !!!</font><br><br>
+<center><a href="${GUESTBOOK}"><font color="#ff3030" class="blink">!!! IF YOU KNOW WHO HE IS, WRITE IN MY GUESTBOOK !!!</font></a><br><br>
 [ <a href="${GUESTBOOK}">Guestbook</a> ]  [ <a href="${STEF_HOME}">Home</a> ]</center>`,
     onLoad: (env) => env.read('pro_read_homepage'),
   },

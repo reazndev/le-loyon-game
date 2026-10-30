@@ -48,10 +48,10 @@ const prologue = {
     // Back closes Courrier. Navigator is the next icon down, and it opens on the board.
     await s.key('Escape');
     await s.key('ArrowDown');
-    // Presses interact and waits for the page it opens to arrive; a cached page arrives at once.
-    const openFocused = async () => {
+    // Presses a key and waits for the page it opens to arrive; a cached page arrives at once.
+    const toPage = async (key) => {
       await s.eval(() => (window.__lastPage = window.__desktop.browser.page));
-      await s.key('KeyE');
+      await s.key(key);
       await s.until(
         () => {
           const { browser } = window.__desktop;
@@ -61,6 +61,7 @@ const prologue = {
         { timeout: 60_000 },
       );
     };
+    const openFocused = () => toPage('KeyE');
     // Down steps from link to link and scrolls through the text between them.
     const downUntil = async (done, what, arg) => {
       for (let i = 0; !(await s.eval(done, arg)); i++) {
@@ -74,15 +75,15 @@ const prologue = {
       if (flag) await s.until((f) => window.__game.state().flags.includes(f), flag, { timeout: 60_000, arg: flag });
     };
     await openFocused();
-    // P1: the bus times in a reply on the board, Stef's Le Loyon page, and yann in the guestbook.
+    // P1: Cloudy's reply links to Stef's Le Loyon page, which links to yann in the guestbook;
+    // pivex's reply further down the thread gives the bus times.
     await open('GAS MASK MAN');
-    await downUntil(() => window.__game.state().flags.includes('pro_read_thread_bus'), 'the reply about the bus');
-    await open('Back to index');
-    await open('Links');
-    await open("Stef's page");
-    await open('LE LOYON', 'pro_read_homepage');
-    await open('Guestbook', 'pro_read_guestbook');
+    await open('MY ENCOUNTER', 'pro_read_homepage');
+    await open('WRITE IN MY GUESTBOOK', 'pro_read_guestbook');
     await s.shot('03-guestbook');
+    await toPage('Backspace');
+    await toPage('Backspace');
+    await downUntil(() => window.__game.state().flags.includes('pro_read_thread_bus'), 'the reply about the bus');
     // The third clue: the reporter knows where to go, over the desktop.
     await s.awaitTalk('the reporter placing the village');
     // The Start menu opens from the keyboard; its last entry is Pack and go.

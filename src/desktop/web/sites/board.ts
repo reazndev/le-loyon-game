@@ -29,7 +29,7 @@ function postUrl(post: Post): string {
 
 function listItem(post: Post, stage: ForumStage): string {
   const children = replies(post, stage);
-  return `<li><a href="${postUrl(post)}">${esc(post.subject)}</a> - ${esc(post.author)} <i>${post.short}</i>${
+  return `<li>${post.hot ? '<x-gif name="new"></x-gif> ' : ''}<a href="${postUrl(post)}">${esc(post.subject)}</a> - ${esc(post.author)} <i>${post.short}</i>${
     children.length ? `<ul>${children.map((child) => listItem(child, stage)).join('')}</ul>` : ''
   }</li>`;
 }

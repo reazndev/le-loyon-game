@@ -1,7 +1,7 @@
 import type { StateView } from '../../../game/conditions';
 import { formatTime, parseTime } from '../../clock';
 import type { ForumStage } from '../../forum';
-import { RING_LIST } from '../urls';
+import { STEF_LOYON } from '../urls';
 
 /**
  * Every post on the Alpine Anomalies board. Prologue posts are stage 0; the inn adds stages
@@ -25,6 +25,8 @@ export interface Post {
   reads?: string;
   image?: { src: string; w: number; h: number; alt: string };
   link?: { url: string; title: string };
+  /** Marked NEW in the message list, so the player sees where the story starts. */
+  hot?: true;
 }
 
 const kamikaze = '-= Kamikaze =-\n  "the truth is in here"';
@@ -87,6 +89,7 @@ It is back. Sorry. - admin`,
     posted: 'November 02, 1998 at 21:47:13',
     short: '11/02/98',
     stage: 0,
+    hot: true,
     body: `Hi all, first post here.
 
 My cousin lives in canton Fribourg, small village, cows and
@@ -113,13 +116,12 @@ ${kamikaze}`,
     posted: 'November 02, 1998 at 23:05:41',
     short: '11/02/98',
     stage: 0,
-    link: { url: RING_LIST, title: 'Swiss Mysteries Webring' },
+    link: { url: STEF_LOYON, title: 'MY ENCOUNTER WITH "LE LOYON" - Stef\'s page' },
     body: `>Long army cape. GAS MASK. Not moving.
 
 There is a guy who has photos of this on his homepage!
-Stef something. Mountain biker. Search "Le Loyon" on
-the webring, his page is on it. Photos are very blurry
-but it's creepy.
+Stef, a mountain biker. Link below. Photos are very
+blurry but it's creepy.
 
 ${cloudy}`,
   },
