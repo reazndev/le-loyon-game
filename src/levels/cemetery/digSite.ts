@@ -3,6 +3,7 @@ import { playerTuning } from '../../engine/player';
 import { dialogues } from '../../content';
 import type { BoxShape, Vec2 } from '../../engine/physics/collision';
 import type { DialogueScript } from '../../game/dialogue';
+import type { LightBuilder } from '../../game/kit/builders';
 import type { LevelKit } from '../../game/kit/levelKit';
 import type { SceneContext } from '../../game/scene';
 import { playNode } from '../forest_path/play';
@@ -40,6 +41,7 @@ export const DIG_REACH = 20;
 export const REFILL_REACH = 12;
 /** Looking down at the lid from inside the hole. */
 const COFFIN_PITCH = -0.85;
+const LINING_LIGHT = 2.2;
 /** The confirm dialogue's choice that starts digging. */
 const DIG = 'Dig.';
 
@@ -134,6 +136,7 @@ export class DigSite {
   }
 
   private opened: boolean;
+  private lining: LightBuilder | null = null;
 
   private syncColliders: () => void = () => undefined;
 
@@ -246,6 +249,7 @@ export class DigSite {
       lidCrack(ctx.audio, { x: HOLE.x, y: -1.5, z: COFFIN_Z });
       this.refresh();
     }
+    if (this.lining?.light) this.lining.light.intensity = this.coffinOpen ? LINING_LIGHT : 0;
     if (this.climb) this.updateClimb(dt);
     else if (this.inHole) {
       ctx.player.position.x = STAND.x;
@@ -394,9 +398,18 @@ export class DigSite {
       side(COFFIN.w, 0.04, 0, COFFIN.d / 2);
       side(0.04, COFFIN.d, -COFFIN.w / 2, 0);
       side(0.04, COFFIN.d, COFFIN.w / 2, 0);
-      // Grey satin lining, stained and sagging, and nothing else.
-      g.plane({ w: COFFIN.w - 0.06, d: COFFIN.d - 0.06, cell: 0.3 }).texture('tiles_white', { tile: 0.9 }).color(0x7c7a76).at(0, -COFFIN.h + 0.03, 0);
-      g.plane({ w: 0.2, d: 0.5 }).color(0x5a5248).at(-0.1, -COFFIN.h + 0.035, 0.4);
+      // Grey satin lining gone dull, sagging into the corners, with water stains and nothing else.
+      g.plane({ w: COFFIN.w - 0.06, d: COFFIN.d - 0.06, cell: 0.3 }).texture('plaster_wall', { tile: 0.7 }).color(0x6c6458).at(0, -COFFIN.h + 0.03, 0);
+      [
+        [-0.1, 0.4, 0.22, 0.55, 0x4a4136],
+        [0.11, -0.3, 0.2, 0.4, 0x534a3e],
+        [-0.12, -0.05, 0.12, 0.2, 0x5a5044],
+        [0.02, -0.72, 0.36, 0.16, 0x4e463c],
+      ].forEach(([x, z, w, d, color]) => g.plane({ w: w!, d: d! }).color(color!).at(x!, -COFFIN.h + 0.035, z!));
+      // The lining's padded rim along the sides, the same cloth.
+      [-1, 1].forEach((side) =>
+        g.box({ w: 0.05, h: 0.05, d: COFFIN.d - 0.1 }).texture('plaster_wall', { tile: 0.7 }).color(0x625a4e).at(side * (COFFIN.w / 2 - 0.05), -COFFIN.h + 0.03, 0),
+      );
       // The earth around the coffin, at the level of its top.
       const strip = (HOLE.w - COFFIN.w) / 2;
       [-1, 1].forEach((side) =>
@@ -406,6 +419,9 @@ export class DigSite {
     }).at(HOLE.x, -1.6, COFFIN_Z).object;
     const lid = kit.box({ w: COFFIN.w, h: 0.04, d: COFFIN.d }).texture('wood_planks', { tile: 0.8 }).color(0xa89878).object;
     const box = kit.box({ w: 0.26, h: 0.1, d: 0.18 }).texture('rust_metal', { tile: 0.4 }).color(0x7a7e80).at(HOLE.x, -1.6 - COFFIN.h + 0.04, COFFIN_Z).object;
+
+    // The pale lining holds what little light the fog lets down, so the open coffin shows with the torch off.
+    this.lining = kit.light({ color: 0x8e9294, intensity: 0, range: 2.4 }).at(HOLE.x, -1, COFFIN_Z);
 
     const pile = kit.cylinder({ r: 1, h: 1, sides: 6 }).texture('grave_dirt', { tile: 0.8 }).color(earth).at((WEST_X + HOLE.x - HOLE.w / 2) / 2 + 0.05, 0, HOLE.z - 0.2).object;
 
