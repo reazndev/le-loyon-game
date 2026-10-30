@@ -40,3 +40,14 @@ export function woodCreak(audio: AudioManager, at: Point3): void {
     noiseBurst(audio, out, { start: t + 0.62, duration: 0.05, type: 'lowpass', frequency: 300, gain: 0.35 });
   });
 }
+
+/**
+ * One beat of the tower clock's pendulum, heard through the wall over the main door: a dull
+ * wooden knock with the high end taken off by the stone.
+ */
+export function pendulumBeat(audio: AudioManager, at: Point3, volume = 0.4): void {
+  oneShot(audio, { at, volume, bus: 'ambience' }, 0.6, (out, t) => {
+    thump(audio, out, t, 85, 0.35);
+    noiseBurst(audio, out, { start: t, duration: 0.025, type: 'bandpass', frequency: 520, q: 5, gain: 0.25 });
+  });
+}

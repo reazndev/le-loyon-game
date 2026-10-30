@@ -5,6 +5,8 @@ import { overneySpot } from './abbe';
 import { chimesBetween } from './clock';
 import { everyFrame } from './everyFrame';
 import { CHANCEL, CONFESSIONAL, MAIN_DOOR, NAVE, RAISED, SIDE_DOOR, TOWER, WALL } from './layout';
+import { churchAmbient } from './ambient';
+import { furnish } from './furnishings';
 import { buildNave, SAT_IN_CONFESSIONAL } from './nave';
 import { placeAbbe } from './overney';
 import { buildSacristy } from './sacristy';
@@ -47,9 +49,14 @@ export const churchScene = defineScene({
   build(kit, ctx) {
     const night = ctx.state.time === 'night';
     kit.ground('stone', 0);
-    buildShell(kit, night);
-    buildNave(kit, ctx);
-    buildSacristy(kit, ctx, night);
+    // Two batches: the nave with the chancel, and the rooms behind the altar.
+    kit.batch((still) => {
+      buildShell(still, night);
+      buildNave(still, ctx);
+      furnish(still);
+    });
+    kit.batch((still) => buildSacristy(still, ctx, night));
+    churchAmbient(kit, ctx, night);
     placeAbbe(kit, ctx);
     if (overneySpot(ctx.state) === 'nave' && !ctx.state.hasFlag('chu_after_mass')) lastOutOfMass(kit, ctx);
 
@@ -58,9 +65,6 @@ export const churchScene = defineScene({
       .door({ to: 'cemetery_path', spawn: 'from_church', w: SIDE_DOOR.w, h: SIDE_DOOR.h, prompt: 'Go out to the path', locked: () => ctx.state.time === 'night', lockedText: 'Locked.' })
       .at(CHANCEL.x1 - WALL / 2 - 0.05, RAISED, SIDE_DOOR.z)
       .rotY(90);
-
-    // The electric candle lamp's hum is the only bed.
-    kit.ambience('drone', { volume: 0.05 });
 
     // chu_clock: a heavy click every quarter hour, the bell on the hour.
     let heard = ctx.time;

@@ -4,6 +4,7 @@ import type { LevelKit } from '../../game/kit/levelKit';
 import type { MeshBuilder } from '../../game/kit/builders';
 import type { SceneContext } from '../../game/scene';
 import { dialogues, type StoryFlag } from '../../content';
+import { animateLight, flameLevel } from '../../game/ambient';
 import { playNode } from '../forest_path/play';
 import { everyFrame } from './everyFrame';
 import { CANDLE_RACK, CHANCEL, CONFESSIONAL, NAVE, PEW, PEW_ROWS, RAISED, SIDE_ALTAR, SIDE_DOOR, WALL } from './layout';
@@ -111,11 +112,13 @@ function sideAltar(kit: LevelKit, ctx: SceneContext): void {
     kit.cylinder({ r: 0.028, h: i % 4 === 0 ? 0.03 : 0.07, sides: 5 }).texture('plaster_wall', { tile: 0.3 }).color(0xb8ae98).at(cup.x, 0.94, cup.z);
     if (burning.includes(i)) flame(kit, cup.x, 1.03, cup.z);
   });
-  // Lit by the player: hidden until `lit_candle` is set.
+  // Lit by the player: hidden until `lit_candle` is set, so kept out of the batch.
   const mine = cups[13]!;
-  const flameParts = flame(kit, mine.x, 1.03, mine.z);
+  const flameParts = flame(kit, mine.x, 1.03, mine.z).map((part) => part.dynamic());
   everyFrame(kit, () => flameParts.forEach((part) => (part.object.visible = ctx.state.hasFlag('lit_candle'))));
-  kit.light({ color: 0xffa858, intensity: 1.1, range: 4.2 }).flicker(0.35).at(rack.x - 0.3, 1.4, rack.z);
+  // Three small flames in still air: the light on the wall wavers, it never gutters.
+  const light = kit.light({ color: 0xffa858, intensity: 1.1, range: 4.2 }).at(rack.x - 0.3, 1.4, rack.z);
+  animateLight(kit, light, null, (t) => flameLevel(t, 3));
   kit.hotspot({ prompt: 'Look at the candles', radius: 0.5, onInteract: () => playNode(ctx, 'church_candles') }).at(rack.x, 0, rack.z);
 }
 
