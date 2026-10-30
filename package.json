@@ -35,6 +35,7 @@
     "dist:win": "npm run build && electron-builder --win",
     "dist": "npm run build && electron-builder --linux --win",
     "icon": "node tools/package/icon.mjs",
-    "dist:check": "node tools/package/launch-check.mjs"
+    "dist:check": "node tools/package/launch-check.mjs",
+    "playthrough": "node tools/playthrough/index.mjs"
   }
 }
