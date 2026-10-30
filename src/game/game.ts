@@ -15,6 +15,7 @@ import { GameUi, type PauseAction } from './gameUi';
 import { itemInfo } from './items';
 import { isDesktopApp } from './platform';
 import { bearing, compassTarget } from './compass';
+import { Breathing } from './breathing';
 import { pickHint } from './liveHint';
 import { currentGoal, nextStep } from './notebook';
 import { latestSave, readSave, writeSave } from './save';
@@ -47,6 +48,7 @@ export class Game {
   readonly player = new Player();
   readonly input = new Input();
   readonly audio = new AudioManager();
+  private readonly breathing = new Breathing(this.audio);
   readonly renderer: GameRenderer;
   readonly overlay: Overlay;
   readonly ui: GameUi;
@@ -215,8 +217,11 @@ export class Game {
 
   private updatePlay(dt: number): void {
     const { input, player, world } = this;
+    const before = { x: player.position.x, z: player.position.z };
     player.update(dt, this.movement(input), input.isDown('fast'), world);
     const at = { x: player.position.x, z: player.position.z };
+    const running = input.isDown('fast') && !player.crouched && Math.hypot(at.x - before.x, at.z - before.z) > dt * 2;
+    this.breathing.update(dt, running, world.cold);
     world.triggers.update(at);
 
     const forward = player.forward();

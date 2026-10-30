@@ -30,6 +30,7 @@ export function breathVapor(kit: LevelKit, ctx: SceneContext, every = 4.5, opaci
     opacity: 0,
     seed: 'breath',
   });
+  kit.use((k) => (k.world.cold = true));
   const material = (placed.object.children[0] as Points).material as ShaderMaterial;
   const uniforms = material.uniforms as Record<'uOpacity' | 'uSize', { value: number }> & { uBox: { value: Vector3 } };
   const origin = new Vector3();

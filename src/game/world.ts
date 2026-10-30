@@ -25,6 +25,8 @@ export class World {
   readonly exits: { to: string; object: Object3D }[] = [];
   /** Clues for the corner that belong to this scene. */
   readonly hints: LiveHint[] = [];
+  /** Cold enough outdoors to see the reporter's breath. `breathVapor` sets it. */
+  cold = false;
 
   clear(): void {
     this.scene.clear();
@@ -37,5 +39,6 @@ export class World {
     this.updates.clear();
     this.exits.length = 0;
     this.hints.length = 0;
+    this.cold = false;
   }
 }

@@ -30,7 +30,7 @@ Each preset takes overrides: `particles(kit, drizzle({ count: 800 }))`. The spec
 
 `drips(kit, ctx, spots, every)` drops water from a ceiling or a branch at each spot and plays the drop landing at the right moment. Spots are world coordinates `{ x, z, top, bottom }`. Each spot is one draw call, so keep it to a handful.
 
-`breathVapor(kit, ctx)` puffs the reporter's breath in front of the camera every few seconds. Use it outdoors when `weather(...).breath` holds.
+`breathVapor(kit, ctx)` puffs the reporter's breath in front of the camera every few seconds. Use it outdoors when `weather(...).breath` holds. It also marks the scene as cold, which lets the reporter shiver and sniff now and then. Running for more than about five seconds winds them anywhere; `src/game/breathing.ts` has the timing.
 
 ## Movement
 
