@@ -17,7 +17,7 @@ export interface DocumentPage {
 
 const tints: Record<DocumentLook, [number, number, number]> = {
   paper: [196, 188, 166],
-  notebook: [200, 197, 184],
+  notebook: [236, 224, 188],
   stone: [112, 114, 110],
 };
 
@@ -48,7 +48,8 @@ export class DocumentView {
     this.sheet.style.backgroundImage = `url(${grainTexture(...tints[page.look])})`;
     this.title.textContent = page.title;
     this.text.textContent = page.text;
-    this.counter.textContent = page.pages > 1 ? `${page.page + 1} / ${page.pages}` : '';
+    const counter = page.look === 'notebook' ? `Page ${page.page + 1} of ${page.pages}` : `${page.page + 1} / ${page.pages}`;
+    this.counter.textContent = page.pages > 1 ? counter : '';
     this.translation.textContent = page.translation ?? '';
     setVisible(this.translation, this.subtitles && Boolean(page.translation));
     setVisible(this.screen, true);
