@@ -4,7 +4,7 @@ import { check } from '../../game/conditions';
 import { scareDirector } from '../../game/scares/director';
 import { everyFrame } from '../church/everyFrame';
 import { isNight, storyPhase, type StoryPhase } from '../forest_path/story';
-import { fridge } from '../home/sounds';
+import { fridgeHum } from '../../game/ambient/sounds';
 import { loopSound } from '../inn/interior';
 import { roomTone, tvMurmur } from '../inn/sounds';
 import { buildBelongings } from './belongings';
@@ -63,7 +63,7 @@ export const kitchenScene = defineScene({
 
     const clock = kitchenClock(ctx.audio, { x: CLOCK.x, y: CLOCK.y, z: NORTH + 0.05 });
     loopSound(kit, () => clock);
-    loopSound(kit, (audio) => fridge(audio, { x: FRIDGE.x, y: 0.4, z: NORTH + 0.2 }));
+    loopSound(kit, (audio) => fridgeHum(audio, { x: FRIDGE.x, y: 0.4, z: NORTH + 0.2 }));
     loopSound(kit, (audio) => roomTone(audio, 0.1));
 
     stageBeats(kit, ctx, phase, clock);

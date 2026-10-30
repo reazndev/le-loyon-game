@@ -1,7 +1,7 @@
 import { defineScene } from '../../game/scene';
 import { everyFrame } from '../church/everyFrame';
 import { storyPhase } from '../forest_path/story';
-import { fridge } from '../home/sounds';
+import { fridgeHum } from '../../game/ambient/sounds';
 import { loopSound, WALL } from '../inn/interior';
 import { clockTick, houseCreak, nowAndThen, radio, roomTone } from '../inn/sounds';
 import { stageBeats } from './beats';
@@ -52,7 +52,7 @@ export const laiterieScene = defineScene({
 
     // The tank keeps the milk cold day and night; the radio is Christine's and goes home with her.
     loopSound(kit, (audio) => roomTone(audio, 0.1));
-    loopSound(kit, (audio) => fridge(audio, { x: TANK.x, y: 1, z: TANK.z }));
+    loopSound(kit, (audio) => fridgeHum(audio, { x: TANK.x, y: 1, z: TANK.z }));
     loopSound(kit, (audio) => clockTick(audio, CLOCK, 0.3));
     loopSound(kit, () => nowAndThen(45, () => houseCreak(ctx.audio, { x: ROOM.x0 + Math.random() * 7, y: 2.6, z: ROOM.z0 + Math.random() * 6 }, 0.35)));
     if (!night) loopSound(kit, (audio) => radio(audio, RADIO, 0.14));

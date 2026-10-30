@@ -4,7 +4,8 @@ import type { SoundHandle } from '../../engine/audio/audioManager';
 import type { ScreenHandle } from '../../game/gameUi';
 import { defineScene, type Scene } from '../../game/scene';
 import { bed, desk, DESK, doorSide, rainStreaks, ROOM, SCREEN, walls, westWall, window } from './room';
-import { computerHum, fridge, rain } from './sounds';
+import { fridgeHum, rain } from '../../game/ambient/sounds';
+import { computerHum } from './sounds';
 import { showTitleCard } from './titleCard';
 
 const STAND = { x: DESK.x, z: DESK.z + 1.15, yaw: 0 };
@@ -33,8 +34,8 @@ export const homeScene: Scene = (() => {
     build(kit, ctx) {
       const computer = createHomeComputer(ctx);
       const sounds: SoundHandle[] = [
-        rain(ctx.audio, { x: 1, y: 1.5, z: -ROOM.halfD - 0.3 }),
-        fridge(ctx.audio, { x: -ROOM.halfW - 0.8, y: 0.8, z: 1.2 }),
+        rain(ctx.audio, { at: { x: 1, y: 1.5, z: -ROOM.halfD - 0.3 } }),
+        fridgeHum(ctx.audio, { x: -ROOM.halfW - 0.8, y: 0.8, z: 1.2 }),
       ];
       const hum = computerHum(ctx.audio, { x: DESK.x, y: 0.9, z: DESK.z });
       let seated = false;
