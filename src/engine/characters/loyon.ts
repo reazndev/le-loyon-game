@@ -16,9 +16,9 @@ const AROUND = (sides: number): [number, number] => [0.5 / sides, 1 + 0.5 / side
  * long folds that deepen as they fall.
  */
 const CAPE: Ring[] = [
-  { y: 0.08, rx: 0.235, rz: 0.19, z: 0.02, ripple: 0.034 },
-  { y: 0.5, rx: 0.222, rz: 0.17, z: 0.01, ripple: 0.03 },
-  { y: 0.95, rx: 0.205, rz: 0.15, ripple: 0.022 },
+  { y: 0.08, rx: 0.235, rz: 0.19, z: 0.02, ripple: 0.05 },
+  { y: 0.5, rx: 0.222, rz: 0.17, z: 0.01, ripple: 0.042 },
+  { y: 0.95, rx: 0.205, rz: 0.15, ripple: 0.028 },
   { y: 1.2, rx: 0.232, rz: 0.15, front: 0.025, ripple: 0.014 },
   { y: 1.41, rx: 0.272, rz: 0.14, ripple: 0.006 },
   { y: 1.47, rx: 0.25, rz: 0.125 },
@@ -42,15 +42,15 @@ const SCARF: Ring[] = [
 
 /** The hood around the head, relative to the neck. It reaches past the mask, so the mask sits inside it. */
 const HOOD_SIDES: Ring[] = [
-  { y: -0.08, rx: 0.19, rz: 0.17, z: 0.0 },
-  { y: 0.06, rx: 0.15, rz: 0.165, z: -0.025 },
-  { y: 0.21, rx: 0.145, rz: 0.165, z: -0.03 },
+  { y: -0.08, rx: 0.165, rz: 0.16, z: 0.0 },
+  { y: 0.06, rx: 0.14, rz: 0.155, z: -0.025 },
+  { y: 0.21, rx: 0.135, rz: 0.155, z: -0.03 },
 ];
 /** Above the face it closes and comes forward over the brow, so the mask sits in its shadow. */
 const HOOD_TOP: Ring[] = [
-  { y: 0.21, rx: 0.145, rz: 0.165, z: -0.03, front: 0.03 },
-  { y: 0.3, rx: 0.12, rz: 0.145, z: -0.01, front: 0.025 },
-  { y: 0.37, rx: 0.05, rz: 0.08, z: 0.04 },
+  { y: 0.21, rx: 0.135, rz: 0.155, z: -0.03, front: 0.03 },
+  { y: 0.285, rx: 0.115, rz: 0.14, z: -0.01, front: 0.025 },
+  { y: 0.335, rx: 0.06, rz: 0.085, z: 0.03 },
 ];
 /** The rubber face piece, relative to the neck: full over the cheeks, pushed out at the snout, rounded over the brow. */
 const MASK: Ring[] = [
@@ -117,11 +117,12 @@ const ROPE_TWIST = 0.9;
  * the chest, where a level can put a candle (`hand`). The mask never comes off.
  */
 export function buildLoyon(textures: TextureLibrary): CharacterModel {
-  const camo = partMaterial({ color: 0x524e45, map: textures.get('camo_cape'), tile: 0.7 });
+  // A shelter half's pattern is printed large: blotches a hand or two across, not a mottle.
+  const camo = partMaterial({ color: 0x625f50, map: textures.get('camo_cape'), tile: 1.8 });
   // The cape fades into shadow toward the hem, so a light at the hand shows only the top of him.
   camo.vertexColors = true;
-  const hood = partMaterial({ color: 0x524e45, map: textures.get('camo_cape'), tile: 0.7 });
-  const capelet = partMaterial({ color: 0x48453c, map: textures.get('camo_cape'), tile: 0.6 });
+  const hood = partMaterial({ color: 0x625f50, map: textures.get('camo_cape'), tile: 1.2 });
+  const capelet = partMaterial({ color: 0x57544a, map: textures.get('camo_cape'), tile: 1.6 });
   const wool = partMaterial({ color: 0x2e2b26 });
   const shadow = partMaterial({ color: 0x0a0907 });
   const skin = partMaterial({ color: 0x7e6e5e });
