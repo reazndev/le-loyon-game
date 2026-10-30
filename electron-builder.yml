@@ -1,0 +1,36 @@
+# Desktop packaging. See docs/packaging.md.
+appId: ch.leloyon.game
+productName: Le Loyon
+copyright: Copyright 2026 Le Loyon
+directories:
+  output: release
+  buildResources: build
+# Vite bundles three.js into dist/, so the app needs no node_modules at runtime.
+files:
+  - dist/**/*
+  - dist-electron/**/*
+  - package.json
+  - "!**/node_modules/**/*"
+# Electron-based terminals and editors export ELECTRON_RUN_AS_NODE, which makes a plain
+# Electron binary start as Node and exit. Turning the fuse off makes the game ignore it.
+# The game draws all its own UI, so Chromium needs no translated strings.
+electronLanguages: [en-US]
+electronFuses:
+  runAsNode: false
+  enableNodeOptionsEnvironmentVariable: false
+linux:
+  target: AppImage
+  category: Game
+  icon: build/icon.png
+  executableName: le-loyon
+  syncDesktopName: true
+  artifactName: Le-Loyon-${version}-linux-${arch}.${ext}
+  synopsis: A PS1-style psychological horror game
+win:
+  target: zip
+  icon: build/icon.ico
+  artifactName: Le-Loyon-${version}-win-${arch}.${ext}
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  artifactName: Le-Loyon-${version}-win-${arch}-setup.${ext}
