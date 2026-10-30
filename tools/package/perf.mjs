@@ -26,6 +26,13 @@ const views = [
   { scene: 'bunker_interior', pos: '9.6,0,-25', yaw: 90, label: 'bunker_interior (mask heap)' },
   { scene: 'bunker_interior', pos: '0,0,-21', yaw: -120, label: 'bunker_interior (corridor, heap behind the wall)' },
   { scene: 'yerly_farm' },
+  { scene: 'forest_deep' },
+  { scene: 'bunker_exterior' },
+  { scene: 'bunker_hidden' },
+  { scene: 'home' },
+  { scene: 'laiterie' },
+  { scene: 'garage_dousse' },
+  { scene: 'house_gremaud_kitchen' },
 ].filter((view) => !values.only || view.scene === values.only);
 
 const frames = Number(values.frames);
