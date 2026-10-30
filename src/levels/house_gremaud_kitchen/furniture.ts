@@ -82,7 +82,7 @@ function dresser(kit: LevelKit): void {
 /** An old off-white fridge with a freezer door on top. The clipping is on it, under a cow magnet. */
 function fridge(kit: LevelKit): void {
   const z = NORTH + FRIDGE.d / 2;
-  kit.box({ w: FRIDGE.w, h: FRIDGE.h, d: FRIDGE.d }).color(0xb4b2a4).at(FRIDGE.x, 0, z).collider();
+  kit.box({ w: FRIDGE.w, h: FRIDGE.h, d: FRIDGE.d }).texture('plaster_wall', { tile: 0.9 }).color(0x9e9a8c).at(FRIDGE.x, 0, z).collider();
   const front = NORTH + FRIDGE.d + 0.005;
   kit.box({ w: FRIDGE.w - 0.02, h: 0.012, d: 0.01 }).color(0x4a4a44).at(FRIDGE.x, 1.12, front);
   kit.box({ w: 0.03, h: 0.32, d: 0.03 }).color(0x8a8a80).at(FRIDGE.x - FRIDGE.w / 2 + 0.06, 0.7, front + 0.01);
