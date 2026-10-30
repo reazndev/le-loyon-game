@@ -1,6 +1,7 @@
 import type { LevelKit } from '../../game/kit/levelKit';
 import { defineScene, type SceneContext } from '../../game/scene';
 import { cupOnTheStump } from './cup';
+import { dressPath, keepClear } from './dressing';
 import { heiferInTheForest } from './heifer';
 import { area, BRIDGE, FORK, height, main, markers, SHRINE, slope, stream, toFort, trails } from './layout';
 import { lostInTheFog } from './lost';
@@ -62,8 +63,8 @@ export const forestPathScene = defineScene({
       const d = fromTrail(x, z);
       return d < inner || d > outer || distanceToTrails([stream], x, z) < 1.2 || atShrine(x, z) || z > 76;
     };
-    undergrowth(kit, area, { seed: 'forest-path-low', count: 1500, mix: lowPlants, spacing: 0.75, avoid: offTrail(1.3, 9) });
-    undergrowth(kit, area, { seed: 'forest-path-tall', count: 1700, mix: tallPlants, spacing: 1, avoid: offTrail(2.1, 15) });
+    undergrowth(kit, area, { seed: 'forest-path-low', count: 1500, mix: lowPlants, spacing: 0.75, avoid: (x, z) => offTrail(1.3, 9)(x, z) || keepClear.low(x, z) });
+    undergrowth(kit, area, { seed: 'forest-path-tall', count: 1700, mix: tallPlants, spacing: 1, avoid: (x, z) => offTrail(2.1, 15)(x, z) || keepClear.tall(x, z) || keepClear.low(x, z) });
     mossPatches(kit, height, scatter({ ...area, count: 170, seed: 'forest-path-moss', spacing: 2.4, avoid: offTrail(1.6, 11) }));
 
     [
@@ -95,6 +96,7 @@ export const forestPathScene = defineScene({
     shrine(kit, ctx);
     bridge(kit, ctx);
     backGate(kit);
+    dressPath(kit, ctx);
 
     enclose(kit, area);
     kit.exit({ w: 6, d: 1, to: 'cemetery', spawn: 'back_gate' }).at(0, 0, 75.6);
