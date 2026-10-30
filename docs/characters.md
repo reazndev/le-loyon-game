@@ -59,21 +59,55 @@ Bari's collar bell rings on his steps and Marquise's cowbell on hers. Both stay 
 
 ### How they look and move
 
-- Humans are about 300 triangles: tapered boxes for limbs, a box head with the face texture's middle on the front, and per-person clothes from `humanLooks` in `src/engine/characters/cast.ts`. The options are a coat, a skirt, overalls, an apron, a clerical collar, and a flat cap, peaked cap, PostBus cap, headscarf, or hood. Standing, they breathe and shift their weight. Walking, their legs swing about 25 degrees and their arms swing against the legs. Seated, the thighs are level, the shins hang, the back slumps a little, and the hands rest on the knees. A `stoop` in `humanLooks` bends the back forward and keeps the head level.
-- Le Loyon is a hooded camo cape from shoulders to ankles with the gas mask in the hood. He has no visible arms and never takes the mask off. Standing, he doesn't breathe, and every 13 seconds or so his head tilts and stays tilted. Before turning he stands still for 0.7 s, then turns all at once. He walks at 0.62 m/s, half a normal pace, and limps on his left leg. Seated, he folds forward over his knees with his boots out in front, and the hem of the cape sinks through the seat.
+- Humans are about 500 triangles: tapered boxes for limbs and the body, and a ten-sided head shaped at the chin, jaw, and brow, with ears, a six-sided neck, and hair or a hat as separate shells fitted over it. The face texture is projected onto the front facets of the head, so it bends round the face instead of sitting on a flat front. Each person's clothes come from `humanLooks` in `src/engine/characters/cast.ts`. The options are short, bob, long, or bald hair, a coat, a skirt, overalls, an apron, a clerical collar, and a flat cap, peaked cap, PostBus cap, headscarf, or hood. Standing, they breathe and shift their weight. Walking, their legs swing about 25 degrees and their arms swing against the legs. Seated, the thighs are level, the shins hang, the back slumps a little, and the hands rest on the knees. A `stoop` in `humanLooks` bends the back forward and keeps the head level.
+- Le Loyon is a tent sheet that hangs from a body. The shoulders are its widest point, it falls in long vertical folds that deepen toward the hem, and it darkens toward the hem, so a light at his chest shows only the top of him. The hood comes forward past the gas mask, so the mask sits inside it. One bare hand comes out of the cape below the chest. He never takes the mask off. Standing, he doesn't breathe, and every 13 seconds or so his head tilts and stays tilted. Before turning he stands still for 0.7 s, then turns all at once. He walks at 0.62 m/s, half a normal pace, and limps on his left leg. Seated, he folds forward over his knees with his boots out in front, and the hem of the cape sinks through the seat.
 - Bari trots with diagonal legs together. Marquise walks one leg at a time. Both lower their heads now and then while standing.
+
+`.holdCandle()` puts a lit candle in a character's hand, with a small warm light that moves with it and goes out while the character is hidden. Le Loyon holds one in the hidden room on night 3, so the candle lights his mask from below and his hand, and the rest of him stays dark.
+
+When a talk starts, the reporter eases back to 1.3 m from the character over a third of a second, unless a wall is in the way (`src/game/kit/talkFraming.ts`). At that distance the head fills about a fifth of the frame.
 
 | Character | Face texture |
 |---|---|
 | Overney | `face_priest` |
 | Monique | `face_innkeeper` |
-| Yannick | `face_young_woman` under a dark hood, a stand-in |
+| Yannick | `face_young_man`, darkened under his hood |
 | Bernard | `face_farmer` |
 | Gilles | `face_mechanic` |
-| Christine | `face_young_woman` |
-| Odile | `face_old_woman` |
+| Christine | `face_shopkeeper` |
+| Odile | `face_widow` |
 | Raymond | `face_watchman` |
-| PostBus driver | `face_mechanic`, a stand-in |
+| PostBus driver | `face_driver` |
+| Parishioners | `face_widow` |
+
+### Face textures
+
+The faces are 36 by 40 px with 16 colors. Each one is cropped from its portrait in `assets-src/textures/` so the eyes sit 35% down and the chin at the bottom edge. The crop's contrast is softened, and an oval mask fades it into the cheek color at the edges. Then `tools/textures/ps1-texture.sh <in> <out> 36 16 no` shrinks and dithers it like every other texture. The skin of the rest of the head, the neck, and the hands is the color at the edge of the finished texture, kept in `faceSkin` in `src/engine/characters/human.ts`, so the face blends into the head. After reprocessing a face, measure its edge color again and update `faceSkin`.
+
+```sh
+# cx, eye, and chin are pixels in the 1024 px portrait.
+h=$(( (chin - eye) * 100 / 61 )); top=$(( eye - h * 35 / 100 )); w=$(( h * 89 / 100 ))
+magick face.png -crop "${w}x${h}+$((cx - w / 2))+${top}" +repage -resize 144x160! crop.png
+skin=$(magick crop.png \( -clone 0 -crop 20%x10%+15%+52% \) \( -clone 0 -crop 20%x10%+65%+52% \) -delete 0 -append -scale 1x1! -format '#%[hex:p{0,0}]' info:)
+magick -size 144x160 xc: -fx "1-(hypot((i-w/2)/(w*0.47),(j-h*0.52)/(h*0.54))-0.72)/0.28" mask.png
+magick crop.png +sigmoidal-contrast 2.5x50% \( -size 144x160 "xc:$skin" \) -compose blend -define compose:args=15 -composite soft.png
+magick \( -size 144x160 "xc:$skin" \) soft.png mask.png -composite faded.png
+tools/textures/ps1-texture.sh faded.png public/assets/textures/face_<name>.png 36 16 no
+```
+
+| Face | cx | eye | chin |
+|---|---|---|---|
+| `driver` | 512 | 372 | 708 |
+| `farmer` | 516 | 364 | 698 |
+| `innkeeper` | 512 | 358 | 628 |
+| `mechanic` | 512 | 364 | 684 |
+| `old_woman` | 512 | 468 | 748 |
+| `priest` | 512 | 398 | 728 |
+| `shopkeeper` | 516 | 386 | 676 |
+| `watchman` | 516 | 368 | 708 |
+| `widow` | 516 | 358 | 666 |
+| `young_man` | 512 | 418 | 726 |
+| `young_woman` | 512 | 348 | 592 |
 
 ## Staging scare beats
 
