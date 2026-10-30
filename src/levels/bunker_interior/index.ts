@@ -1,21 +1,29 @@
-import { CircleGeometry, CylinderGeometry, SphereGeometry, type Group } from 'three';
+import { CircleGeometry, CylinderGeometry, Euler, SphereGeometry, Vector3, type Group } from 'three';
+import { dialogues } from '../../content';
 import { noiseBurst, thump } from '../../engine/audio/generators';
 import type { Shape } from '../../engine/physics/collision';
 import type { Atmosphere } from '../../engine/render/atmosphere';
+import type { DialogueScript } from '../../game/dialogue';
 import type { LevelKit } from '../../game/kit/levelKit';
+import { viewAngle } from '../../game/scares/beats';
+import { scareDirector, type ScareDirector } from '../../game/scares/director';
 import { defineScene, type SceneContext } from '../../game/scene';
 import type { TimeOfDay } from '../../game/state';
 import { arriveAs } from '../bunker_hidden/arrival';
-import { cue, type Markers } from '../forest_path/beats';
+import type { Markers } from '../forest_path/beats';
 import { playNode } from '../forest_path/play';
 import { handText, scrawl } from '../forest_path/scrawl';
+import { isSpent, unspent } from '../forest_path/spent';
+import { drumBoom, maskSlide, ventHum } from '../forest_path/sounds';
 import { isNight, storyPhase, type StoryPhase } from '../forest_path/story';
+import { yawToward } from '../forest_path/trail';
 import { buildRooms, movingBlocker } from './concrete';
 import { dripInTheNextRoom } from './drips';
 import { isFriendlyKnock } from './knock';
 import { floorMask, heapPoses, maskPile, uprightMask, type HeapOptions, type MaskPose } from './masks';
 import { beerCans, bench, bunkStack, ceilingRuns, chair, graffiti, locker, stencil, stubs, table, wires } from './props';
 import type { Opening, Room } from './rooms';
+import { fortBeats } from './scares';
 
 /**
  * Fort, outer rooms. The vaulted entrance, the gas lock, one long corridor with the guard room
@@ -33,8 +41,8 @@ const rooms: Room[] = [
   { id: 'masks', x0: 3, x1: 11.5, z0: -27.4, z1: -23.4, h: 2.4 },
   { id: 'machine', x0: 3, x1: 11.5, z0: -22.8, z1: -16.8, h: 2.6 },
   { id: 'casemate', x0: -3, x1: 3, z0: -46, z1: -40.6, h: 2.4 },
-  // The first meter behind the K.P. 3 door. Marc's room itself is the bunker_hidden scene.
-  { id: 'kp3', x0: 12.6, x1: 13.8, z0: -31.6, z1: -30.4, h: 2.1 },
+  // The dark passage behind the K.P. 3 door. Marc's room itself is the bunker_hidden scene.
+  { id: 'kp3', x0: 12.6, x1: 15.8, z0: -31.7, z1: -30.3, h: 2.1 },
 ];
 const openings: Opening[] = [
   { a: 'entrance', b: 'gaslock', at: 0, w: 1.1, h: 1.95 },
@@ -68,6 +76,11 @@ const CUPBOARD_ASIDE = -32.15;
 const KP3 = { x: 12.15, z: -31, hinge: -31.45 };
 const HEAP: Omit<HeapOptions, 'count' | 'seed'> = { x: 6.4, z: -24.75, rx: 2.7, rz: 1.45, height: 1, lookAt: { x: 10.6, y: 1.6, z: -27.4 } };
 const TENT_SHEET = { x: -7.6, z: -17.85 };
+const MIRROR = { x: -9.3, z: -13.02 };
+/** Where Marc stands in the passage while he talks through the open door: well back, never within 3 m. */
+const MARC_BACK = { x: 15.2, z: -31 };
+/** The local flag `fort_phone_crank` sets, so a scene can tell turning the crank from leaving it. */
+export const PHONE_CRANKED = 'bunker_interior_phone_cranked';
 
 export const markers = {
   bun2_wedge: { beat: 'bun2_wedge', x: 0.45, z: -0.6, yaw: 0, note: 'Day 2, entering: the wedge kicked aside on the floor. Dressed by the scene.' },
@@ -83,7 +96,7 @@ export const markers = {
     ...TENT_SHEET,
     y: 0.3,
     yaw: 180,
-    note: 'Day 2, looking in the latrine mirror (cue `bun2_mirror`): a blurred shape behind the player. Turning shows the tent sheet here.',
+    note: 'By day the latrine mirror shows a blurred dark shape behind the player: the tent sheet on its hook here. Looking in drops every sound for a moment.',
   },
   bun2_masks_slide_from: {
     beat: 'bun2_masks',
@@ -91,7 +104,7 @@ export const markers = {
     y: 0.85,
     z: HEAP.z - 0.4,
     yaw: 0,
-    note: 'Day 2, when the player turns to leave the mask store: one mask slides off the top of the heap from here.',
+    note: 'Day 2, when the player has stood in the mask store and turns to the door: one mask slides off the top of the heap from here.',
   },
   bun2_masks_slide_to: {
     beat: 'bun2_masks',
@@ -106,13 +119,20 @@ export const markers = {
     y: -0.5,
     z: -37,
     yaw: 0,
-    note: 'After the push (cue `bun2_cupboard_screech`): a second, fainter screech from far off, like the escape hatch lid. Too late to be an echo.',
+    note: 'After the push: a second, fainter screech from far off, like the escape hatch lid. Too late to be an echo.',
   },
-  bun2_door_listen: { beat: 'bun2_door_listen', x: KP3.x + 1.5, y: 1, z: KP3.z, yaw: 90, note: 'Listening at K.P. 3 (cue `bun2_door_listen`): slow breathing, or the wind in a shaft.' },
+  bun2_door_listen: { beat: 'bun2_door_listen', x: KP3.x + 1.5, y: 1, z: KP3.z, yaw: 90, note: 'Listening at K.P. 3: slow breathing, or the wind in a shaft, while the narration says so.' },
   bun3_tentsheet: { beat: 'bun3_tentsheet', ...TENT_SHEET, yaw: 180, note: 'Night 3: the hook is bare. The scene leaves the tent sheet out.' },
-  bun3_masks: { beat: 'bun3_masks', x: 3.35, y: 1.45, z: -25.1, yaw: -90, note: 'Night 3: the clean shelf still has six; the seventh space is empty. Dressed by the scene; cue `bun3_masks` on looking.' },
-  bun3_phone: { beat: 'bun3_phone', x: 15, y: 1.3, z: -31, yaw: 90, note: 'Night 3, after the guard room field phone (cue `bun3_phone`): a phone rings once, here, deep in the fort.' },
-  bun3_drum: { beat: 'bun3_drum', x: KP3.x, y: 1, z: KP3.z, yaw: 90, note: 'Night 3, after tapping a fuel drum (cue `bun3_drum`): one soft tap on the K.P. 3 door, if Marc is inside.' },
+  bun3_masks: { beat: 'bun3_masks', x: 3.35, y: 1.45, z: -25.1, yaw: -90, note: 'Night 3: the clean shelf still has six; the seventh space is empty. Looking at it drops every sound.' },
+  bun3_phone: { beat: 'bun3_phone', x: 18, y: 1.3, z: -31, yaw: 90, note: 'Night 3, after turning the guard room phone crank: a phone rings once, here, deep in the fort.' },
+  bun3_drum: {
+    beat: 'bun3_drum',
+    x: KP3.x,
+    y: 1,
+    z: KP3.z,
+    yaw: 90,
+    note: 'Night 3, after tapping a fuel drum: one soft tap on the K.P. 3 door if Marc is in (the player has knocked), otherwise silence.',
+  },
   bun3_light_under_door: { beat: 'bun3_light_under_door', x: KP3.x, z: KP3.z, yaw: 90, note: 'Night 3: the warm line under the door. Built in; it goes out on a wrong knock.' },
   bun3_knock: {
     beat: 'bun3_knock',
@@ -120,16 +140,21 @@ export const markers = {
     y: 1.2,
     z: KP3.z,
     yaw: 90,
-    note: 'Cue `bun3_knock` with variant `right` (before marc_door_voice, after a long pause) or `wrong` (the light goes out). Breathing through the steel comes from here.',
+    note: 'Right knock: a long silence, breathing through the steel from here, then his voice. Wrong knock: the light under the door goes out.',
+  },
+  marc_door: {
+    beat: 'marc_door_voice',
+    ...MARC_BACK,
+    yaw: 90,
+    note: 'Right knock: Marc stands here, well back in the passage, while he talks. The door swings open when he gives his name.',
   },
 } satisfies Markers;
-
-/** Le Loyon and the scare beats for this scene. The integration step fills this in. */
-export function stageBeats(_kit: LevelKit, _ctx: SceneContext, _phase: StoryPhase): void {}
 
 type Update = (dt: number, ctx: SceneContext) => void;
 let updates: Update[] = [];
 let cleanups: (() => void)[] = [];
+let scares: ScareDirector | null = null;
+const fire = (beat: string) => scares?.fire(beat);
 
 export const bunkerInteriorScene = defineScene({
   id: 'bunker_interior',
@@ -157,14 +182,20 @@ export const bunkerInteriorScene = defineScene({
     corridor(kit);
     guardRoom(kit, ctx, phase);
     latrines(kit, ctx, phase);
-    dormitory(kit, ctx, phase);
-    maskStore(kit, ctx, phase);
-    machineRoom(kit, ctx, phase);
+    const kp3 = dormitory(kit, ctx, phase);
+    const slideMask = maskStore(kit, ctx, phase);
+    machineRoom(kit, ctx, phase, kp3);
     casemate(kit, ctx, phase);
 
     kit.ambience('drone', { volume: 0.16 });
+    vents(kit, ctx);
     updates.push(dripInTheNextRoom(rooms, openings));
-    stageBeats(kit, ctx, phase);
+    scares = kit.use(
+      scareDirector(
+        unspent(ctx.state, fortBeats(ctx, { markers, cupboard: { x: CUPBOARD.x, y: 0.4, z: CUPBOARD.z }, slideMask, voice: kp3.voice })),
+        { random: { surface: 'stone' } },
+      ),
+    );
   },
 
   update(dt, ctx) {
@@ -173,8 +204,21 @@ export const bunkerInteriorScene = defineScene({
 
   dispose() {
     cleanups.forEach((cleanup) => cleanup());
+    scares = null;
   },
 });
+
+/** Air in the shafts: a grille in the corridor ceiling and one over the generator, each humming. */
+function vents(kit: LevelKit, ctx: SceneContext): void {
+  [
+    { x: 0, y: 2.1, z: -26 },
+    { x: 7.4, y: 2.6, z: -19 },
+  ].forEach((at) => {
+    kit.box({ w: 0.5, h: 0.04, d: 0.5 }).texture('rust_metal', { tile: 0.3 }).color(0x3a3a36).at(at.x, at.y - 0.04, at.z);
+    kit.box({ w: 0.42, h: 0.01, d: 0.42 }).unlit().color(0x050505).at(at.x, at.y - 0.045, at.z);
+    kit.use((k) => k.world.sounds.track(ventHum(ctx.audio, at)));
+  });
+}
 
 /** The vaulted entrance tunnel. Daylight reaches the first few meters. */
 function entrance(kit: LevelKit, ctx: SceneContext, phase: StoryPhase): void {
@@ -237,6 +281,13 @@ function corridor(kit: LevelKit): void {
   beerCans(kit, { x: 0, z: -24, w: 1.4, d: 22 }, 9, 'corridor-cans');
 }
 
+/** fort_phone, with turning the crank setting PHONE_CRANKED. */
+const phoneScript: DialogueScript = (() => {
+  const script = dialogues.fort_phone;
+  const crank = script.nodes.fort_phone_crank!;
+  return { ...script, nodes: { ...script.nodes, fort_phone_crank: { ...crank, effects: { ...crank.effects, set: PHONE_CRANKED } } } };
+})();
+
 function guardRoom(kit: LevelKit, ctx: SceneContext, phase: StoryPhase): void {
   table(kit, -4.2, -17.45, 0, 1.4, 0.7);
   chair(kit, -4.3, -16.7, 180);
@@ -257,8 +308,9 @@ function guardRoom(kit: LevelKit, ctx: SceneContext, phase: StoryPhase): void {
       prompt: 'Look at the telephone',
       radius: 0.35,
       onInteract: async () => {
-        await playNode(ctx, 'fort_phone');
-        if (phase === 'night3') cue('bun3_phone');
+        ctx.state.setFlag(PHONE_CRANKED, false);
+        await ctx.dialogue(phoneScript);
+        if (phase === 'night3' && ctx.state.hasFlag(PHONE_CRANKED)) fire('bun3_phone');
       },
     })
     .at(-6.2, 0, -15.2);
@@ -304,18 +356,19 @@ function latrines(kit: LevelKit, ctx: SceneContext, phase: StoryPhase): void {
   });
   kit.box({ w: 2.6, h: 0.22, d: 0.42 }).texture('rust_metal', { tile: 0.6 }).color(0x8e908c).at(-9.3, 0.62, -13.23).collider();
   [-10.4, -8.2].forEach((x) => kit.box({ w: 0.05, h: 0.62, d: 0.05 }).color(0x5a5a56).at(x, 0, -13.25));
-  // Polished steel instead of glass.
-  kit.box({ w: 0.7, h: 0.62, d: 0.02 }).texture('rust_metal', { tile: 2 }).color(0x6e7274).at(-9.3, 1.1, -13.02);
+  // Polished steel instead of glass. By day the tent sheet behind the player shows in it as a blur.
+  kit.box({ w: 0.7, h: 0.62, d: 0.02 }).texture('rust_metal', { tile: 2 }).color(0x6e7274).at(MIRROR.x, 1.1, MIRROR.z);
+  if (!isNight(phase)) mirrorSmear(kit).at(MIRROR.x + 0.12, 1.12, MIRROR.z - 0.012).rotY(180);
   kit
     .hotspot({
       prompt: 'Look in the mirror',
       radius: 0.4,
       onInteract: () => {
-        if (!isNight(phase)) cue('bun2_mirror');
+        if (!isNight(phase)) fire('bun2_mirror');
         return playNode(ctx, 'fort_mirror');
       },
     })
-    .at(-9.3, 0, -13.5);
+    .at(MIRROR.x, 0, -13.5);
 
   kit.box({ w: 0.08, h: 0.05, d: 0.08 }).color(0x3a3a36).at(TENT_SHEET.x, 1.86, TENT_SHEET.z - 0.1);
   if (!isNight(phase)) {
@@ -325,7 +378,18 @@ function latrines(kit: LevelKit, ctx: SceneContext, phase: StoryPhase): void {
   }
 }
 
-function dormitory(kit: LevelKit, ctx: SceneContext, phase: StoryPhase): void {
+/** A tall dark smudge, soft at the edges, the height of a man in the scratched steel. */
+function mirrorSmear(kit: LevelKit) {
+  return scrawl(kit, { w: 0.26, h: 0.5 }, [16, 32], (g) => {
+    const shade = g.createRadialGradient(8, 13, 1, 8, 15, 12);
+    shade.addColorStop(0, 'rgba(18, 18, 16, 0.95)');
+    shade.addColorStop(1, 'rgba(18, 18, 16, 0)');
+    g.fillStyle = shade;
+    g.fillRect(0, 0, 16, 32);
+  });
+}
+
+function dormitory(kit: LevelKit, ctx: SceneContext, phase: StoryPhase): Kp3Door {
   [3, 4.8, 6.6, 8.4].forEach((x, i) => {
     bunkStack(kit, x, -33, 0, `bunk-n${i}`);
     bunkStack(kit, x, -29, 0, `bunk-s${i}`);
@@ -367,7 +431,7 @@ function dormitory(kit: LevelKit, ctx: SceneContext, phase: StoryPhase): void {
         if (!ctx.state.hasFlag('looked_at_dust')) return playNode(ctx, 'fort_cupboard');
         target = CUPBOARD_ASIDE;
         if (ctx.state.hasFlag('found_hidden_door')) return;
-        cue('bun2_cupboard_screech');
+        fire('bun2_cupboard_screech');
         await playNode(ctx, 'fort_cupboard_push');
       },
     })
@@ -389,11 +453,16 @@ function dormitory(kit: LevelKit, ctx: SceneContext, phase: StoryPhase): void {
 
   kit.plane({ w: 0.16, d: 0.09 }).color(0x8a8a62).at(11.15, 0.006, -30.2).rotY(28);
   kit.hotspot({ prompt: 'Look at the wrapper', radius: 0.2, onInteract: () => playNode(ctx, 'fort_wrapper') }).at(11.15, 0, -30.2);
+  return kp3;
 }
 
 interface Kp3Door {
   /** True once the cupboard has rolled clear of it. */
   revealed: boolean;
+  /** How the player knocked tonight. Marc is in once anyone has knocked. */
+  readonly knock: 'none' | 'right' | 'wrong';
+  /** Marc's voice through the steel, the right knock's last beat. */
+  voice(): void;
 }
 
 /**
@@ -402,11 +471,11 @@ interface Kp3Door {
  * more bring Marc's voice through the steel; any other knocking puts his light out.
  */
 function kp3Door(kit: LevelKit, ctx: SceneContext, phase: StoryPhase): Kp3Door {
-  const door: Kp3Door = { revealed: false };
   // Once the player has been inside, the door stays open.
   let open = ctx.state.hasFlag('met_marc') || ctx.state.hasFlag('entered_hidden_room');
-  let knock: 'none' | 'right' | 'wrong' = ctx.state.hasFlag('knock_pattern_done') ? 'right' : 'none';
+  let knock: Kp3Door['knock'] = ctx.state.hasFlag('knock_pattern_done') ? 'right' : 'none';
   const knocks: number[] = [];
+  const marc = marcInThePassage(kit, ctx);
 
   const pivot = kit.group((g) => {
     g.box({ w: 0.06, h: 2, d: 0.9 }).texture('bunker_door', { tile: [0.9, 2] }).color(0x7a7c78).at(0, 0, 0.45);
@@ -421,6 +490,7 @@ function kp3Door(kit: LevelKit, ctx: SceneContext, phase: StoryPhase): Kp3Door {
 
   const swingOpen = () => {
     open = true;
+    marc.show();
     let swing = 0;
     updates.push((dt) => {
       if (swing >= 1) return;
@@ -435,7 +505,7 @@ function kp3Door(kit: LevelKit, ctx: SceneContext, phase: StoryPhase): Kp3Door {
   const lineUnder = kit.box({ w: 0.02, h: 0.012, d: 0.84 }).unlit().color(0xffa850).at(KP3.x - 0.06, 0, KP3.z);
   lineUnder.object.visible = candle;
   const glow = kit.light({ color: 0xff9a48, intensity: candle ? 0.5 : 0, range: 1.8 }).at(KP3.x - 0.4, 0.1, KP3.z);
-  if (night3) kit.light({ color: 0xff9440, intensity: 0.9, range: 3 }).flicker(0.25).at(13.5, 0.8, -31);
+  if (night3) kit.light({ color: 0xff9440, intensity: 0.9, range: 3.4 }).flicker(0.25).at(15.6, 0.5, -31);
   const putOutCandle = () => {
     lineUnder.object.visible = false;
     if (glow.light) glow.light.intensity = 0;
@@ -451,7 +521,7 @@ function kp3Door(kit: LevelKit, ctx: SceneContext, phase: StoryPhase): Kp3Door {
       enabled: usable,
       onInteract: () => {
         if (!hasKey()) {
-          cue('bun2_door_listen');
+          fire('bun2_door_listen');
           return playNode(ctx, 'fort_hidden_door_listen');
         }
         knockOnSteel(ctx);
@@ -464,6 +534,7 @@ function kp3Door(kit: LevelKit, ctx: SceneContext, phase: StoryPhase): Kp3Door {
       prompt: () => (hasKey() ? 'Use the key' : 'Try the door'),
       radius: 0.2,
       enabled: usable,
+      photo: 'photo_bunker_door',
       onInteract: async () => {
         if (!hasKey()) return playNode(ctx, 'fort_hidden_door_locked');
         if (knock === 'wrong') arriveAs('dark');
@@ -481,13 +552,16 @@ function kp3Door(kit: LevelKit, ctx: SceneContext, phase: StoryPhase): Kp3Door {
     if (knock !== 'none' || !knocks.length || ctx.time - knocks[knocks.length - 1]! < 4) return;
     if (!isFriendlyKnock(knocks)) {
       knock = 'wrong';
-      cue('bun3_knock', 'wrong');
+      fire('bun3_knock_wrong');
       putOutCandle();
       return;
     }
     knock = 'right';
     ctx.state.setFlag('knock_pattern_done');
-    cue('bun3_knock', 'right');
+    fire('bun3_knock_right');
+  });
+
+  const voice = () => {
     const unsubscribe = ctx.state.events.on('flag', ({ flag }) => {
       if (flag === 'marc_named' && !open) swingOpen();
     });
@@ -496,8 +570,9 @@ function kp3Door(kit: LevelKit, ctx: SceneContext, phase: StoryPhase): Kp3Door {
       unsubscribe();
       putOutCandle();
       if (!open) swingOpen();
+      marc.leave();
     });
-  });
+  };
 
   kit
     .trigger({ w: 1, d: 1 })
@@ -506,7 +581,36 @@ function kp3Door(kit: LevelKit, ctx: SceneContext, phase: StoryPhase): Kp3Door {
       arriveAs('after');
       ctx.goTo('bunker_hidden', 'from_dormitory');
     });
+  const door: Kp3Door = {
+    revealed: false,
+    get knock() {
+      return knock;
+    },
+    voice,
+  };
   return door;
+}
+
+/**
+ * The right knock: Marc in the passage behind the door, well back, the candle behind him. He is
+ * there when the door swings open, and the reporter turns to him, so a photo he allows has him in
+ * it. When he has said goodbye he goes back into the dark.
+ */
+function marcInThePassage(kit: LevelKit, ctx: SceneContext) {
+  const marc = kit.npc('marc').at(MARC_BACK.x, 0, MARC_BACK.z).faceYaw(markers.marc_door.yaw);
+  marc.object.visible = false;
+  return {
+    show: () => {
+      marc.object.visible = true;
+      const p = ctx.player.position;
+      ctx.player.yaw = (yawToward(MARC_BACK.x - p.x, MARC_BACK.z - p.z) * Math.PI) / 180;
+    },
+    leave: () => {
+      if (!marc.object.visible) return;
+      marc.character.face(-90 * (Math.PI / 180));
+      void marc.character.walkTo(MARC_BACK.x + 0.5, MARC_BACK.z).then(() => (marc.object.visible = false));
+    },
+  };
 }
 
 /** A fist on a steel door: a dull boom with a ring in it. */
@@ -522,7 +626,7 @@ function knockOnSteel(ctx: SceneContext): void {
  * shelves gave way, eyepieces pointing everywhere; a row of them on hooks at head height along
  * the aisle; and at the far end one clean shelf: six laid out in a row, and a space for a seventh.
  */
-function maskStore(kit: LevelKit, ctx: SceneContext, phase: StoryPhase): void {
+function maskStore(kit: LevelKit, ctx: SceneContext, phase: StoryPhase): () => void {
   const poses: MaskPose[] = [
     ...heapPoses({ ...HEAP, count: 460, seed: 'mask-heap' }),
     ...[
@@ -562,13 +666,60 @@ function maskStore(kit: LevelKit, ctx: SceneContext, phase: StoryPhase): void {
       prompt: 'Look at the shelf',
       radius: 0.6,
       onInteract: () => {
-        if (phase === 'night3') cue('bun3_masks');
+        if (phase === 'night3') fire('bun3_masks');
         return playNode(ctx, 'fort_masks_look');
       },
     })
     .at(3.5, 0, -25.35);
   stencil(kit, ['MASCHINEN', 'MACHINES'], 0.8).at(9.2, 1.6, -23.42).rotY(180);
   wires(kit, [[11.46, -23.4], [11.46, -27.4]], 1.9);
+  if (phase === 'day2') turnToLeave(ctx);
+  return slidingMask(kit, ctx);
+}
+
+/** Seconds in the mask store before turning to the door sets off bun2_masks. */
+const MASKS_LINGER = 8;
+
+/** bun2_masks fires when the player has stood among the masks a while and turns to go. */
+function turnToLeave(ctx: SceneContext): void {
+  const door = new Vector3(markers.bun2_masks_slide_to.x + 1.9, 1.2, -27.4);
+  const view = new Vector3();
+  let inside = 0;
+  updates.push((dt) => {
+    const p = ctx.player.position;
+    const room = rooms.find((r) => r.id === 'masks')!;
+    inside = p.x > room.x0 && p.x < room.x1 && p.z > room.z0 && p.z < room.z1 ? inside + dt : 0;
+    if (inside < MASKS_LINGER || ctx.paused) return;
+    ctx.player.camera.getWorldDirection(view);
+    if (viewAngle({ eye: ctx.player.camera.position, view }, door) < 25) fire('bun2_masks');
+  });
+}
+
+/**
+ * The mask on top of the heap that slides off behind the player, landing face up with its
+ * eyepieces to the ceiling. Returns what starts the slide.
+ */
+function slidingMask(kit: LevelKit, ctx: SceneContext): () => void {
+  const { bun2_masks_slide_from: from, bun2_masks_slide_to: to } = markers;
+  const mask = maskPile(kit, [{ position: new Vector3(), rotation: new Euler(-0.4, 0.6, 0.2, 'YXZ') }], 'mask-slide').at(from.x, from.y ?? 0.85, from.z);
+  const start = mask.object.position.clone();
+  const end = new Vector3(to.x, 0.07, to.z);
+  if (isSpent(ctx.state, 'bun2_masks')) {
+    mask.object.position.copy(end);
+    mask.object.rotation.set(-Math.PI / 2, 0.9, 0, 'YXZ');
+  }
+  let t = -1;
+  updates.push((dt) => {
+    if (t < 0 || t >= 1) return;
+    t = Math.min(1, t + dt / 0.7);
+    mask.object.position.lerpVectors(start, end, t);
+    mask.object.position.y += Math.sin(t * Math.PI) * 0.1;
+    mask.object.rotation.set(-0.4 - (Math.PI / 2 - 0.4) * t, 0.6 + 0.3 * t, 0.2 * (1 - t), 'YXZ');
+  });
+  return () => {
+    t = 0;
+    maskSlide(ctx.audio, { x: from.x, y: 0.6, z: from.z });
+  };
 }
 
 /** Bare steel uprights and four boards, against a wall, facing along `yaw`. */
@@ -588,7 +739,7 @@ function heapMound() {
   return new SphereGeometry(1, 12, 5, 0, Math.PI * 2, 0, Math.PI / 2).scale(HEAP.rx * 0.95, HEAP.height * 0.72, HEAP.rz * 0.95);
 }
 
-function machineRoom(kit: LevelKit, ctx: SceneContext, phase: StoryPhase): void {
+function machineRoom(kit: LevelKit, ctx: SceneContext, phase: StoryPhase, kp3: Kp3Door): void {
   kit.box({ w: 2.6, h: 1.3, d: 1.1 }).texture('rust_metal', { tile: 0.9 }).color(0x7a3a2e).at(6.2, 0, -20.2).collider();
   kit.box({ w: 0.9, h: 0.5, d: 0.9 }).texture('rust_metal', { tile: 0.9 }).color(0x6a3228).at(5.3, 1.3, -20.2);
   kit.cylinder({ r: 0.09, h: 0.8, sides: 6 }).texture('rust_metal').color(0x3e3a36).at(5.3, 1.8, -20.2);
@@ -600,8 +751,9 @@ function machineRoom(kit: LevelKit, ctx: SceneContext, phase: StoryPhase): void 
       prompt: 'Tap a fuel drum',
       radius: 0.5,
       onInteract: async () => {
-        if (phase === 'night3') cue('bun3_drum');
-        return playNode(ctx, 'fort_generator');
+        drumBoom(ctx.audio, { x: 5.36, y: 0.6, z: -17.25 });
+        await playNode(ctx, 'fort_generator');
+        if (phase === 'night3' && !ctx.state.hasFlag('met_marc')) fire(kp3.knock === 'none' ? 'bun3_drum_silence' : 'bun3_drum_answer');
       },
     })
     .at(5.36, 0, -17.6);

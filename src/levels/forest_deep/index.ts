@@ -1,12 +1,14 @@
 import { ConeGeometry, SphereGeometry } from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import type { LevelKit } from '../../game/kit/levelKit';
+import { scareDirector, type ScareDirector } from '../../game/scares/director';
 import { defineScene, type SceneContext } from '../../game/scene';
-import { cue, type Markers } from '../forest_path/beats';
+import type { Markers } from '../forest_path/beats';
+import { fogFigure } from '../forest_path/fogFigure';
 import { lostInTheFog } from '../forest_path/lost';
 import { playNode } from '../forest_path/play';
 import { handText, scrawl } from '../forest_path/scrawl';
-import { storyPhase, type StoryPhase } from '../forest_path/story';
+import { unspent } from '../forest_path/spent';
 import { distanceToTrails, pointAlong, yawToward, type Trail } from '../forest_path/trail';
 import { enclose, fallenLog, forestAmbience, forestAtmosphere, forestFloor, rock, trailStrip, undergrowth, woodland, woodsHeight, type Area } from '../forest_path/woods';
 
@@ -15,7 +17,7 @@ import { enclose, fallenLog, forestAmbience, forestAtmosphere, forestFloor, rock
  * black spruce. Under it Marc buried the syndic. Reached only on day 3, from the fort's thicket.
  */
 
-const track: Trail = [
+export const track: Trail = [
   [0, 33],
   [-3.5, 24],
   [2.5, 15],
@@ -32,49 +34,85 @@ const slope = (_x: number, z: number) => 0.12 * (33 - z);
 const calm = (x: number, z: number) => Math.min(distanceToTrails([track], x, z), inClearing(x, z));
 const height = woodsHeight(slope, calm);
 
-/** Points beside the track, looking up the slope at the player. */
-const watcher = (meters: number, side: number) => {
-  const p = pointAlong(track, meters);
-  const x = p.x - p.dz * side;
-  const z = p.z + p.dx * side;
-  return { x, z, yaw: yawToward(LARCH.x - x, LARCH.z - z) };
-};
-const trigger = (meters: number) => {
+/** Walking back down: where the player is `meters` up the track, facing downhill. */
+const goingDown = (meters: number) => {
   const p = pointAlong(track, meters);
   return { x: p.x, z: p.z, yaw: yawToward(-p.dx, -p.dz) };
 };
+
+/** A spot `ahead` meters downhill of a point on the track and `side` meters to its right. */
+function below(from: { x: number; z: number; yaw: number }, ahead: number, side: number) {
+  const a = (from.yaw * Math.PI) / 180;
+  const [fx, fz] = [-Math.sin(a), -Math.cos(a)];
+  const x = from.x + fx * ahead - fz * side;
+  const z = from.z + fz * ahead + fx * side;
+  return { x, z, yaw: yawToward(from.x - x, from.z - z) };
+}
+
+/**
+ * Each figure stands 10 m below a point on the track, at the edge of the day fog. It is set off
+ * further up, from where it is still hidden, so it is already there when the fog gives it up.
+ */
+const watchedFrom1 = goingDown(30);
+const watchedFrom2 = goingDown(16);
+
+export const watchedFrom = [watchedFrom1, watchedFrom2] as const;
 
 export const markers = {
   for3_grave: {
     beat: 'for3_grave',
     ...GRAVE,
     yaw: 0,
-    note: 'Reading the cross. Every ambient bed out for six seconds. No figure. Cue `for3_grave` fires with forest_grave.',
+    note: 'Reading the cross. Every ambient bed out for six seconds after the narration. No figure.',
   },
   for3_watched_trigger_1: {
     beat: 'for3_watched',
-    ...trigger(30),
-    note: 'Walking back down after the grave: when the player passes here, show the figure at for3_watched_1.',
+    ...goingDown(42),
+    note: 'Walking back down after the grave: when the player passes here, the figure stands at for3_watched_1, still hidden in the fog.',
   },
   for3_watched_1: {
     beat: 'for3_watched',
-    ...watcher(14, 8),
-    note: 'About 30 m below the player, between the trunks, looking up. It does not move.',
+    ...below(watchedFrom1, 10, -5.5),
+    note: 'Below the player at the edge of the fog, between the trunks, looking up, seen from 30 m up the track. It does not move. Gone once looked at and looked away from.',
   },
   for3_watched_trigger_2: {
     beat: 'for3_watched',
-    ...trigger(16),
-    note: 'At the next turn of the track: hide for3_watched_1 and show the figure at for3_watched_2, then not at all.',
+    ...goingDown(24),
+    note: 'Past the first figure, at the next turn of the track: the figure at for3_watched_2, then not at all.',
   },
   for3_watched_2: {
     beat: 'for3_watched',
-    ...watcher(2, -7.5),
+    ...below(watchedFrom2, 10, 5.5),
     note: 'The same place relative to the player, as if it had kept pace. Marc walks the straight line; the track winds.',
   },
 } satisfies Markers;
 
-/** Le Loyon and the scare beats for this scene. The integration step fills this in. */
-export function stageBeats(_kit: LevelKit, _ctx: SceneContext, _phase: StoryPhase): void {}
+/**
+ * The larch beats. Reading the cross drops every sound and holds the silence: the heaviest dread
+ * in the game, and nothing happens. Walking back down, a figure stands below in the fog looking
+ * up, and at the next turn it is there again in the same place relative to the player.
+ */
+function stageLarch(kit: LevelKit, ctx: SceneContext): ScareDirector {
+  const watcher = (at: { x: number; z: number }) => fogFigure(kit, { at, vanish: 'unseen', near: 8, timeout: 30 });
+  const first = watcher(markers.for3_watched_1);
+  const second = watcher(markers.for3_watched_2);
+  return kit.use(
+    scareDirector(unspent(ctx.state, [
+      { id: 'for3_grave', when: { after: Number.POSITIVE_INFINITY }, do: [{ silence: 6 }] },
+      {
+        id: 'for3_watched',
+        when: { enter: { ...markers.for3_watched_trigger_1, r: 2.5 } },
+        if: { flag: 'found_forest_grave' },
+        do: [{ run: first }],
+      },
+      {
+        id: 'for3_watched_again',
+        when: { enter: { ...markers.for3_watched_trigger_2, r: 2.5 } },
+        do: [{ run: second }],
+      },
+    ])),
+  );
+}
 
 export const forestDeepScene = defineScene({
   id: 'forest_deep',
@@ -85,27 +123,35 @@ export const forestDeepScene = defineScene({
   atmosphere: forestAtmosphere,
 
   build(kit, ctx) {
-    const phase = storyPhase(ctx.state);
     kit.ground('grass', 0);
     forestFloor(kit, area, height);
     trailStrip(kit, track, 0.75, height);
 
     const onTrack = (x: number, z: number) => distanceToTrails([track], x, z) < 2.4;
-    woodland(kit, { area, seed: 'larch', avoid: (x, z) => onTrack(x, z) || inClearing(x, z) < 1, spruce: 360, beech: 12 });
-    undergrowth(kit, area, { seed: 'larch', count: 150, avoid: (x, z) => onTrack(x, z) || inClearing(x, z) < 0.2 || calm(x, z) > 11 });
+    // Nothing grows between the track and where the watcher stands, so the fog alone hides him.
+    const sightlines: Trail[] = [
+      [[watchedFrom1.x, watchedFrom1.z], [markers.for3_watched_1.x, markers.for3_watched_1.z]],
+      [[watchedFrom2.x, watchedFrom2.z], [markers.for3_watched_2.x, markers.for3_watched_2.z]],
+    ];
+    const inSight = (x: number, z: number, margin: number) => distanceToTrails(sightlines, x, z) < margin;
+    const near = (x: number, z: number) => calm(x, z) < 10;
+    const spruceClear = (x: number, z: number) => calm(x, z) < 4.2 || inSight(x, z, 3);
+    const avoid = (x: number, z: number) => onTrack(x, z) || inClearing(x, z) < 1 || inSight(x, z, 1.2);
+    woodland(kit, { area, seed: 'larch', avoid, near, spruceClear, spruce: 360, beech: 30, distant: 900 });
+    undergrowth(kit, area, { seed: 'larch', count: 380, avoid: (x, z) => onTrack(x, z) || inClearing(x, z) < 0.2 || calm(x, z) > 13 || inSight(x, z, 1.5) });
     fallenLog(kit, 4.2, 19, 30, 4);
     fallenLog(kit, -4.5, 1, -60, 5);
     rock(kit, 3.5, 9, 0.6, 'larch-rock-1');
     rock(kit, -3.8, -6, 0.5, 'larch-rock-2');
 
+    const scares = stageLarch(kit, ctx);
     larch(kit);
-    grave(kit, ctx);
+    grave(kit, ctx, scares);
 
     enclose(kit, area);
     kit.exit({ w: 6, d: 1, to: 'bunker_exterior', spawn: 'from_track' }).at(0, 0, 34.2);
 
-    forestAmbience(kit, ctx.state.time);
-    stageBeats(kit, ctx, phase);
+    forestAmbience(kit, ctx);
   },
 
   update: lostInTheFog([track]),
@@ -114,17 +160,18 @@ export const forestDeepScene = defineScene({
 /** Bare and golden in a forest of black spruce. It stands out like a lamp. */
 function larch(kit: LevelKit): void {
   kit.cylinder({ r: 0.26, h: 13, sides: 7, cell: 2 }).texture('bark_spruce', { tile: [1, 2] }).color(0x8c7a64).at(LARCH.x, -0.2, LARCH.z).onGround().collider();
-  const tiers = Array.from({ length: 7 }, (_, i) => {
-    const t = i / 6;
-    const radius = 0.6 + 2.1 * (1 - t);
-    const h = 1.7 - t * 0.5;
-    return new ConeGeometry(radius, h, 7, 1, true).translate(0, 3.2 + i * 1.35 + h / 2, 0).toNonIndexed();
+  // Many short drooping tiers, narrow at the top, so from below it reads as a tree and not a parasol.
+  const tiers = Array.from({ length: 10 }, (_, i) => {
+    const t = i / 9;
+    const radius = 0.35 + 1.55 * (1 - t);
+    const h = 1.5 - t * 0.5;
+    return new ConeGeometry(radius, h, 7, 1, true).translate(0, 2.6 + i * 0.95 + h / 2, 0).toNonIndexed();
   });
   kit
     .mesh(mergeGeometries(tiers)!)
     .texture('spruce_foliage', { tile: 1.3 })
-    .color(0xd8a040)
-    .emissive(0x2a1a08)
+    .color(0xc8902c)
+    .emissive(0x301c04)
     .cutout()
     .doubleSided()
     .at(LARCH.x, -0.2, LARCH.z)
@@ -132,7 +179,7 @@ function larch(kit: LevelKit): void {
 }
 
 /** A mound of fieldstones the length of a man, a cross of split branches, a jam jar, pine cones. */
-function grave(kit: LevelKit, ctx: SceneContext): void {
+function grave(kit: LevelKit, ctx: SceneContext, scares: ScareDirector): void {
   const mound = new SphereGeometry(1, 8, 4, 0, Math.PI * 2, 0, Math.PI / 2).scale(1.15, 0.18, 0.5);
   kit.mesh(mound).texture('grave_dirt', { tile: 0.8 }).color(0x6e7062).at(GRAVE.x, -0.05, GRAVE.z).onGround();
   [
@@ -166,12 +213,15 @@ function grave(kit: LevelKit, ctx: SceneContext): void {
     kit.box({ w: 0.05, h: 0.05, d: 0.08 }).color(0x4a3a2a).at(GRAVE.x - 0.9 + i * 0.3, 0.02, GRAVE.z + 0.62).onGround(),
   );
 
+  // The first look is the reporter taking it in; after that the carving reads like any stone.
   kit
     .hotspot({
-      prompt: 'Look at the cross',
+      prompt: () => (ctx.state.hasFlag('found_forest_grave') ? 'Read the cross' : 'Look at the cross'),
       radius: 1.2,
+      photo: 'photo_forest_grave',
       onInteract: () => {
-        cue('for3_grave');
+        if (ctx.state.hasFlag('found_forest_grave')) return ctx.readDocument('doc_forest_cross');
+        scares.fire('for3_grave');
         return playNode(ctx, 'forest_grave');
       },
     })

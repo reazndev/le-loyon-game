@@ -1,11 +1,16 @@
-import { BufferGeometry, Float32BufferAttribute, IcosahedronGeometry, Vector3 } from 'three';
-import { cylinderGeometry } from '../../engine/render/geometry';
+import { BufferGeometry, Color, DoubleSide, Float32BufferAttribute, IcosahedronGeometry, InstancedMesh, Matrix4, Quaternion, Vector3 } from 'three';
+import { cowbell } from '../../engine/characters/voices';
+import { cylinderGeometry, spriteGeometry } from '../../engine/render/geometry';
 import { hashString, seededRandom } from '../../engine/random';
 import type { Atmosphere } from '../../engine/render/atmosphere';
+import { createPs1Material } from '../../engine/render/ps1Material';
 import type { TreeSpot } from '../../game/kit/builders';
 import type { LevelKit } from '../../game/kit/levelKit';
 import { scatter } from '../../game/kit/scatter';
+import type { SceneContext } from '../../game/scene';
 import type { TimeOfDay } from '../../game/state';
+import { caw } from '../cemetery/sounds';
+import { nowAndThen } from '../village_square/atmosphere';
 import { resample, type Trail } from './trail';
 
 /** Building blocks shared by every Bois-Noir scene: ground, path, trees, undergrowth, sound. */
@@ -102,19 +107,88 @@ export interface WoodlandOptions {
   spruce: number;
   beech?: number;
   birch?: number;
+  /**
+   * Where trees are solid models. Past it they are flat pictures, cheap enough to fill the fog
+   * with trunk after trunk. Omit to make every tree a model.
+   */
+  near?: (x: number, z: number) => boolean;
+  /** Extra pictures of spruce and beech in the far layer, between the scattered trees. */
+  distant?: number;
+  /** Spots where a spruce's low branches would hang over the path. Beech and birch may stand there. */
+  spruceClear?: (x: number, z: number) => boolean;
 }
 
-/** Dense spruce with beech and a few birch between, all instanced and solid at the trunks. */
+/** A camera-facing picture on the ground, such as a tree in the far layer or a fern. */
+export interface Billboard {
+  texture: string;
+  w: number;
+  h: number;
+  color: number;
+}
+
+const treePictures = {
+  spruce: { texture: 'tree_spruce', w: 4.6, h: 9.6, color: 0x6c7468 },
+  bare: { texture: 'tree_beech_bare', w: 4.8, h: 9.8, color: 0x6e6860 },
+  birch: { texture: 'tree_birch', w: 3.6, h: 7.4, color: 0x8a8070 },
+} satisfies Record<string, Billboard>;
+
+/**
+ * Dense spruce with beech and a few birch between. Near trees are instanced models, solid at the
+ * trunks; far ones are pictures, the way PS1 games filled a forest past the path.
+ */
 export function woodland(kit: LevelKit, options: WoodlandOptions): TreeSpot[] {
   const { area, seed, avoid } = options;
-  const spruce = scatter({ ...area, count: options.spruce, seed: `${seed}-spruce`, spacing: 2.1, avoid, scale: [0.85, 1.35] });
+  const near = options.near ?? (() => true);
+  const spruceAvoid = (x: number, z: number) => avoid(x, z) || (options.spruceClear?.(x, z) ?? false);
+  const spruce = scatter({ ...area, count: options.spruce, seed: `${seed}-spruce`, spacing: 2.1, avoid: spruceAvoid, scale: [0.85, 1.35] });
   const taken = (x: number, z: number) => avoid(x, z) || spruce.some((s) => Math.hypot(s.x - x, s.z - z) < 1.6);
   const beech = scatter({ ...area, count: options.beech ?? 0, seed: `${seed}-beech`, spacing: 3, avoid: taken, scale: [0.9, 1.3] });
   const birch = scatter({ ...area, count: options.birch ?? 0, seed: `${seed}-birch`, spacing: 3, avoid: taken, scale: [0.8, 1.1] });
-  kit.trees('spruce', spruce).collider();
-  if (beech.length) kit.trees('bare', beech).collider();
-  if (birch.length) kit.trees('birch', birch).collider();
+  const kinds = [
+    ['spruce', spruce],
+    ['bare', beech],
+    ['birch', birch],
+  ] as const;
+  kinds.forEach(([kind, spots]) => {
+    const models = spots.filter((s) => near(s.x, s.z));
+    if (models.length) kit.trees(kind, models).collider();
+    billboards(kit, treePictures[kind], spots.filter((s) => !near(s.x, s.z)));
+  });
+  if (options.distant) {
+    const all = [...spruce, ...beech, ...birch];
+    const free = (x: number, z: number) => avoid(x, z) || near(x, z) || all.some((s) => Math.hypot(s.x - x, s.z - z) < 1.4);
+    const fill = scatter({ ...area, count: options.distant, seed: `${seed}-distant`, spacing: 1.25, avoid: free, scale: [0.75, 1.3] });
+    billboards(kit, treePictures.spruce, fill.filter((_, i) => i % 4 !== 0));
+    billboards(kit, treePictures.bare, fill.filter((_, i) => i % 4 === 0));
+  }
   return [...spruce, ...beech, ...birch];
+}
+
+/**
+ * Many pictures of one kind as a single instanced mesh standing on the ground. Each spot gets a
+ * slightly different shade, so a stand of them doesn't read as stamped copies.
+ */
+export function billboards(kit: LevelKit, picture: Billboard, spots: readonly TreeSpot[]): void {
+  if (!spots.length) return;
+  kit.use((ctx) => {
+    const material = createPs1Material({ map: ctx.world.textures.get(picture.texture), billboard: true, alphaTest: 0.5, side: DoubleSide });
+    const mesh = new InstancedMesh(spriteGeometry(picture.w, picture.h), material, spots.length);
+    const random = seededRandom(hashString(`${picture.texture}-${spots.length}`));
+    const base = new Color(picture.color);
+    ctx.world.scene.add(mesh);
+    ctx.later('place', () => {
+      const matrix = new Matrix4();
+      spots.forEach((spot, i) => {
+        const scale = spot.scale ?? 1;
+        // Sunk a little so the picture's bottom edge never floats on a slope.
+        const y = ctx.world.ground.sample(spot.x, spot.z).height - 0.12 * scale;
+        mesh.setMatrixAt(i, matrix.compose(new Vector3(spot.x, y, spot.z), new Quaternion(), new Vector3(scale, scale, scale)));
+        mesh.setColorAt(i, base.clone().multiplyScalar(0.82 + random() * 0.3));
+      });
+      mesh.instanceMatrix.needsUpdate = true;
+      mesh.computeBoundingSphere();
+    });
+  });
 }
 
 const plants = [
@@ -122,20 +196,12 @@ const plants = [
   { texture: 'grass_tuft', w: 0.9, h: 0.6, color: 0x7e7a68 },
   { texture: 'bush', w: 1.5, h: 1.1, color: 0x6a6c5c },
   { texture: 'fern_dead', w: 0.8, h: 0.6, color: 0x77705e },
-] as const;
+] satisfies Billboard[];
 
 /** Ferns, tufts, and low bushes, kept off the trails. */
 export function undergrowth(kit: LevelKit, area: Area, options: { seed: string; count: number; avoid: (x: number, z: number) => boolean }): void {
-  scatter({ ...area, count: options.count, seed: `${options.seed}-plants`, spacing: 1.1, scale: [0.7, 1.25], avoid: options.avoid }).forEach(
-    (spot, i) => {
-      const plant = plants[i % plants.length]!;
-      kit
-        .sprite(plant.texture, { w: plant.w * spot.scale!, h: plant.h * spot.scale! })
-        .color(plant.color)
-        .at(spot.x, -0.06, spot.z)
-        .onGround();
-    },
-  );
+  const spots = scatter({ ...area, count: options.count, seed: `${options.seed}-plants`, spacing: 1.1, scale: [0.7, 1.25], avoid: options.avoid });
+  plants.forEach((plant, kind) => billboards(kit, plant, spots.filter((_, i) => i % plants.length === kind)));
 }
 
 /** A fallen trunk lying on the ground along its yaw, solid to walk into. */
@@ -182,8 +248,24 @@ export function enclose(kit: LevelKit, area: Area): void {
   kit.barrier({ w: 1, d }).at(x + w / 2, 0, z);
 }
 
-/** Drip from the branches and a very low wind in the tops. At night, small sounds close by. */
-export function forestAmbience(kit: LevelKit, time: TimeOfDay): void {
-  kit.ambience('wind', { volume: time === 'night' ? 0.22 : 0.3 });
-  kit.ambience('crackle', time === 'night' ? { interval: 6, volume: 0.45, distance: [4, 16] } : { interval: 11, volume: 0.3 });
+/**
+ * Drip from the branches and a very low wind in the tops. By day, now and then, a crow and the
+ * bell of a cow from the fields far below. At night no birds, only small sounds close by.
+ */
+export function forestAmbience(kit: LevelKit, ctx: SceneContext): void {
+  const night = ctx.state.time === 'night';
+  kit.ambience('wind', { volume: night ? 0.22 : 0.3 });
+  kit.ambience('crackle', night ? { interval: 6, volume: 0.45, distance: [4, 16] } : { interval: 11, volume: 0.3 });
+  if (night) return;
+  const { audio, player } = ctx;
+  const around = (distance: number, y: number) => {
+    const angle = Math.random() * Math.PI * 2;
+    return { x: player.position.x + Math.cos(angle) * distance, y: player.position.y + y, z: player.position.z + Math.sin(angle) * distance };
+  };
+  nowAndThen(kit, ctx, 45, () => caw(audio, around(22 + Math.random() * 18, 12)), 15);
+  nowAndThen(kit, ctx, 70, () => {
+    // Downhill, south, where the fields are: a cow grazing moves her head two or three times.
+    const at = { x: player.position.x + (Math.random() - 0.5) * 60, y: player.position.y - 20, z: player.position.z + 60 };
+    [0, 0.5, 1.3].slice(0, 2 + Math.floor(Math.random() * 2)).forEach((delay) => setTimeout(() => cowbell(audio, { at, volume: 0.22 }), delay * 1000));
+  }, 30);
 }

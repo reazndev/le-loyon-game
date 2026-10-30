@@ -14,6 +14,7 @@ import {
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { createPs1Material } from '../../engine/render/ps1Material';
 import { hashString, seededRandom } from '../../engine/random';
+import type { MeshBuilder } from '../../game/kit/builders';
 import type { LevelKit } from '../../game/kit/levelKit';
 
 /**
@@ -64,7 +65,7 @@ export interface MaskPose {
 }
 
 /** Many masks in given poses as one vertex-colored mesh. */
-export function maskPile(kit: LevelKit, poses: readonly MaskPose[], seed: string): void {
+export function maskPile(kit: LevelKit, poses: readonly MaskPose[], seed: string): MeshBuilder {
   const random = seededRandom(hashString(seed));
   const variants = RUBBER.flatMap((rubber) => [false, false, true].map((hose) => maskGeometry(rubber, hose, random)));
   const placed = poses.map((pose, i) => {
@@ -75,6 +76,7 @@ export function maskPile(kit: LevelKit, poses: readonly MaskPose[], seed: string
   const builder = kit.mesh(mergeGeometries(placed)!);
   builder.mesh.material.dispose();
   builder.mesh.material = createPs1Material({ vertexColors: true });
+  return builder;
 }
 
 export interface HeapOptions {

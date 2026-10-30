@@ -1,132 +1,24 @@
 import type { LevelKit } from '../../game/kit/levelKit';
 import { defineScene, type SceneContext } from '../../game/scene';
-import { cue, type Markers } from './beats';
+import { heiferInTheForest } from './heifer';
+import { area, BRIDGE, FORK, height, main, markers, SHRINE, slope, stream, toFort, trails } from './layout';
 import { lostInTheFog } from './lost';
 import { playNode } from './play';
-import { isNight, storyPhase, type StoryPhase } from './story';
-import { distanceToTrails, nearestOnTrails, pointAlong, yawToward, type Trail } from './trail';
-import { enclose, fallenLog, forestAmbience, forestAtmosphere, forestFloor, rock, trailStrip, undergrowth, woodland, woodsHeight, type Area } from './woods';
+import { stageForestPath } from './scares';
+import { streamHiss } from './sounds';
+import { storyPhase } from './story';
+import { distanceToTrails, nearestOnTrails, yawToward } from './trail';
+import { enclose, fallenLog, forestAmbience, forestAtmosphere, forestFloor, rock, trailStrip, undergrowth, woodland } from './woods';
 
 /**
  * Bois-Noir, chemin. From the cemetery's back gate north through spruce to the shrine fork.
  * Right climbs to the fort, left drops to the stream and the Yerly field edge.
  */
 
-const main: Trail = [
-  [0, 75],
-  [0.5, 66],
-  [2.5, 56],
-  [-1.5, 46],
-  [-3, 38],
-  [0.5, 28],
-  [2, 18],
-  [-0.5, 8],
-  [0, 0],
-];
-const toFort: Trail = [
-  [0, 0],
-  [4, -7],
-  [9, -14],
-  [12, -24],
-  [15.5, -34],
-  [16, -48],
-];
-const toStream: Trail = [
-  [0, 0],
-  [-6, -3],
-  [-13, -4],
-  [-20, -6],
-  [-27, -9],
-  [-33, -10],
-  [-40, -12],
-  [-50, -14],
-];
-const trails = [main, toFort, toStream];
+export { markers };
 
-/** The stream runs roughly north to south across the left branch. */
-const stream: Trail = [
-  [-24, -58],
-  [-27, -36],
-  [-30, -10],
-  [-29, 14],
-  [-33, 40],
-];
-const BRIDGE = { x: -30, z: -9.6 };
-
-const area: Area = { x: -13, z: 13, w: 86, d: 136 };
-const FORK = { x: 0, z: 0 };
-const SHRINE = { x: -1.1, z: -3.1 };
-
-const channel = (x: number, z: number) => {
-  const d = distanceToTrails([stream], x, z);
-  return 1.3 * Math.max(0, 1 - (d / 2.6) ** 2);
-};
-/** Rises gently from the cemetery to the fork and on up to the fort; falls away to the stream. */
-const slope = (x: number, z: number) => 0.05 * (75 - z) + 0.07 * x - channel(x, z);
-const height = woodsHeight(slope, (x, z) => distanceToTrails(trails, x, z));
-
-const along = (trail: Trail, meters: number) => {
-  const p = pointAlong(trail, meters);
-  return { x: p.x, z: p.z, yaw: yawToward(p.dx, p.dz) };
-};
-const backTowardCemetery = (trail: Trail, meters: number) => {
-  const p = pointAlong(trail, meters);
-  return { x: p.x, z: p.z, yaw: yawToward(-p.dx, -p.dz) };
-};
-
-const ahead = along(main, 30);
-const aheadRad = (ahead.yaw * Math.PI) / 180;
-
-export const markers = {
-  for1_ahead: {
-    beat: 'for1_ahead',
-    ...ahead,
-    note: 'Night 1. The figure stands on the path facing away, at the edge of the torch beam. When the player is within 12 m it steps off to the right. No sound.',
-  },
-  for1_ahead_exit: {
-    beat: 'for1_ahead',
-    x: ahead.x + Math.cos(aheadRad) * 4,
-    z: ahead.z - Math.sin(aheadRad) * 4,
-    yaw: ahead.yaw - 90,
-    note: 'Where the figure from for1_ahead goes when it steps off the path, into the spruce.',
-  },
-  for1_fork_steps_from: {
-    beat: 'for1_fork_steps',
-    ...along(toFort, 9),
-    note: 'Night 1, when the player reaches the shrine: slow uneven footsteps start here, one heavier than the other.',
-  },
-  for1_fork_steps_to: {
-    beat: 'for1_fork_steps',
-    ...along(toFort, 30),
-    note: 'Where the footsteps fade out, going away uphill. No figure.',
-  },
-  for1_shrine: {
-    beat: 'for1_shrine',
-    ...SHRINE,
-    yaw: 180,
-    note: 'The shrine. The Virgin faces the path to the fort. Cue `for1_shrine` fires when the player looks at it at night.',
-  },
-  for1_cough_trigger: {
-    beat: 'for1_cough',
-    ...backTowardCemetery(main, 52),
-    note: 'Night 1, after the fort: when the player walks back past here toward the cemetery.',
-  },
-  for1_cough_source: {
-    beat: 'for1_cough',
-    ...FORK,
-    yaw: 180,
-    note: 'Far behind the player: one muffled cough through rubber.',
-  },
-  for2_heifer_fork: {
-    beat: 'for2_heifer',
-    ...along(toStream, 6),
-    yaw: yawToward(4, -7),
-    note: 'Day 2 with `skipped_follow`: Marquise stands on the left branch staring up the right one, toward the fort.',
-  },
-} satisfies Markers;
-
-/** Le Loyon and the scare beats for this scene. The integration step fills this in. */
-export function stageBeats(_kit: LevelKit, _ctx: SceneContext, _phase: StoryPhase): void {}
+/** Trees within this many meters of a trail are solid models; past it, pictures in the fog. */
+const NEAR_TREES = 7.5;
 
 export const forestPathScene = defineScene({
   id: 'forest_path',
@@ -148,9 +40,13 @@ export const forestPathScene = defineScene({
     const nearWater = (x: number, z: number) => distanceToTrails([stream], x, z) < 2.4;
     const onTrail = (x: number, z: number) => distanceToTrails(trails, x, z) < 3;
     const clear = (x: number, z: number) => onTrail(x, z) || nearWater(x, z) || Math.hypot(x - FORK.x, z - FORK.z) < 6 || z > 76;
-    woodland(kit, { area, seed: 'forest-path', avoid: clear, spruce: 620, beech: 90, birch: 22 });
+    const near = (x: number, z: number) => distanceToTrails(trails, x, z) < NEAR_TREES;
+    const spruceClear = (x: number, z: number) => distanceToTrails(trails, x, z) < 4.4;
+    woodland(kit, { area, seed: 'forest-path', avoid: clear, near, spruceClear, spruce: 620, beech: 110, birch: 26, distant: 1700 });
+    // The big spruce Le Loyon steps behind on night 1.
+    kit.trees('spruce', [{ x: markers.for1_ahead_exit.x + 0.6, z: markers.for1_ahead_exit.z - 0.5, scale: 1.4 }]).collider();
     // Undergrowth only where the player can see it, along the trails.
-    undergrowth(kit, area, { seed: 'forest-path', count: 260, avoid: (x, z) => onTrail(x, z) || distanceToTrails(trails, x, z) > 14 });
+    undergrowth(kit, area, { seed: 'forest-path', count: 700, avoid: (x, z) => onTrail(x, z) || distanceToTrails(trails, x, z) > 16 });
 
     [
       [4.5, 60, 20, 5],
@@ -178,7 +74,7 @@ export const forestPathScene = defineScene({
       [2.5, 36, 0.3],
     ].forEach(([x, z, size], i) => rock(kit, x!, z!, size!, `forest-path-rock-${i}`));
 
-    shrine(kit, ctx, phase);
+    shrine(kit, ctx);
     bridge(kit, ctx);
     backGate(kit);
 
@@ -187,8 +83,8 @@ export const forestPathScene = defineScene({
     kit.exit({ w: 5, d: 1, to: 'bunker_exterior', spawn: 'from_forest' }).at(16, 0, -48.4);
     kit.exit({ w: 1, d: 5, to: 'yerly_farm', spawn: 'from_forest' }).at(-50.4, 0, -14);
 
-    forestAmbience(kit, ctx.state.time);
-    stageBeats(kit, ctx, phase);
+    forestAmbience(kit, ctx);
+    stageForestPath(kit, ctx, phase, heiferInTheForest(kit, ctx, phase));
   },
 
   update: lostInTheFog(trails),
@@ -209,8 +105,12 @@ function streamBed(kit: LevelKit): void {
   });
 }
 
-/** Two planks over the stream on the left branch. */
+/** Two planks over the stream on the left branch. The water hisses under them and for a way up and down. */
 function bridge(kit: LevelKit, ctx: SceneContext): void {
+  [-12, 0, 12].forEach((dz) => {
+    const p = nearestOnTrails([stream], BRIDGE.x, BRIDGE.z + dz);
+    kit.use((k) => k.world.sounds.track(streamHiss(ctx.audio, { x: p.x, y: slope(p.x, p.z), z: p.z }, dz === 0 ? 0.5 : 0.35)));
+  });
   const yaw = yawToward(-6, -1);
   const deck = Math.max(height(BRIDGE.x - 2.4, BRIDGE.z + 0.4), height(BRIDGE.x + 2.4, BRIDGE.z - 0.4)) + 0.08;
   kit.group((g) => {
@@ -228,7 +128,7 @@ function bridge(kit: LevelKit, ctx: SceneContext): void {
 }
 
 /** The little wooden house on a post, turned to face the path to the fort. */
-function shrine(kit: LevelKit, ctx: SceneContext, phase: StoryPhase): void {
+function shrine(kit: LevelKit, ctx: SceneContext): void {
   const facing = nearestOnTrails([toFort], 6, -10);
   const yaw = yawToward(facing.x - SHRINE.x, facing.z - SHRINE.z) + 180;
   kit.group((g) => {
@@ -252,17 +152,8 @@ function shrine(kit: LevelKit, ctx: SceneContext, phase: StoryPhase): void {
   // The pale mark in the moss where the post stood the other way round.
   kit.plane({ w: 0.3, d: 0.22 }).color(0xa8a890).at(SHRINE.x + 0.12, 0.04, SHRINE.z + 0.14).rotY(yaw + 25).onGround();
 
-  const night = isNight(phase);
-  kit
-    .hotspot({
-      prompt: 'Look at the shrine',
-      radius: 0.5,
-      onInteract: () => {
-        if (night) cue('for1_shrine');
-        return playNode(ctx, night ? 'forest_shrine_night' : 'forest_shrine');
-      },
-    })
-    .at(SHRINE.x, 0, SHRINE.z);
+  const night = ctx.state.time === 'night';
+  kit.hotspot({ prompt: 'Look at the shrine', radius: 0.5, onInteract: () => playNode(ctx, night ? 'forest_shrine_night' : 'forest_shrine') }).at(SHRINE.x, 0, SHRINE.z);
 }
 
 /** The cemetery's back wall and its gate, so the way home is there when the player turns round. */

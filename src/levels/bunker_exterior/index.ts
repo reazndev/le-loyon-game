@@ -1,11 +1,14 @@
 import { CylinderGeometry } from 'three';
 import type { LevelKit } from '../../game/kit/levelKit';
+import { scareDirector, type ScareDirector } from '../../game/scares/director';
+import { playSound } from '../../game/scares/sounds';
 import { defineScene, type SceneContext } from '../../game/scene';
-import { cue, type Markers } from '../forest_path/beats';
+import type { Markers } from '../forest_path/beats';
 import { lostInTheFog } from '../forest_path/lost';
 import { playNode } from '../forest_path/play';
 import { handText, scrawl } from '../forest_path/scrawl';
-import { storyPhase, type StoryPhase } from '../forest_path/story';
+import { unspent } from '../forest_path/spent';
+import { isNight, storyPhase, type StoryPhase } from '../forest_path/story';
 import { distanceToTrails, type Trail } from '../forest_path/trail';
 import { enclose, fallenLog, forestAmbience, forestAtmosphere, forestFloor, rock, trailStrip, undergrowth, woodland, woodsHeight, type Area } from '../forest_path/woods';
 
@@ -49,18 +52,45 @@ export const markers = {
     y: 0.2,
     z: FORT.z,
     yaw: 0,
-    note: 'Night 1, about 4 s after fort_door_night1 starts: one tin cup set down on concrete, deep inside. Cue `for1_cup` fires with the door.',
+    note: 'Night 1, 4 s after the wheel stops, while the reporter listens at the steel: one tin cup set down on concrete, deep inside.',
   },
   for3_hatch: {
     beat: 'for3_hatch',
     ...HATCH,
     yaw: 180,
-    note: 'Day 3, passing the hatch: the worn path in the moss. No sound. Cue `for3_hatch` fires when the player looks at it.',
+    note: 'Day 3, passing the hatch: the worn path in the moss. Looking at it, every sound drops away.',
   },
 } satisfies Markers;
 
-/** Le Loyon and the scare beats for this scene. The integration step fills this in. */
-export function stageBeats(_kit: LevelKit, _ctx: SceneContext, _phase: StoryPhase): void {}
+/** Seconds of listening at the steel before the cup, as the script times it. */
+const CUP_DELAY = 4;
+
+/**
+ * The clearing's beats. Night 1 at the wedged door: a tin cup set down inside, once. Day 3 at
+ * the hatch: the worn path, and silence. Nights have the random sounds of the forest.
+ */
+function stageFort(kit: LevelKit, ctx: SceneContext, phase: StoryPhase): ScareDirector {
+  const cup = markers.for1_cup;
+  return kit.use(
+    scareDirector(
+      unspent(ctx.state, [
+        {
+          id: 'for1_cup',
+          when: { after: Number.POSITIVE_INFINITY },
+          // A wall clock, not the director's: the cup comes while the reporter's ear is on the door.
+          do: [{ run: () => void setTimeout(() => playSound(ctx.audio, 'sfx_metal_cup', { at: { x: cup.x, y: FLOOR + cup.y, z: cup.z } }), CUP_DELAY * 1000) }],
+        },
+        {
+          id: 'for3_hatch',
+          when: { look: { ...markers.for3_hatch, y: 0.3, within: 6, angle: 14, hold: 1 } },
+          if: { count: [['day', '==', 3], ['night', '==', 0]] },
+          do: [{ silence: 9 }],
+        },
+      ]),
+      isNight(phase) ? { random: { surface: 'grass' } } : {},
+    ),
+  );
+}
 
 export const bunkerExteriorScene = defineScene({
   id: 'bunker_exterior',
@@ -82,8 +112,10 @@ export const bunkerExteriorScene = defineScene({
 
     const onTrail = (x: number, z: number) => distanceToTrails(trails, x, z) < 2.6;
     const clear = (x: number, z: number) => onTrail(x, z) || inClearing(x, z) < 1.5 || Math.hypot(x - HATCH.x, z - HATCH.z) < 2.5;
-    woodland(kit, { area, seed: 'fort', avoid: clear, spruce: 330, beech: 30, birch: 6 });
-    undergrowth(kit, area, { seed: 'fort', count: 170, avoid: (x, z) => onTrail(x, z) || inClearing(x, z) < 0.5 || calm(x, z) > 12 });
+    const near = (x: number, z: number) => calm(x, z) < 10;
+    const spruceClear = (x: number, z: number) => calm(x, z) < 4.2;
+    woodland(kit, { area, seed: 'fort', avoid: clear, near, spruceClear, spruce: 330, beech: 40, birch: 6, distant: 1000 });
+    undergrowth(kit, area, { seed: 'fort', count: 420, avoid: (x, z) => onTrail(x, z) || inClearing(x, z) < 0.5 || calm(x, z) > 14 });
     [
       [-7, 7, 0.6],
       [6.5, 6, 0.4],
@@ -94,15 +126,15 @@ export const bunkerExteriorScene = defineScene({
     fallenLog(kit, -9, 12, 70, 4);
     fallenLog(kit, 11, 10, -20, 3.5);
 
-    fort(kit, ctx, phase);
+    const scares = stageFort(kit, ctx, phase);
+    fort(kit, ctx, phase, scares);
     hatch(kit, ctx, phase);
     thicket(kit, ctx, phase);
 
     enclose(kit, area);
     kit.exit({ w: 6, d: 1, to: 'forest_path', spawn: 'from_bunker' }).at(0, 0, 27.8);
 
-    forestAmbience(kit, ctx.state.time);
-    stageBeats(kit, ctx, phase);
+    forestAmbience(kit, ctx);
   },
 
   update: lostInTheFog(trails),
@@ -111,7 +143,7 @@ export const bunkerExteriorScene = defineScene({
 const PLANKS = 0x7a7368;
 
 /** The concrete fort under its barn costume: plinth, painted plank walls, a board roof. */
-function fort(kit: LevelKit, ctx: SceneContext, phase: StoryPhase): void {
+function fort(kit: LevelKit, ctx: SceneContext, phase: StoryPhase, scares: ScareDirector): void {
   const { w, d } = FORT;
   const wallH = 3.1;
   const base = 0.9;
@@ -171,7 +203,7 @@ function fort(kit: LevelKit, ctx: SceneContext, phase: StoryPhase): void {
       radius: 0.5,
       onInteract: async () => {
         if (wedged) {
-          cue('for1_cup');
+          if (phase === 'night1') scares.fire('for1_cup');
           return playNode(ctx, 'fort_door_night1');
         }
         if (!ctx.state.hasFlag('bunker_door_open') && phase !== 'night3') await playNode(ctx, 'fort_door_day2');
@@ -199,23 +231,20 @@ function maskedSmiley(g: CanvasRenderingContext2D, x: number, y: number): void {
   g.fillRect(x - 2, y + 3, 5, 6);
 }
 
-/** The emergency exit under a fallen spruce: a concrete square and a steel lid with no handle. */
+/**
+ * The emergency exit under a fallen spruce: a concrete square and a steel lid with no handle. At
+ * dawn the reporter has just climbed out, and the lid lies thrown back on the moss.
+ */
 function hatch(kit: LevelKit, ctx: SceneContext, phase: StoryPhase): void {
   kit.box({ w: 1.2, h: 0.3, d: 1.2 }).texture('concrete_bunker', { tile: 1 }).color(0x8a8a80).at(HATCH.x, -0.12, HATCH.z).onGround().collider();
-  kit.box({ w: 0.86, h: 0.05, d: 0.86 }).texture('rust_metal', { tile: 0.6 }).color(0x6a5a4a).at(HATCH.x, 0.18, HATCH.z).onGround();
+  if (phase === 'dawn') {
+    kit.box({ w: 0.8, h: 0.02, d: 0.8 }).unlit().color(0x050505).at(HATCH.x, 0.185, HATCH.z).onGround();
+    kit.box({ w: 0.86, h: 0.05, d: 0.86 }).texture('rust_metal', { tile: 0.6 }).color(0x6a5a4a).at(HATCH.x + 0.95, 0.02, HATCH.z + 0.2).rotY(14).onGround();
+  } else kit.box({ w: 0.86, h: 0.05, d: 0.86 }).texture('rust_metal', { tile: 0.6 }).color(0x6a5a4a).at(HATCH.x, 0.18, HATCH.z).onGround();
   fallenLog(kit, HATCH.x - 2.6, HATCH.z - 1.1, -12, 6.5, 0.28);
   // The moss worn into a path, from the hatch to the track.
   kit.plane({ w: 0.7, d: 3.2 }).texture('mud', { tile: 1.5 }).color(0x5e584f).at(HATCH.x - 1.6, 0.05, HATCH.z + 0.6).rotY(-62).onGround();
-  kit
-    .hotspot({
-      prompt: 'Look at the hatch',
-      radius: 0.7,
-      onInteract: () => {
-        if (phase === 'day3') cue('for3_hatch');
-        return playNode(ctx, 'forest_hatch');
-      },
-    })
-    .at(HATCH.x, 0, HATCH.z);
+  kit.hotspot({ prompt: 'Look at the hatch', radius: 0.7, onInteract: () => playNode(ctx, 'forest_hatch') }).at(HATCH.x, 0, HATCH.z);
 }
 
 /** Young spruce and bramble over the track. On day 3, with the letter read, the reporter pushes through. */

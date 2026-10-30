@@ -20,3 +20,10 @@ export function storyPhase(state: StateView & { readonly time: TimeOfDay }): Sto
 }
 
 export const isNight = (phase: StoryPhase): boolean => phase.startsWith('night');
+
+/**
+ * Marquise on day 2 when the reporter didn't follow the figure on night 1: she stands at the
+ * shrine fork instead of the field edge, and the fort shows up the right branch (05-forest-bunker.md).
+ */
+export const heiferAtTheFork = (state: StateView, phase: StoryPhase): boolean =>
+  phase === 'day2' && state.hasFlag('skipped_follow') && !state.hasFlag('heifer_found') && !state.hasFlag('heifer_returned');

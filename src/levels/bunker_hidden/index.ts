@@ -2,15 +2,19 @@ import { CylinderGeometry, type Group } from 'three';
 import type { NodeId } from '../../content';
 import type { Atmosphere } from '../../engine/render/atmosphere';
 import type { LevelKit } from '../../game/kit/levelKit';
+import type { NpcBuilder } from '../../game/kit/npc';
+import type { Beat } from '../../game/scares/beats';
+import { scareDirector, type ScareDirector } from '../../game/scares/director';
 import { defineScene, type SceneContext } from '../../game/scene';
 import type { TimeOfDay } from '../../game/state';
 import { buildRooms, insideOut, movingBlocker } from '../bunker_interior/concrete';
 import { drip } from '../bunker_interior/drips';
 import type { Opening, Room } from '../bunker_interior/rooms';
-import { cue, type Markers } from '../forest_path/beats';
-import { playNode, readDocument } from '../forest_path/play';
+import type { Markers } from '../forest_path/beats';
+import { playNode } from '../forest_path/play';
 import { handText, scrawl } from '../forest_path/scrawl';
-import { storyPhase, type StoryPhase } from '../forest_path/story';
+import { unspent } from '../forest_path/spent';
+import { candleFlutter, hatchWheel, splash, steelDoorShut } from '../forest_path/sounds';
 import { yawToward } from '../forest_path/trail';
 import { takeArrival, type Arrival } from './arrival';
 
@@ -30,9 +34,11 @@ const openings: Opening[] = [
   { a: 'command', b: 'mouth', at: 0, w: 0.8, h: 1.5 },
 ];
 
-const TUNNEL = { x0: 7.4, x1: 31, r: 0.74 };
+/** The escape tunnel: a low pipe, about 44 m, the length of a long crouched walk. */
+const TUNNEL = { x0: 7.4, x1: 51, r: 0.74 };
 const CANDLE = { x: 2.55, y: 0.78, z: -0.95 };
 const DOOR = { x: 0.15, z: 0 };
+const BED = { x: 4.35, z: 1.55, top: 0.42 };
 
 const atmosphere: Atmosphere = {
   fog: { color: 0x080605, near: 1, far: 12, density: 0.06, wisps: 0.1 },
@@ -48,7 +54,7 @@ export const markers = {
     x: 0.2,
     z: 0,
     yaw: -90,
-    note: 'Jumpscare 3, `room_empty` only: Marc in the doorway, full height, masked, the cape, lit from below by the candle. Cue `bun3_doorway` fires when the player turns back to the door; marc_doorway plays 1 s later.',
+    note: 'Jumpscare 3, `room_empty` only: Marc in the doorway, full height, masked, the cape, lit by the candle. He steps in while the player looks away; when they turn back, one loud breath, and marc_doorway 1 s later.',
   },
   marc_dark_corner: {
     beat: 'bun3_knock',
@@ -59,10 +65,10 @@ export const markers = {
   },
   marc_on_bed: {
     beat: 'marc_monologue',
-    x: 4.35,
-    z: 1.25,
-    yaw: 180,
-    note: 'After the monologue: he sits on the edge of the bed with his back to the room, hands on his knees, and does not move again.',
+    x: 3.85,
+    z: BED.z,
+    yaw: -90,
+    note: 'After the monologue: he sits on the bed with his back to the door and does not move again. There is no sitting pose; he is a hunched shape on the blanket.',
   },
   marc_monologue_stand: {
     beat: 'marc_monologue',
@@ -73,11 +79,11 @@ export const markers = {
   },
 } satisfies Markers;
 
-/** Le Loyon and the scare beats for this scene. The integration step fills this in. */
-export function stageBeats(_kit: LevelKit, _ctx: SceneContext, _phase: StoryPhase, _arrival: Arrival): void {}
-
 type Update = (dt: number, ctx: SceneContext) => void;
 let updates: Update[] = [];
+
+/** How tall he is sitting, as a share of standing. */
+const SITTING = 0.62;
 
 export const bunkerHiddenScene = defineScene({
   id: 'bunker_hidden',
@@ -89,7 +95,6 @@ export const bunkerHiddenScene = defineScene({
 
   build(kit, ctx) {
     updates = [];
-    const phase = storyPhase(ctx.state);
     const arrival = takeArrival(ctx.state.hasFlag('met_marc'));
     kit.ground('stone', 0);
     buildRooms(kit, rooms, openings, {
@@ -106,13 +111,10 @@ export const bunkerHiddenScene = defineScene({
       await then?.();
     };
     furnish(kit, ctx, arrival, look);
-    candle(kit, arrival);
-    tunnel(kit, ctx);
+    candle(kit, ctx, arrival);
+    const scares = kit.use(scareDirector(unspent(ctx.state, roomBeats(tunnel(kit, ctx)))));
     leaveByTheDoor(kit, ctx);
-
-    if (arrival === 'empty') updates.push(doorwayScare(seen));
-    if (arrival === 'dark') updates.push(torchFindsHim());
-    stageBeats(kit, ctx, phase, arrival);
+    stageMarc(kit, ctx, arrival, seen, scares);
   },
 
   update(dt, ctx) {
@@ -123,10 +125,11 @@ export const bunkerHiddenScene = defineScene({
 /** The camp bed, table, shelves, crate, stove, the képi on its nail, the phone, and the bulb. */
 function furnish(kit: LevelKit, ctx: SceneContext, arrival: Arrival, look: (id: NodeId, then?: () => Promise<void>) => () => Promise<void>): void {
   // The camp bed, blanket folded tight, corners square.
-  kit.box({ w: 1.9, h: 0.38, d: 0.75 }).texture('camo_cape', { tile: 1 }).color(0x58583e).at(4.35, 0, 1.55).collider();
-  kit.box({ w: 1.86, h: 0.04, d: 0.72 }).color(0x4a4c38).at(4.35, 0.38, 1.55);
-  kit.box({ w: 0.4, h: 0.08, d: 0.6 }).color(0x6e6a58).at(5.05, 0.42, 1.55);
-  kit.hotspot({ prompt: 'Look at the bed', radius: 0.45, onInteract: look('room_camp_bed') }).at(3.75, 0, 1.15);
+  kit.box({ w: 1.9, h: 0.38, d: 0.75 }).texture('camo_cape', { tile: 1 }).color(0x58583e).at(BED.x, 0, BED.z).collider();
+  // Walkable only so Marc sits on top of it; the collider keeps the player off.
+  kit.box({ w: 1.86, h: 0.04, d: 0.72 }).color(0x4a4c38).at(BED.x, 0.38, BED.z).walkable('wood');
+  kit.box({ w: 0.4, h: 0.08, d: 0.6 }).color(0x6e6a58).at(5.05, BED.top, BED.z);
+  kit.hotspot({ prompt: 'Look at the bed', radius: 0.45, photo: 'photo_hidden_room', onInteract: look('room_camp_bed') }).at(3.75, 0, 1.15);
 
   // The képi blanc in a plastic bag, on a nail over the bed like a picture.
   kit.box({ w: 0.36, h: 0.34, d: 0.04 }).color(0x4e504c).at(4.35, 1.25, 1.96);
@@ -139,11 +142,13 @@ function furnish(kit: LevelKit, ctx: SceneContext, arrival: Arrival, look: (id: 
   kit.box({ w: 1.5, h: 0.75, d: 0.85 }).texture('wood_planks', { tile: 1 }).color(0x5a4c3e).at(2.55, 0, -0.95).collider();
   valleyMap(kit).at(2.55, 0.752, -0.66).object.rotation.set(-Math.PI / 2, 0, 0);
   kit.box({ w: 0.2, h: 0.015, d: 0.28 }).color(0x7a8a9a).at(2.05, 0.752, -0.75).rotY(12);
-  kit.hotspot({ prompt: 'Read the notebook', radius: 0.25, onInteract: look('room_notebook', () => readDocument(ctx, ctx.state.hasFlag('cupboard_restored') ? 'doc_marc_notebook_restored' : 'doc_marc_notebook')) }).at(2.05, 0, -0.6);
+  // Only when he is out does he come back to find it moved, and write that down.
+  const notebook = arrival === 'empty' && ctx.state.hasFlag('cupboard_restored') ? 'doc_marc_notebook_restored' : 'doc_marc_notebook';
+  kit.hotspot({ prompt: 'Read the notebook', radius: 0.25, onInteract: look('room_notebook', () => ctx.readDocument(notebook)) }).at(2.05, 0, -0.6);
   kit.box({ w: 0.08, h: 0.11, d: 0.01 }).color(0x9a9282).at(CANDLE.x + 0.12, CANDLE.y, CANDLE.z + 0.05).rotY(-20);
   kit.hotspot({ prompt: 'Look at the photograph', radius: 0.2, onInteract: look('room_photo') }).at(CANDLE.x + 0.15, 0, CANDLE.z + 0.4);
   kit.box({ w: 0.16, h: 0.05, d: 0.22 }).color(0xb8b4a0).at(2.95, 0.752, -1.15).rotY(-30);
-  kit.hotspot({ prompt: "Read the syndic's notes", radius: 0.2, onInteract: look('room_notes_gremaud', () => readDocument(ctx, 'doc_gremaud_notes')) }).at(3.05, 0, -0.65);
+  kit.hotspot({ prompt: "Read the syndic's notes", radius: 0.2, onInteract: look('room_notes_gremaud', () => ctx.readDocument('doc_gremaud_notes')) }).at(3.05, 0, -0.65);
   kit.hotspot({ prompt: 'Look at the map', radius: 0.3, onInteract: look('room_map') }).at(2.4, 0, -0.45);
   [[1.6, -1.1, 0], [3.5, -0.4, 200]].forEach(([x, z, yaw]) => stool(kit, x!, z!, yaw!));
 
@@ -211,10 +216,11 @@ function valleyMap(kit: LevelKit) {
   });
 }
 
-/** One candle on the table. It is out in the dark branch: the wrong knock put it out. */
-function candle(kit: LevelKit, arrival: Arrival): void {
+/** One candle on the table, and its flutter, the only sound. It is out in the dark branch: the wrong knock put it out. */
+function candle(kit: LevelKit, ctx: SceneContext, arrival: Arrival): void {
   kit.cylinder({ r: 0.022, h: 0.09, sides: 6 }).color(0xd8d0b8).at(CANDLE.x, CANDLE.y, CANDLE.z);
   if (arrival === 'dark') return;
+  kit.use((k) => k.world.sounds.track(candleFlutter(ctx.audio, { x: CANDLE.x, y: CANDLE.y + 0.1, z: CANDLE.z })));
   kit.box({ w: 0.012, h: 0.03, d: 0.012 }).unlit().color(0xffd070).at(CANDLE.x, CANDLE.y + 0.09, CANDLE.z);
   kit.glow(0.35, 0xffb860).at(CANDLE.x, CANDLE.y + 0.11, CANDLE.z);
   kit.light({ color: 0xffa858, intensity: 1.7, range: 6.5 }).flicker(0.35).at(CANDLE.x, CANDLE.y + 0.25, CANDLE.z);
@@ -224,9 +230,11 @@ function candle(kit: LevelKit, arrival: Arrival): void {
  * The steel door at the back and 25 m of low pipe, water underfoot, iron rungs up to the
  * hatch. The player goes through crouched. It opens once Marc has told them to go.
  */
-function tunnel(kit: LevelKit, ctx: SceneContext): void {
+function tunnel(kit: LevelKit, ctx: SceneContext): () => void {
   const metMarc = () => ctx.state.hasFlag('met_marc');
   let open = metMarc();
+  let swing = open ? 1 : 0;
+  let closing = false;
   const leaf = kit
     .group((g) => g.box({ w: 0.06, h: 1.5, d: 0.8 }).texture('bunker_door', { tile: [0.8, 1.5] }).color(0x6a6c66).at(0, 0, 0.4))
     .at(6.15, 0, -0.4)
@@ -240,14 +248,14 @@ function tunnel(kit: LevelKit, ctx: SceneContext): void {
       onInteract: () => {
         if (!metMarc()) return ctx.say('Not yet.');
         open = true;
-        let swing = 0;
-        updates.push((dt) => {
-          swing = Math.min(1, swing + dt / 1.5);
-          (leaf.object as Group).rotation.y = (-85 * swing * Math.PI) / 180;
-        });
       },
     })
     .at(5.85, 0, 0);
+  updates.push((dt) => {
+    swing = closing ? Math.max(0, swing - dt / 0.6) : open ? Math.min(1, swing + dt / 1.5) : swing;
+    (leaf.object as Group).rotation.y = (-85 * swing * Math.PI) / 180;
+  });
+
 
   const length = TUNNEL.x1 - TUNNEL.x0;
   const mid = (TUNNEL.x0 + TUNNEL.x1) / 2;
@@ -264,6 +272,7 @@ function tunnel(kit: LevelKit, ctx: SceneContext): void {
       prompt: 'Climb the rungs',
       radius: 0.4,
       onInteract: () => {
+        hatchWheel(ctx.audio, { x: TUNNEL.x1, y: 1.4, z: 0 });
         ctx.goTo('bunker_exterior', 'from_hatch');
         // First light: the walk down through the forest is by day.
         ctx.state.time = 'day';
@@ -282,6 +291,20 @@ function tunnel(kit: LevelKit, ctx: SceneContext): void {
     wait = 2 + Math.random() * 3;
     drip(c.audio, { x: c.player.position.x + 3 + Math.random() * 6, y: 0.1, z: 0 }, 0.35);
   });
+  // Water underfoot all the way.
+  kit.use((k) =>
+    k.later('register', () =>
+      k.scene.player.events.on('footstep', () => {
+        const p = ctx.player.position;
+        if (p.x > TUNNEL.x0) splash(ctx.audio, { x: p.x, y: 0.05, z: p.z }, 0.35);
+      }),
+    ),
+  );
+  return () => {
+    closing = true;
+    open = false;
+    steelDoorShut(ctx.audio, { x: 6.2, y: 0.8, z: 0 });
+  };
 }
 
 /** The way back to the dormitory, closed until Marc has been met. */
@@ -297,32 +320,83 @@ function leaveByTheDoor(kit: LevelKit, ctx: SceneContext): void {
 }
 
 /**
- * Jumpscare 3: after three objects or 90 seconds, the next time the player turns toward the
- * door, Marc is standing in it.
+ * The room's beats: jumpscare 3, and in the tunnel, a third of the way along, the steel door at
+ * the back pulled shut behind the reporter, then nothing. Only forward now.
  */
-function doorwayScare(seen: Set<string>): Update {
+const roomBeats = (shutTheDoor: () => void): Beat[] => [
+  {
+    id: 'bun3_doorway',
+    when: { after: Number.POSITIVE_INFINITY },
+    do: [{ stinger: 'sfx_breath_mask', at: { x: DOOR.x, z: DOOR.z } }],
+  },
+  {
+    id: 'dawn_tunnel_door',
+    when: { enter: { x: TUNNEL.x0 + 14, z: 0, w: 1, d: 1.2 } },
+    if: { flag: 'met_marc' },
+    do: [{ run: shutTheDoor }, { silence: 14, after: 1 }],
+  },
+];
+
+/**
+ * Marc, masked, wherever the night has put him. Empty room: he steps into the doorway while the
+ * reporter's back is turned and is there when they turn (jumpscare 3). Dark room: he stands in the
+ * far corner from the start until the torch finds him. After the monologue, and on any later
+ * visit, he sits on the bed with his back to the door.
+ */
+function stageMarc(kit: LevelKit, ctx: SceneContext, arrival: Arrival, seen: Set<string>, scares: ScareDirector): void {
+  const marc = kit.npc('marc');
+  if (arrival === 'after') return sitOnTheBed(marc);
+  const talk = (id: NodeId) => playNode(ctx, id).then(() => walkToTheBed(marc));
+
+  if (arrival === 'dark') {
+    const { x, z, yaw } = markers.marc_dark_corner;
+    marc.at(x, 0, z).faceYaw(yaw);
+    let fired = false;
+    updates.push((_dt, c) => {
+      if (fired || c.paused || !facing(c, x, z, 12) || distance(c, x, z) > 7) return;
+      fired = true;
+      void talk('marc_dark_room');
+    });
+    return;
+  }
+
+  // After three objects or 90 seconds he comes back. He steps in only while the door is behind
+  // the reporter, and the hit comes when they turn and see him.
+  const { x, z, yaw } = markers.bun3_doorway;
+  marc.at(x, 0, z).faceYaw(yaw);
+  marc.object.visible = false;
   let elapsed = 0;
-  let fired = false;
-  return (dt, ctx) => {
-    if (fired || ctx.paused) return;
+  let stage: 'waiting' | 'there' | 'met' = 'waiting';
+  updates.push((dt, c) => {
+    if (stage === 'met' || c.paused) return;
     elapsed += dt;
     if (seen.size < 3 && elapsed < 90) return;
-    if (!facing(ctx, DOOR.x, DOOR.z, 35) || distance(ctx, DOOR.x, DOOR.z) < 2) return;
-    fired = true;
-    cue('bun3_doorway');
-    setTimeout(() => void playNode(ctx, 'marc_doorway'), 1000);
-  };
+    if (stage === 'waiting') {
+      if (facing(c, DOOR.x, DOOR.z, 70)) return;
+      stage = 'there';
+      marc.object.visible = true;
+      return;
+    }
+    if (!facing(c, DOOR.x, DOOR.z, 30) || distance(c, DOOR.x, DOOR.z) < 2) return;
+    stage = 'met';
+    scares.fire('bun3_doorway');
+    setTimeout(() => void talk('marc_doorway'), 1000);
+  });
 }
 
-/** Wrong knock: the torch finds him standing in the far corner. No sound hit. */
-function torchFindsHim(): Update {
-  const { x, z } = markers.marc_dark_corner;
-  let fired = false;
-  return (_dt, ctx) => {
-    if (fired || ctx.paused || !facing(ctx, x, z, 12) || distance(ctx, x, z) > 7) return;
-    fired = true;
-    void playNode(ctx, 'marc_dark_room');
-  };
+/** He walks to the bed when he has said goodbye, and sits. */
+function walkToTheBed(marc: NpcBuilder): void {
+  const { x, z } = markers.marc_on_bed;
+  void marc.character.walk([{ x: x - 1.2, z: z - 1.1 }, { x, z }]).then(() => sitOnTheBed(marc));
+}
+
+/** Hunched on the blanket, his back to the door. No sitting pose exists, so the cape folds down. */
+function sitOnTheBed(marc: NpcBuilder): void {
+  const { x, z, yaw } = markers.marc_on_bed;
+  marc.character.stop();
+  marc.character.position.set(x, BED.top, z);
+  marc.faceYaw(yaw);
+  marc.object.scale.y = SITTING;
 }
 
 const distance = (ctx: SceneContext, x: number, z: number) => Math.hypot(x - ctx.player.position.x, z - ctx.player.position.z);
