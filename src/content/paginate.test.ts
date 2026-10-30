@@ -9,6 +9,15 @@ describe('wrap', () => {
   it('breaks long lines at spaces and keeps the indent', () => {
     expect(wrap('  aaa bbb ccc', 9)).toEqual(['  aaa bbb', '  ccc']);
   });
+
+  it('keeps runs of spaces, so columns stay aligned', () => {
+    expect(wrap('Mardi 9 janvier       BN')).toEqual(['Mardi 9 janvier       BN']);
+    expect(wrap('Mardi    BN. Une longue ligne', 16)).toEqual(['Mardi    BN. Une', 'longue ligne']);
+  });
+
+  it('keeps a word longer than the line whole', () => {
+    expect(wrap('abcdefghij klm', 5)).toEqual(['abcdefghij', 'klm']);
+  });
 });
 
 describe('paginate', () => {
@@ -30,6 +39,11 @@ describe('paginate', () => {
 
   it('starts each section on a new page', () => {
     expect(paginate(['first', 'second'])).toEqual(['first', 'second']);
+  });
+
+  it("keeps the columns of Gremaud's diary", () => {
+    const diary = 'Mardi 9 janvier       BN\nVendredi 12 janvier   BN. Couvertures.';
+    expect(paginate(diary)).toEqual([diary]);
   });
 
   it('drops blank lines at the edges of a section', () => {

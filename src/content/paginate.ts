@@ -3,15 +3,19 @@ export const PAGE_LINES = 10;
 /** Characters per line at the 16 px UI font in the 640x480 frame, with margins. */
 export const PAGE_WIDTH = 64;
 
-/** Breaks a line longer than `width` at spaces, keeping its indent on every piece. */
+/**
+ * Breaks a line longer than `width` at spaces, keeping its indent on every piece. Spacing inside
+ * the line is kept as written, so columns such as the dates in Gremaud's diary stay aligned.
+ */
 export function wrap(line: string, width = PAGE_WIDTH): string[] {
+  if (line.length <= width) return [line];
   const indent = line.match(/^ */)![0];
-  const words = line.trim().split(/ +/);
-  return words.reduce<string[]>((out, word) => {
-    const last = out.at(-1);
-    if (last !== undefined && `${last} ${word}`.length <= width) return [...out.slice(0, -1), `${last} ${word}`];
-    return [...out, `${indent}${word}`];
-  }, []);
+  const lastSpace = line.lastIndexOf(' ', width);
+  // A word longer than the line stays whole, as a page can't break it either.
+  const cut = lastSpace > indent.length ? lastSpace : line.indexOf(' ', width);
+  if (cut < 0) return [line];
+  const rest = line.slice(cut).trimStart();
+  return [line.slice(0, cut).trimEnd(), ...(rest ? wrap(indent + rest, width) : [])];
 }
 
 /**
