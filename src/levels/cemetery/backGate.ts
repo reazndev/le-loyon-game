@@ -9,8 +9,8 @@ import { BACK_GATE, BACK_Z } from './layout';
 const OPEN_DEG = 105;
 
 /**
- * The narrow iron gate in the north wall, onto the forest path. Shut until the first sighting,
- * when the reporter can open it. It can also be found standing open (cem2_back_gate).
+ * The narrow iron gate in the north wall, onto the forest path. Shut on day 1 until the first
+ * sighting, when the reporter can open it. It can also be found standing open (cem2_back_gate).
  */
 export class BackGate {
   private open = false;
@@ -39,7 +39,8 @@ export class BackGate {
         enabled: () => !this.open,
         radius: 0.7,
         onInteract: async () => {
-          if (!ctx.state.hasFlag('first_sighting')) return playNode(ctx, 'path_forest_blocked');
+          // From day 2 the forest is open whether or not the reporter saw the figure on night 1.
+          if (!ctx.state.hasFlag('first_sighting') && ctx.state.count('day') <= 1) return playNode(ctx, 'path_forest_blocked');
           this.set(true);
           playSound(ctx.audio, 'sfx_gate_creak_back', { at: { x: BACK_GATE.x, y: 1, z: BACK_Z } });
         },

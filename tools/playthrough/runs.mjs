@@ -129,6 +129,9 @@ const graves = {
   misc3: { x: 3, z: -0.4 },
 };
 
+/** Where the figure stands on night 1, against the back wall beside the Chassot plot. */
+const SIGHTING = { x: -14.5, z: -11.8 };
+
 async function readGrave(s, at) {
   await s.use('Read the stone', { near: at });
   await s.talk();
@@ -152,11 +155,14 @@ const nightOneCemetery = {
     await s.awaitTalk('Raymond and Bari');
     // He goes back down the hill; then the figure stands at the back wall by the Chassot plot.
     await s.eval(() => window.__game.setSpeed(3));
-    await s.until(() => window.__game.state().flags.includes('first_sighting'), 'the figure at the back wall', { timeout: 60_000 });
+    await s.until(() => window.__game.characters().some((c) => c.id === 'marc' && c.visible), 'the figure at the back wall', { timeout: 60_000 });
     await s.eval(() => window.__game.setSpeed(1));
-    await s.teleport(-9, -4, 40);
+    await s.teleport(SIGHTING.x + 3.4, SIGHTING.z + 6.2, 31);
     await s.frames(30);
     await s.shot('07-first-sighting');
+    // Walking up to it turns it away through the back gate. The reporter's own reaction sets first_sighting.
+    await s.teleport(SIGHTING.x + 1.4, SIGHTING.z + 2.4, 31);
+    await s.awaitTalk('the reporter at the back wall');
   },
 };
 

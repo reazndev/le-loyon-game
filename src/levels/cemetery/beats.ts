@@ -20,6 +20,10 @@ export const SIGHTING = { x: chassotGrave.x + 2.7, z: BACK_Z + 0.7 };
 const BUILD_SECONDS = 45;
 const LATEST_SECONDS = 110;
 const SILENCE_FADE = 60;
+/** How close the reporter gets before the figure turns away. Close enough that nobody walks up to it unseen. */
+const FIGURE_NEAR = 5;
+/** Seconds from the figure turning away to the back gate creaking behind it. */
+const GATE_CREAK_AFTER = 9;
 
 const beats: Beat[] = [
   {
@@ -32,7 +36,7 @@ const beats: Beat[] = [
           at: SIGHTING,
           face: 180,
           vanish: 'never',
-          near: 8,
+          near: FIGURE_NEAR,
           leave: [
             { x: BACK_GATE.x - 1.5, z: BACK_Z + 0.6 },
             { x: BACK_GATE.x, z: BACK_Z - 0.5 },
@@ -41,7 +45,6 @@ const beats: Beat[] = [
         },
       },
     ],
-    set: 'first_sighting',
   },
   {
     id: 'cem2_gravel_step',
@@ -126,18 +129,21 @@ function nightOne(kit: LevelKit, ctx: SceneContext, staging: Staging, gate: Back
   everyFrame(kit, () => {
     if (ctx.paused) return;
     const fromSighting = Math.hypot(player.position.x - SIGHTING.x, player.position.z - SIGHTING.z);
-    // Once the reporter walks toward it, it turns and goes out by the back gate, which creaks.
-    if (sightingAt !== null && !creaked && fromSighting < 9) {
+    // Once the reporter walks up to it, it turns and goes out by the back gate, which creaks. Only
+    // then does the reporter react, which sets first_sighting, so nobody is told about a figure
+    // they never saw.
+    if (sightingAt !== null && !creaked && fromSighting < FIGURE_NEAR) {
       creaked = true;
       setTimeout(() => {
         gate.set(true);
         playSound(audio, 'sfx_gate_creak_back', { at: { x: BACK_GATE.x, y: 1, z: BACK_Z } });
-      }, 9000);
+        setTimeout(() => void playNode(ctx, 'sighting_1'), 1500);
+      }, GATE_CREAK_AFTER * 1000);
     }
     // The silence starts at the first grave read tonight, or soon after arriving anyway.
     if (ctx.time > 30) startSilence();
     if (silenceSince !== null && ctx.time - silenceSince > LATEST_SECONDS && facingAwayFromGate()) bark();
-    if (raymondGoneAt === null || state.hasFlag('first_sighting')) return;
+    if (raymondGoneAt === null || sightingAt !== null || state.hasFlag('first_sighting')) return;
     const allRead = state.hasFlag('read_grave_menoud') && state.hasFlag('read_grave_gremaud') && state.hasFlag('read_grave_chassot');
     if (allRead && ctx.time - raymondGoneAt > 12 && fromSighting > 11) {
       staging.scares.fire('cem1_back_wall');
