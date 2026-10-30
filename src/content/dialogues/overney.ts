@@ -83,7 +83,7 @@ export const nodes = {
       'Jean-Pierre Gremaud. Our syndic for twenty-six years. My friend.',
       "He walked out of his house one night in January '97, in the snow, and was never seen again.",
       'We searched for five days. The river, the road, the forest. Nothing.',
-      'Odile put up a stone last year so she has somewhere to bring flowers. There is no one under it.',
+      'His wife put up a stone last year so she has somewhere to bring flowers. There is no one under it.',
       "People say things. That he ran off, that he owed money. He didn't. He wasn't that kind of man.",
     ],
     next: 'overney_graves_chassot',
@@ -94,7 +94,7 @@ export const nodes = {
       'And Marc Chassot. Back row, by the forest wall, with his mother.',
       "An old Leurs family. He left at twenty, very angry, after his father died. Twenty years we didn't see him.",
       "In '95 word came that he had died abroad. In the war in Yugoslavia.",
-      'Jean-Pierre arranged everything. The coffin came home sealed. We buried him three years ago this Saturday.',
+      'It was all arranged from abroad. We buried him three years ago this Saturday.',
     ],
     next: 'overney_graves_whisper',
   },
@@ -103,18 +103,18 @@ export const nodes = {
     effects: { set: 'abbe_told_graves' },
     lines: [
       "Now, the whispers. You'll hear them anyway, so hear them from me.",
-      "Some say Marc didn't die. That he came back with his face burned, and hides it behind a mask.",
+      'Some say the man in the mask is something left over from the war. A thing that walks among the graves at night.',
       'That is what people do with grief. They turn it into a story they can stand.',
     ],
     choices: [
-      { text: 'Do you think it could be true?', next: 'overney_true' },
+      { text: 'Do you believe that?', next: 'overney_true' },
       { text: 'Where are the burial records kept?', next: 'overney_register_mention' },
     ],
   },
   overney_true: {
     speaker: speakers.overney,
     lines: [
-      'I said the mass. I blessed the coffin. I gave his mother communion at the graveside.',
+      "I've been a priest here thirty years. The dead I know stay where we put them.",
       "What I think doesn't matter very much.",
     ],
     next: 'overney_register_mention',
@@ -158,7 +158,7 @@ export const nodes = {
       "I wrote that entry in November '95. I wrote what I saw. That's all a register is.",
       'Since then I have been told things.',
       'Things told to a priest under the seal of confession can never be repeated. Not in a court. Not to a bishop.',
-      'Not to stop a war. Not to bring a man home.',
+      'Not to stop a war. Not to ease a grieving family.',
     ],
     next: 'overney_seal_3',
   },
@@ -178,7 +178,7 @@ export const nodes = {
     speaker: speakers.overney,
     lines: [
       "You know I won't answer that.",
-      "Go and see Odile Gremaud. I'll telephone her. She has been alone with her questions long enough.",
+      "Go and see Odile Gremaud, Jean-Pierre's widow. I'll telephone her. She has been alone with her questions long enough.",
     ],
     next: 'overney_seal_end',
   },
@@ -193,7 +193,7 @@ export const nodes = {
   },
   overney_seal_end: {
     speaker: speakers.overney,
-    lines: ["And please. If you go up there at night, take Raymond's rounds seriously. He's not a patient man."],
+    lines: ["And please. If you go up there at night, take the watchman's rounds seriously. Raymond is not a patient man."],
   },
   overney_day2_again: {
     speaker: speakers.overney,

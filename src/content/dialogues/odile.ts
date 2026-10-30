@@ -53,7 +53,7 @@ export const nodes = {
       'The fourteenth of January. Snow all day. He put his boots on after the news.',
       "He said he was going to look at the commune's wood in Bois-Noir. At ten at night. In snow.",
       'I said, "Jean-Pierre, you\'re sixty-four." He kissed my head and went.',
-      "His car's still in the garage. Gilles keeps the battery charged. I don't know why I let him.",
+      "His car's still in the garage. Gilles, the mechanic, keeps the battery charged. I don't know why I let him.",
     ],
     next: 'odile_before',
   },

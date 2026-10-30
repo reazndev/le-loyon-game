@@ -33,7 +33,7 @@ export const nodes = {
   raymond_night1_warn: {
     speaker: speakers.raymond,
     lines: [
-      'I do a round here every night. Nine till two. For the council.',
+      'Raymond Bapst. I do a round here every night. Nine till two. For the council.',
       "If I find anyone messing with these graves, I call the gendarmes in Romont. I don't care who.",
       'These are my graves. I dug every one of them.',
     ],

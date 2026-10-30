@@ -70,14 +70,14 @@ export const nodes = {
     speaker: speakers.monique,
     lines: [
       'Gilles at the garage talks to everyone. Bernard Yerly at the farm talks to nobody.',
-      "Christine has the laiterie. Leave Madame Gremaud alone, she's had enough.",
+      "Christine has the laiterie. Leave Madame Gremaud alone, the syndic's widow. She's had enough.",
       'And the abbé knows everyone, living or dead.',
     ],
   },
   monique_computer: {
     speaker: speakers.monique,
     lines: [
-      "Yannick's machine. He set it up for the bookings. Nobody books.",
+      "My son's machine. Yannick. He set it up for the bookings. Nobody books.",
       'Go ahead. But it uses the phone line, so if someone calls, they get nothing.',
       "Don't stay on all night. It costs.",
     ],
@@ -108,7 +108,7 @@ export const nodes = {
   monique_dinner1_lantern: {
     speaker: speakers.monique,
     lines: [
-      "Nobody knows. Christine says it isn't her. Raymond sits up there half the night and never sees anyone.",
+      "Nobody knows. His sister Christine says it isn't her. The watchman sits up there half the night and never sees anyone.",
       "Somebody who liked Daniel. That's all.",
     ],
     next: 'monique_dinner1_torch',
@@ -118,7 +118,7 @@ export const nodes = {
     effects: { give: 'flashlight' },
     lines: [
       "You're going out. I can see it.",
-      "Take this. Raymond walks his dog up there till two. Don't scare him, he's not young.",
+      "Take this. Raymond Bapst, the watchman, walks his dog up there till two. Don't scare him, he's not young.",
       "And bring the torch back. It was my husband's.",
     ],
     next: 'monique_dinner1_torch.2',
@@ -146,14 +146,14 @@ export const nodes = {
     speaker: speakers.monique,
     lines: [
       'At night. Of course you did.',
-      "Yannick came in at one in the morning too. I suppose that's a coincidence.",
+      "My son came in at one in the morning too. I suppose that's a coincidence.",
     ],
   },
   monique_day2_bunker: {
     speaker: speakers.monique,
     lines: [
       'The "barn" up in Bois-Noir? Army. The commune bought it, God knows why.',
-      "The kids go up to drink. I told Yannick if I catch him there I'll sell his moped.",
+      "The kids go up to drink. I told my son if I catch him there I'll sell his moped.",
     ],
   },
   monique_day2_marc: {
@@ -208,7 +208,7 @@ export const nodes = {
     speaker: speakers.monique,
     lines: [
       'Raymond found the Chassot grave open this morning. Dug out. The coffin lid off.',
-      "He's called Romont. The gendarmes come tomorrow.",
+      "He's called the gendarmes in Romont. They come tomorrow.",
       "I have your shovel mud on my stairs. I'm not going to say anything. But you'll take the first bus tomorrow.",
       'I mean it.',
     ],

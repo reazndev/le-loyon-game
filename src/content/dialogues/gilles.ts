@@ -15,7 +15,7 @@ export const nodes = {
     speaker: speakers.gilles,
     effects: { set: 'met_gilles' },
     lines: [
-      'The journalist. Monique said.',
+      'The journalist. Monique at the inn said.',
       "Sit if you want. I'm not going to tell you a ghost story.",
     ],
     choices: [
@@ -61,7 +61,7 @@ export const nodes = {
   },
   gilles_day2: {
     speaker: speakers.gilles,
-    lines: ["You're the one who walked into Bois-Noir at night. Yannick told me. Yannick tells me everything."],
+    lines: ["You're the one who walked into Bois-Noir at night. Monique's boy told me. Yannick tells me everything."],
     choices: [
       { text: 'Did you know Marc Chassot?', next: 'gilles_marc_1' },
       { text: 'Do you have a key to the old bunker?', next: 'gilles_bunker' },

@@ -102,7 +102,7 @@ export const nodes = {
     speaker: speakers.bernard,
     effects: { set: 'bernard_light_coffin' },
     lines: [
-      "November '95. Four of us. Me, Gilles, Raymond, and Daniel Menoud.",
+      "November '95. Four of us. Me, Gilles from the garage, Raymond the watchman, and Daniel Menoud.",
       'The syndic brought the coffin up from the valley in a van. Sealed. "From the French."',
       'We lifted it and Daniel looked at me. I looked at him. Nobody said anything.',
       'It was light. Like lifting a door.',

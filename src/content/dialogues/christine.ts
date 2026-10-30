@@ -34,7 +34,7 @@ export const nodes = {
   },
   christine_day2: {
     speaker: speakers.christine,
-    lines: ['You went to see Daniel. Raymond told me. People tell me everything at the milk counter.'],
+    lines: ['You went to see Daniel. The watchman told me. People tell me everything at the milk counter.'],
     choices: [
       { text: 'What was he like?', next: 'christine_daniel_1' },
       { text: 'Was he close to Marc Chassot?', if: { flag: 'abbe_told_graves' }, next: 'christine_daniel_marc' },
@@ -57,7 +57,7 @@ export const nodes = {
       'Marc and Daniel. You never saw one without the other, when they were boys.',
       "When Marc left, Daniel didn't speak to anyone for a month.",
       'The last year, Daniel went walking on Sundays. Up into Bois-Noir. Every Sunday.',
-      'Once at supper he said, "Marc isn\'t dead, you know." Then he laughed. So I laughed.',
+      'Once at supper he said, "You know what we buried up there? A box." Then he laughed. So I laughed.',
       'Three weeks later...',
     ],
     next: 'christine_daniel_marc.2',
