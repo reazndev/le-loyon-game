@@ -1,4 +1,4 @@
-import { CircleGeometry, CylinderGeometry, Euler, SphereGeometry, Vector3, type Group, type Object3D } from 'three';
+import { CircleGeometry, CylinderGeometry, Euler, MathUtils, SphereGeometry, Vector3, type Group, type Object3D } from 'three';
 import { dialogues } from '../../content';
 import { noiseBurst, thump } from '../../engine/audio/generators';
 import type { Shape } from '../../engine/physics/collision';
@@ -18,6 +18,7 @@ import { isNight, storyPhase, type StoryPhase } from '../forest_path/story';
 import { yawToward } from '../forest_path/trail';
 import { buildRooms, movingBlocker } from './concrete';
 import { dripInTheNextRoom } from './drips';
+import { easePose } from './facing';
 import { isFriendlyKnock } from './knock';
 import { floorMask, heapPoses, maskPile, uprightMask, type HeapOptions, type MaskPose } from './masks';
 import { beerCans, bench, bunkStack, ceilingRuns, chair, graffiti, locker, stencil, stubs, table, wires } from './props';
@@ -79,6 +80,8 @@ const TENT_SHEET = { x: -7.6, z: -17.85 };
 const MIRROR = { x: -9.3, z: -13.02 };
 /** Where Marc stands in the passage while he talks through the open door: well back, never within 3 m. */
 const MARC_BACK = { x: 15.2, z: -31 };
+/** Where the reporter stands to see Marc through the open door: square to the doorway, 4 m from him. */
+const FACING_MARC = { x: 11.15, z: -30.95 };
 /** The fort_phone choice that turns the crank. */
 const CRANK = dialogues.fort_phone.nodes.fort_phone!.choices!.find((choice) => choice.next === 'fort_phone_crank')!.text;
 
@@ -608,8 +611,7 @@ function marcInThePassage(kit: LevelKit, ctx: SceneContext) {
   return {
     show: () => {
       marc.object.visible = true;
-      const p = ctx.player.position;
-      ctx.player.yaw = (yawToward(MARC_BACK.x - p.x, MARC_BACK.z - p.z) * Math.PI) / 180;
+      turnToMarc(ctx);
     },
     leave: () => {
       if (!marc.object.visible) return;
@@ -617,6 +619,24 @@ function marcInThePassage(kit: LevelKit, ctx: SceneContext) {
       void marc.character.walkTo(MARC_BACK.x + 0.5, MARC_BACK.z).then(() => (marc.object.visible = false));
     },
   };
+}
+
+/**
+ * The reporter steps back from the jamb, square to the doorway, and turns to Marc. From the
+ * knocking spot beside the door the jamb hides the passage. The dialogue holds the player, so
+ * the pose goes through `place`, which moves the camera with it.
+ */
+function turnToMarc(ctx: SceneContext): void {
+  const p = ctx.player.position;
+  const from = { x: p.x, z: p.z, yaw: MathUtils.radToDeg(ctx.player.yaw) };
+  const to = { ...FACING_MARC, yaw: yawToward(MARC_BACK.x - FACING_MARC.x, MARC_BACK.z - FACING_MARC.z) };
+  let t = 0;
+  updates.push((dt) => {
+    if (t >= 1) return;
+    t = Math.min(1, t + dt / 1.4);
+    const pose = easePose(from, to, t);
+    ctx.player.place(pose.x, p.y, pose.z, pose.yaw);
+  });
 }
 
 /** A fist on a steel door: a dull boom with a ring in it. */
