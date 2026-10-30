@@ -32,6 +32,7 @@ import {
   woodsHeight,
   type Area,
 } from '../forest_path/woods';
+import { nightMist } from '../../game/ambient/mist';
 
 /**
  * La grange du Bois-Noir. A clearing with the 1940s fort dressed as a hay barn. Behind it an
@@ -166,6 +167,7 @@ export const bunkerExteriorScene = defineScene({
     kit.exit({ w: 6, d: 1, to: 'forest_path', spawn: 'from_bunker' }).at(0, 0, 27.8);
 
     forestAmbience(kit, ctx);
+    nightMist(kit, ctx);
   },
 
   update: lostInTheFog(trails),

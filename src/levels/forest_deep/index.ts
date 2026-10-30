@@ -32,6 +32,7 @@ import {
   type Area,
 } from '../forest_path/woods';
 import { startle } from '../../game/scares/startles';
+import { mistAlong, nightMist } from '../../game/ambient/mist';
 
 /**
  * Bois-Noir, haut. The animal track above the fort winds up to a single larch, golden among
@@ -184,6 +185,8 @@ export const forestDeepScene = defineScene({
     kit.exit({ w: 6, d: 1, to: 'bunker_exterior', spawn: 'from_track' }).at(0, 0, 19.2);
 
     forestAmbience(kit, ctx);
+    nightMist(kit, ctx);
+    mistAlong(kit, ctx, track, height);
   },
 
   update: lostInTheFog([track]),

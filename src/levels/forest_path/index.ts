@@ -14,6 +14,7 @@ import { storyPhase } from './story';
 import { distanceToTrails, nearestOnTrails, yawToward } from './trail';
 import { scatter } from '../../game/kit/scatter';
 import { enclose, fallenLog, forestAmbience, forestAtmosphere, forestFloor, leafyTrees, leaningBeeches, lowPlants, mossPatches, rock, spruceWall, tallPlants, trailStrip, undergrowth, woodland } from './woods';
+import { mistAlong, nightMist } from '../../game/ambient/mist';
 
 /**
  * Bois-Noir, chemin. From the cemetery's back gate north through spruce to the shrine fork.
@@ -105,6 +106,8 @@ export const forestPathScene = defineScene({
     kit.exit({ w: 1, d: 5, to: 'yerly_farm', spawn: 'from_forest' }).at(-30.4, 0, -11);
 
     forestAmbience(kit, ctx);
+    nightMist(kit, ctx);
+    trails.forEach((trail) => mistAlong(kit, ctx, trail, height));
     const heifer = heiferInTheForest(kit, ctx, phase);
     stageForestPath(kit, ctx, phase, [...heifer.beats, ...cupOnTheStump(kit, ctx, phase)]);
     hints(kit, ctx, phase, heifer.gap);

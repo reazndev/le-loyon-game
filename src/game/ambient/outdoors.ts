@@ -8,6 +8,7 @@ import { rain } from './sounds';
 import { loop } from './soundscape';
 import { windSway } from './sway';
 import { weather, type Weather } from './weather';
+import { nightMist } from './mist';
 
 export interface OutdoorWeather {
   /** How loud the drizzle hisses in the grass and leaves all around. */
@@ -26,6 +27,7 @@ export function outdoorWeather(kit: LevelKit, ctx: SceneContext, options: Outdoo
   const sky = weather(ctx.state);
   windSway(kit, 0.5 + sky.wind);
   particles(kit, fogWisps(night ? { opacity: 0.3 } : {}));
+  nightMist(kit, ctx);
   if (sky.breath) breathVapor(kit, ctx);
   if (sky.drizzle) {
     particles(kit, drizzle());

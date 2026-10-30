@@ -46,6 +46,11 @@ export interface ParticleSpec {
   opacity?: number;
   /** Takes the fog's color times this instead of `color`, so wisps match whatever fog the scene has. */
   fogTint?: number;
+  /**
+   * The points are the fog itself: the scene's fog only thins them a little with distance
+   * instead of hiding them, and the torch and lamps light them fully. Use with `fogTint`.
+   */
+  mist?: boolean;
   /** World height below which points hide, such as a floor under a drip. */
   floor?: number;
   seed?: string;
@@ -174,7 +179,9 @@ void main() {
     if (length(c) > 0.5) discard;
   #endif
 
-  #ifdef FOG_TINT
+  #if defined(MIST)
+    vec3 lit = uFogColor * uFogTint + vGlow;
+  #elif defined(FOG_TINT)
     vec3 lit = uFogColor * uFogTint + vGlow * 0.35;
   #else
     vec3 lit = uColor * min(vLight, vec3(2.0));
@@ -182,13 +189,18 @@ void main() {
   #ifdef LEAF
     lit *= 0.5 + 0.5 * abs(sin(uTime * (1.5 + vSeed * 2.5) + vSeed * 20.0));
   #endif
-  vec3 color = mix(lit, uFogColor, vFog);
+  #ifdef MIST
+    float fog = vFog * 0.3;
+  #else
+    float fog = vFog;
+  #endif
+  vec3 color = mix(lit, uFogColor, fog);
 
   #ifdef SOFT
-    gl_FragColor = vec4(color, alpha * (1.0 - vFog));
+    gl_FragColor = vec4(color, alpha * (1.0 - fog));
   #else
     // Screen-door transparency, like the PS1's stipple: nothing to sort, nothing to blend.
-    if (alpha * (1.0 - vFog * 0.7) < bayer(gl_FragCoord.xy)) discard;
+    if (alpha * (1.0 - fog * 0.7) < bayer(gl_FragCoord.xy)) discard;
     gl_FragColor = vec4(color, 1.0);
   #endif
 }
@@ -209,6 +221,7 @@ function particleMaterial(spec: ParticleSpec): ShaderMaterial {
   if (spec.follow) defines.FOLLOW = '';
   if (spec.orbit) defines.ORBIT = '';
   if (spec.fogTint !== undefined) defines.FOG_TINT = '';
+  if (spec.mist) defines.MIST = '';
   return new ShaderMaterial({
     defines,
     uniforms: {
