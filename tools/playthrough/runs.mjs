@@ -38,34 +38,58 @@ const prologue = {
     // "New game" is the first entry of the title menu.
     await s.key('KeyE');
     await s.inScene('home');
-    const { page } = s;
-    await page.locator('.pc-icon', { hasText: 'Navigator' }).waitFor({ timeout: 20_000 });
+    // Keyboard only, as a new player would: the desktop focuses Courrier, which dials up first.
+    await s.until(() => window.__desktop?.root.classList.contains('on'), 'the desktop', { timeout: 20_000 });
     await s.shot('02-home');
-    await page.locator('.pc-icon', { hasText: 'Navigator' }).click();
-    await page.locator('.pc .btn', { hasText: 'Connect' }).first().click();
-    await s.until(() => window.__desktop?.connected, 'the modem to connect', { timeout: 60_000 });
-    await page.getByText('Bookmarks', { exact: true }).click();
-    await page.locator('.pc').getByText('Alpine Anomalies Board', { exact: true }).last().click();
-    // P1: the bus times in a reply on the board, Stef's Le Loyon page, and yann in the guestbook.
-    const follow = async (href, flag) => {
-      const link = page.locator(`.pc a[href${href}]`).first();
-      await link.waitFor({ timeout: 60_000 });
-      // Links work once the page text has dropped in over the modem.
-      await s.until(() => window.__desktop.browser.pane.content.style.clipPath === '', 'the page to arrive', { timeout: 60_000 });
-      await link.click();
+    await s.key('KeyE');
+    await s.until(() => window.__desktop.focus.current?.textContent === 'Connect', 'the dial-up window');
+    await s.key('KeyE');
+    await s.until(() => window.__game.state().flags.includes('pro_read_mail'), "Ruth's mail", { timeout: 60_000 });
+    // Back closes Courrier. Navigator is the next icon down, and it opens on the board.
+    await s.key('Escape');
+    await s.key('ArrowDown');
+    // Presses interact and waits for the page it opens to arrive; a cached page arrives at once.
+    const openFocused = async () => {
+      await s.eval(() => (window.__lastPage = window.__desktop.browser.page));
+      await s.key('KeyE');
+      await s.until(
+        () => {
+          const { browser } = window.__desktop;
+          return browser.page && browser.page !== window.__lastPage && !browser.loading && browser.pane.content.style.clipPath === '';
+        },
+        'the page to arrive',
+        { timeout: 60_000 },
+      );
+    };
+    // Down steps from link to link and scrolls through the text between them.
+    const downUntil = async (done, what, arg) => {
+      for (let i = 0; !(await s.eval(done, arg)); i++) {
+        if (i > 80) throw new StageError(`Pressed down 80 times without reaching ${what}`);
+        await s.key('ArrowDown', 8);
+      }
+    };
+    const open = async (text, flag) => {
+      await downUntil((t) => window.__desktop.focus.current?.textContent?.includes(t), `the link "${text}"`, text);
+      await openFocused();
       if (flag) await s.until((f) => window.__game.state().flags.includes(f), flag, { timeout: 60_000, arg: flag });
     };
-    await follow('*="452"', 'pro_read_thread_bus');
-    await follow('$="board/index.html"');
-    await follow('$="links.html"');
-    await follow('*="stefvtt/index"');
-    await follow('$="loyon.htm"', 'pro_read_homepage');
-    await follow('*="guestbook"', 'pro_read_guestbook');
+    await openFocused();
+    // P1: the bus times in a reply on the board, Stef's Le Loyon page, and yann in the guestbook.
+    await open('GAS MASK MAN');
+    await downUntil(() => window.__game.state().flags.includes('pro_read_thread_bus'), 'the reply about the bus');
+    await open('Back to index');
+    await open('Links');
+    await open("Stef's page");
+    await open('LE LOYON', 'pro_read_homepage');
+    await open('Guestbook', 'pro_read_guestbook');
     await s.shot('03-guestbook');
     // The third clue: the reporter knows where to go, over the desktop.
     await s.awaitTalk('the reporter placing the village');
-    await page.getByText('Start', { exact: true }).click();
-    await page.getByText('Pack and go', { exact: true }).click();
+    // The Start menu opens from the keyboard; its last entry is Pack and go.
+    await s.key('Tab');
+    await s.key('ArrowUp');
+    await s.until(() => window.__desktop.focus.current?.textContent === 'Pack and go', 'Pack and go');
+    await s.key('KeyE');
     await s.inScene('village_square', 60_000);
   },
 };
