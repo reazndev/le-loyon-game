@@ -3,45 +3,85 @@ import type { TextureLibrary } from '../render/textures';
 import { partMaterial } from './materials';
 import type { CharacterModel, Look } from './model';
 import { loyonPose, type PoseInput } from './poses';
-import { block, drape, facePlate } from './shapes';
+import { block, lathe, projectFront, shadeDown, taperedBox, type Ring } from './shapes';
 
-const SIDES = 12;
-/** Alternating column radii give the cape its long vertical folds. */
-const folds = (base: number[], ripple: number) =>
-  Array.from({ length: SIDES }, (_, i) => base[Math.round((i / SIDES) * base.length) % base.length]! + (i % 2 ? ripple : -ripple));
+const SIDES = 16;
+
+/**
+ * The tent sheet from the hem up to the neck. It hangs from a body: the shoulders are its widest
+ * point, it falls slack over the chest, closes in at the waist, and opens a little to the hem in
+ * long folds that deepen as they fall.
+ */
+const CAPE: Ring[] = [
+  { y: 0.08, rx: 0.235, rz: 0.19, z: 0.02, ripple: 0.034 },
+  { y: 0.5, rx: 0.222, rz: 0.17, z: 0.01, ripple: 0.03 },
+  { y: 0.95, rx: 0.205, rz: 0.15, ripple: 0.022 },
+  { y: 1.2, rx: 0.232, rz: 0.15, front: 0.025, ripple: 0.014 },
+  { y: 1.41, rx: 0.272, rz: 0.14, ripple: 0.006 },
+  { y: 1.47, rx: 0.25, rz: 0.125 },
+  { y: 1.52, rx: 0.17, rz: 0.11 },
+  { y: 1.57, rx: 0.095, rz: 0.09, z: 0.01 },
+];
+const NECK_Y = 1.56;
+
+/** The hood around the head, relative to the neck. It reaches past the mask, so the mask sits inside it. */
+const HOOD_SIDES: Ring[] = [
+  { y: -0.08, rx: 0.19, rz: 0.17, z: 0.0 },
+  { y: 0.06, rx: 0.15, rz: 0.165, z: -0.025 },
+  { y: 0.21, rx: 0.145, rz: 0.165, z: -0.03 },
+];
+/** Above the face it closes and comes forward over the brow, so the mask sits in its shadow. */
+const HOOD_TOP: Ring[] = [
+  { y: 0.21, rx: 0.145, rz: 0.165, z: -0.03, front: 0.03 },
+  { y: 0.3, rx: 0.12, rz: 0.145, z: -0.01, front: 0.025 },
+  { y: 0.37, rx: 0.05, rz: 0.08, z: 0.04 },
+];
+const MASK: Ring[] = [
+  { y: -0.01, rx: 0.065, rz: 0.08, z: -0.045, front: 0.025 },
+  { y: 0.08, rx: 0.088, rz: 0.1, z: -0.045, front: 0.03 },
+  { y: 0.17, rx: 0.092, rz: 0.1, z: -0.04 },
+  { y: 0.26, rx: 0.075, rz: 0.085, z: -0.035 },
+];
+/** The bare hand: out of the fold below the chest, a little to his right, held out in front. */
+const HAND = { x: -0.06, y: 1.08, z: -0.27 };
 
 /**
  * Le Loyon: a tall shape in a camo cape that falls from a hood to the ankles, with the tan gas
- * mask where the face should be. No arms show and the mask never comes off.
+ * mask deep in the hood. One bare hand comes out of the cape below the chest, where a level can
+ * put a candle (`hand`). The mask never comes off.
  */
 export function buildLoyon(textures: TextureLibrary): CharacterModel {
-  const camo = partMaterial({ color: 0x8e887a, map: textures.get('camo_cape'), tile: 0.7 });
-  const shadow = partMaterial({ color: 0x15140f });
+  const camo = partMaterial({ color: 0x524e45, map: textures.get('camo_cape'), tile: 0.7 });
+  // The cape fades into shadow toward the hem, so a light at the hand shows only the top of him.
+  camo.vertexColors = true;
+  const hood = partMaterial({ color: 0x524e45, map: textures.get('camo_cape'), tile: 0.7 });
+  const shadow = partMaterial({ color: 0x0a0907 });
+  const skin = partMaterial({ color: 0x7e6e5e });
   const boots = partMaterial({ color: 0x1b1a16 });
   const mask = partMaterial({ color: 0xc8c0ae, map: textures.get('gas_mask'), tile: 1, alphaTest: 0.5 });
 
   const root = new Group();
   const body = new Group();
   root.add(body);
-
-  // Square shoulders and an almost straight fall: a long box of cloth, as in the sighting photos.
-  // Shallow front to back at the top, so the hood stands out from the side as well.
-  const shoulders = folds([0.13, 0.3, 0.16, 0.3], 0.01);
-  const hem = folds([0.24, 0.32, 0.27, 0.33], 0.03);
-  body.add(new Mesh(drape(shoulders, hem, 1.58, 0.1), camo));
-  body.add(new Mesh(drape(folds([0.1, 0.12, 0.11, 0.12], 0), shoulders, 1.68, 1.58), camo));
+  body.add(new Mesh(shadeDown(lathe(CAPE, SIDES), 0.3, 1.6, 0.05), camo));
 
   const head = new Group();
-  head.position.set(0, 1.64, -0.02);
+  head.position.set(0, NECK_Y, 0);
   body.add(head);
-  // A peaked hood, pulled forward over the brow.
-  head.add(new Mesh(drape(folds([0.07, 0.09, 0.1, 0.09], 0), folds([0.15, 0.16, 0.17, 0.16], 0.008), 0.34, 0, 0.95), camo));
-  // The dark inside of the hood, around the mask.
-  head.add(new Mesh(block(0.19, 0.05, 0.02, 0.25, -0.12), shadow));
-  const face = new Mesh(facePlate(0.2, 0.23, { u0: 0, v0: 0, u1: 1, v1: 1 }), mask);
-  face.position.set(0, 0.12, -0.155);
-  head.add(face);
-  head.add(new Mesh(block(0.17, 0.06, 0.23, 0.28, -0.12), camo));
+  head.add(new Mesh(lathe(HOOD_SIDES, SIDES, [3 / 32, 29 / 32]), hood));
+  head.add(new Mesh(lathe(HOOD_TOP, SIDES), hood));
+  // The dark inside of the hood, behind and around the mask.
+  head.add(new Mesh(lathe([{ y: -0.05, rx: 0.14, rz: 0.13, z: 0.02 }, { y: 0.25, rx: 0.13, rz: 0.13, z: 0.02 }], 8), shadow));
+  head.add(new Mesh(projectFront(lathe(MASK, 10, [-0.2, 0.2]), { x0: -0.13, x1: 0.13, y0: -0.015, y1: 0.275 }), mask));
+
+  // The forearm comes out of the cape's front fold and bends up to the hand.
+  body.add(new Mesh(taperedBox({ w: 0.09, d: 0.1 }, { w: 0.075, d: 0.085 }, 0, -0.2).rotateX(-1.35).translate(HAND.x, HAND.y - 0.01, HAND.z + 0.1), hood));
+  // A fist, the thumb on top.
+  body.add(new Mesh(block(0.072, 0.075, HAND.y - 0.045, HAND.y + 0.03, HAND.z), skin));
+  body.add(new Mesh(block(0.026, 0.045, HAND.y + 0.03, HAND.y + 0.048, HAND.z - 0.005).translate(0.02, 0, 0), skin));
+  const hand = new Group();
+  hand.position.set(HAND.x, HAND.y + 0.03, HAND.z);
+  body.add(hand);
 
   const feet = [-1, 1].map((side) => {
     const foot = new Group();
@@ -58,6 +98,7 @@ export function buildLoyon(textures: TextureLibrary): CharacterModel {
     // About half a normal walk: slow enough that it looks wrong.
     walkSpeed: 0.62,
     neckLimit: 0.3,
+    hand,
     pose: (input: PoseInput, look: Look) => {
       const pose = loyonPose(input);
       body.position.y = pose.bodyY;

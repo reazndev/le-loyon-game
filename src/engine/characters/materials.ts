@@ -1,4 +1,4 @@
-import { DataTexture, NearestFilter, RepeatWrapping, RGBAFormat, type ColorRepresentation, type Texture } from 'three';
+import { DataTexture, NearestFilter, RepeatWrapping, RGBAFormat, type ColorRepresentation, type Side, type Texture } from 'three';
 import { seededRandom } from '../random';
 import { createPs1Material, type Ps1Material } from '../render/ps1Material';
 
@@ -53,6 +53,8 @@ export interface PartStyle {
   /** Meters per texture copy. */
   tile?: number;
   alphaTest?: number;
+  /** DoubleSide for open shells such as hair and hoods, whose insides show past the face. */
+  side?: Side;
 }
 
 /** A PS1 material for one body part. Untextured parts get the cloth weave. */
@@ -63,5 +65,6 @@ export function partMaterial(style: PartStyle): Ps1Material {
     color: style.color,
     uvScale: [1 / tile, 1 / tile],
     ...(style.alphaTest ? { alphaTest: style.alphaTest } : {}),
+    ...(style.side !== undefined ? { side: style.side } : {}),
   });
 }

@@ -74,44 +74,17 @@ export function block(w: number, d: number, ya: number, yb: number, z = 0): Buff
   return taperedBox({ w, d, z }, { w, d, z }, Math.max(ya, yb), Math.min(ya, yb));
 }
 
-/**
- * An open shell around a head: top, back, and both sides, leaving the face free. For hoods
- * and headscarves.
- */
-export function hoodShell(w: number, d: number, y0: number, y1: number, front: number): BufferGeometry {
-  const t = 0.03;
-  const back = d / 2;
-  const sides = [-1, 1].map((side) => block(t, back - front, y0, y1, (front + back) / 2).translate((side * (w - t)) / 2, 0, 0));
-  return mergeAll([block(w, t, y0, y1, back - t / 2), block(w, back - front, y1 - t, y1, (front + back) / 2), ...sides]);
-}
-
-/**
- * A ring of `sides` columns from `y0` to `y1`, each with its own radius at top and bottom, so a
- * cape can hang in uneven folds. Radii lists run counterclockwise from the front.
- */
-export function drape(topRadii: number[], bottomRadii: number[], y0: number, y1: number, depthScale = 1): BufferGeometry {
-  const sides = topRadii.length;
-  const at = (radii: number[], i: number, y: number): Point => {
-    const angle = (i / sides) * Math.PI * 2;
-    const r = radii[i % sides]!;
-    return [Math.sin(angle) * r, y, -Math.cos(angle) * r * depthScale];
-  };
-  const faces: [Point, Point, Point, Point][] = [];
-  for (let i = 0; i < sides; i++) {
-    faces.push([at(bottomRadii, i + 1, y1), at(bottomRadii, i, y1), at(topRadii, i, y0), at(topRadii, i + 1, y0)]);
-  }
-  const top = Array.from({ length: sides }, (_, i) => at(topRadii, i, y0));
-  const cap = capFan(top);
-  return mergeAll([quads(faces), cap]);
-}
-
-function capFan(ring: Point[]): BufferGeometry {
+/** A flat fan over a ring, facing up, or down with `under`. */
+function capFan(ring: Point[], under = false): BufferGeometry {
   const center: Point = [
     ring.reduce((s, p) => s + p[0], 0) / ring.length,
     ring[0]![1],
     ring.reduce((s, p) => s + p[2], 0) / ring.length,
   ];
-  const positions = ring.flatMap((p, i) => [...center, ...ring[(i + 1) % ring.length]!, ...p]);
+  const positions = ring.flatMap((p, i) => {
+    const next = ring[(i + 1) % ring.length]!;
+    return under ? [...center, ...p, ...next] : [...center, ...next, ...p];
+  });
   const geometry = new BufferGeometry();
   geometry.setAttribute('position', new Float32BufferAttribute(positions, 3));
   geometry.setAttribute('uv', new Float32BufferAttribute(new Array<number>((positions.length / 3) * 2).fill(0), 2));
@@ -131,14 +104,95 @@ export function mergeAll(parts: BufferGeometry[]): BufferGeometry {
   return merged;
 }
 
-/** A flat quad facing -Z, centered on its origin, with UVs given as a crop of the texture. */
-export function facePlate(w: number, h: number, crop: { u0: number; v0: number; u1: number; v1: number }): BufferGeometry {
-  const geometry = new BufferGeometry();
-  const x = w / 2;
-  const y = h / 2;
-  geometry.setAttribute('position', new Float32BufferAttribute([x, -y, 0, -x, -y, 0, -x, y, 0, x, -y, 0, -x, y, 0, x, y, 0], 3));
-  const { u0, v0, u1, v1 } = crop;
-  geometry.setAttribute('uv', new Float32BufferAttribute([u0, v0, u1, v0, u1, v1, u0, v0, u1, v1, u0, v1], 2));
-  geometry.computeVertexNormals();
+/** One section of a lathe: an ellipse at height `y`. */
+export interface Ring {
+  y: number;
+  /** Half-width along X. */
+  rx: number;
+  /** Half-depth along Z. */
+  rz: number;
+  /** Offset of the ring's center along Z; negative is forward. */
+  z?: number;
+  /** Pushes the front of the ring forward, fading out toward the sides: a brow, a chin, a fold. */
+  front?: number;
+  /** Adds to the radius of every other column, for folds in cloth. */
+  ripple?: number;
+}
+
+/**
+ * A flat-shaded solid of elliptical rings, listed from bottom to top, with a flat facet facing
+ * -Z. A full lathe is closed with a cap at both ends. `arc` keeps part of the way round, as
+ * fractions of a turn counted from the front through +X, for shells open at the face such as a
+ * hood; arcs have no caps.
+ */
+export function lathe(rings: Ring[], sides: number, arc?: [number, number]): BufferGeometry {
+  const [a0, a1] = arc ?? [0.5 / sides, 1 + 0.5 / sides];
+  const columns = arc ? Math.max(1, Math.round(sides * (a1 - a0))) : sides;
+  const at = (ring: Ring, j: number): Point => {
+    const angle = (a0 + ((a1 - a0) * j) / columns) * Math.PI * 2;
+    const fold = ring.ripple ? (j % 2 ? ring.ripple : -ring.ripple) : 0;
+    const forward = (ring.front ?? 0) * Math.max(0, Math.cos(angle)) ** 2;
+    return [Math.sin(angle) * (ring.rx + fold), ring.y, (ring.z ?? 0) - Math.cos(angle) * (ring.rz + fold) - forward];
+  };
+  const faces = rings.slice(1).flatMap((upper, i) => {
+    const lower = rings[i]!;
+    return Array.from({ length: columns }, (_, j): [Point, Point, Point, Point] => [at(lower, j + 1), at(lower, j), at(upper, j), at(upper, j + 1)]);
+  });
+  if (arc) return quads(faces);
+  const ringPoints = (ring: Ring) => Array.from({ length: columns }, (_, j) => at(ring, j));
+  return mergeAll([quads(faces), capFan(ringPoints(rings.at(-1)!)), capFan(ringPoints(rings[0]!), true)]);
+}
+
+/** Splits a non-indexed geometry into the triangles that face -Z by more than `facing` (0 to 1) and the rest. */
+export function splitFront(geometry: BufferGeometry, facing: number): [front: BufferGeometry, rest: BufferGeometry] {
+  const position = geometry.getAttribute('position');
+  const uv = geometry.getAttribute('uv');
+  const parts = { front: { position: [] as number[], uv: [] as number[] }, rest: { position: [] as number[], uv: [] as number[] } };
+  for (let t = 0; t < position.count; t += 3) {
+    const [a, b, c] = [t, t + 1, t + 2].map((i) => [position.getX(i), position.getY(i), position.getZ(i)] as Point) as [Point, Point, Point];
+    const e1 = [b[0] - a[0], b[1] - a[1], b[2] - a[2]];
+    const e2 = [c[0] - a[0], c[1] - a[1], c[2] - a[2]];
+    const nz = e1[0]! * e2[1]! - e1[1]! * e2[0]!;
+    const length = Math.hypot(e1[1]! * e2[2]! - e1[2]! * e2[1]!, e1[2]! * e2[0]! - e1[0]! * e2[2]!, nz) || 1;
+    const part = nz / length < -facing ? parts.front : parts.rest;
+    [t, t + 1, t + 2].forEach((i) => {
+      part.position.push(position.getX(i), position.getY(i), position.getZ(i));
+      part.uv.push(uv.getX(i), uv.getY(i));
+    });
+  }
+  return [parts.front, parts.rest].map((part) => {
+    const result = new BufferGeometry();
+    result.setAttribute('position', new Float32BufferAttribute(part.position, 3));
+    result.setAttribute('uv', new Float32BufferAttribute(part.uv, 2));
+    result.computeVertexNormals();
+    return result;
+  }) as [BufferGeometry, BufferGeometry];
+}
+
+/**
+ * Projects a picture onto geometry from the front: the box from `x0` to `x1` and `y0` to `y1`
+ * gets the whole texture, as a face photo on a head. Points outside take the edge texels.
+ */
+export function projectFront(geometry: BufferGeometry, box: { x0: number; x1: number; y0: number; y1: number }): BufferGeometry {
+  const position = geometry.getAttribute('position');
+  const clamp = (v: number) => Math.min(0.99, Math.max(0.01, v));
+  const uvs = Array.from({ length: position.count }, (_, i) => [
+    // Seen from the front, +X is on the viewer's left, which is the left of the picture.
+    clamp((box.x1 - position.getX(i)) / (box.x1 - box.x0)),
+    clamp((position.getY(i) - box.y0) / (box.y1 - box.y0)),
+  ]).flat();
+  geometry.setAttribute('uv', new Float32BufferAttribute(uvs, 2));
+  return geometry;
+}
+
+/** Darkens a geometry toward its bottom with vertex colors: `bottom` brightness at `y0`, full at `y1`. */
+export function shadeDown(geometry: BufferGeometry, y0: number, y1: number, bottom: number): BufferGeometry {
+  const position = geometry.getAttribute('position');
+  const colors = Array.from({ length: position.count }, (_, i) => {
+    const t = Math.min(1, Math.max(0, (position.getY(i) - y0) / (y1 - y0)));
+    const v = bottom + (1 - bottom) * t;
+    return [v, v, v];
+  }).flat();
+  geometry.setAttribute('color', new Float32BufferAttribute(colors, 3));
   return geometry;
 }
