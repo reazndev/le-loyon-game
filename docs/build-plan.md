@@ -12,7 +12,7 @@ The plan Claude follows to build the game without the user. If a session restart
 - **Parallel agents** work in separate directories so they don't overwrite each other. Only the orchestrator edits shared registration files.
 - **Commits.** Commit after each finished step. No remote, no push. Stage only your own files; never `git commit -a` while agents run.
 - **Next after the forest density agent (medium effort):** the user likes the larch's card style and wants it for all trees and greenery. Change the shared tree builders in `src/game/kit/` so every scene's trees are foliage cards (crossed alpha planes and leaf/branch cards on branches) instead of solid blobs, and replace solid bushes and hedges in `village_square`, `cemetery`, `cemetery_path`, `chassot_farm`, `yerly_farm`, `church` surroundings with cards.
-- **Leftovers for later:** inn windows should switch to `fogWindow` from `src/game/kit/windows.ts` (room 3, café); add `for2_cup` to `docs/script/07-scares.md`.
+- **Leftovers for later:** K.P. 3 meeting: add `.holdCandle()` on Marc in `marcInThePassage` (`src/levels/bunker_interior/index.ts`, around line 607) and drop the floor candle light near line 515, then retake `bunker-kp3-marc-night.png`; update jumpscare 2 in `docs/script/07-scares.md` (Yannick now sits at the regulars' table, seen when turning from the computer); the night-1 dogs-barking beat in `night_1_cemetery` is flaky in the playthrough; inn windows should switch to `fogWindow` from `src/game/kit/windows.ts` (room 3, café); add `for2_cup` to `docs/script/07-scares.md`.
 
 ## Architecture
 
