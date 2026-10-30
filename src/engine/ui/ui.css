@@ -371,6 +371,12 @@ body {
   text-shadow: 1px 1px 0 #000;
 }
 
+/* Brighter than the step above it: it is about here and now, and it changes as the player moves. */
+.ui-goal-clue {
+  margin-top: 6px;
+  color: #e4dccb;
+}
+
 .ui-notice {
   position: absolute;
   right: 24px;

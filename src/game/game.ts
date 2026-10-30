@@ -15,6 +15,7 @@ import { GameUi, type PauseAction } from './gameUi';
 import { itemInfo } from './items';
 import { isDesktopApp } from './platform';
 import { bearing, compassTarget } from './compass';
+import { pickHint } from './liveHint';
 import { currentGoal, nextStep } from './notebook';
 import { latestSave, readSave, writeSave } from './save';
 import { brightnessFactor, loadSettings, saveSettings, STEPS, type Settings } from './settings';
@@ -195,7 +196,7 @@ export class Game {
     else if (!this.scenes.busy) this.updatePlay(dt);
     if (this.ui.open || this.scenes.busy) this.overlay.prompt.hide();
     const playing = !this.ui.open && !this.scenes.busy && this.state.scene !== 'home';
-    this.overlay.showGoal(playing ? currentGoal(this.state) : null);
+    this.overlay.showGoal(playing ? currentGoal(this.state) : null, playing ? pickHint(this.world.hints, this.state, this.player.position) : null);
     this.overlay.showHud(playing ? this.hudButtons() : null);
     this.updateCompass(playing);
     this.scenes.update(dt);

@@ -34,6 +34,8 @@ export class Overlay {
   readonly dialogue: DialogueBox;
   private readonly notice: HTMLElement;
   private readonly goal: HTMLElement;
+  private readonly goalText: HTMLElement;
+  private readonly goalClue: HTMLElement;
   private readonly hud: HTMLElement;
   readonly navigation: NavigationHud;
   private hudShown = '';
@@ -51,6 +53,8 @@ export class Overlay {
     this.document = new DocumentView(this.root);
     this.dialogue = new DialogueBox(this.root);
     this.goal = el('div', 'ui-goal', this.root);
+    this.goalText = el('div', 'ui-goal-step', this.goal);
+    this.goalClue = el('div', 'ui-goal-clue', this.goal);
     this.hud = el('div', 'ui-hud', this.root);
     this.navigation = new NavigationHud(this.root);
     this.notice = el('div', 'ui-notice', this.root);
@@ -77,10 +81,15 @@ export class Overlay {
     return fadeOpacity(this.flashLayer, 0, 0.55);
   }
 
-  /** The reporter's next step, kept in the top-right corner while the player walks. Null hides it. */
-  showGoal(text: string | null): void {
-    if (this.goal.textContent !== (text ?? '')) this.goal.textContent = text ?? '';
-    this.goal.hidden = text === null;
+  /**
+   * The reporter's next step, kept in the top-right corner while the player walks, with a clue
+   * for where they are under it. Null hides it.
+   */
+  showGoal(text: string | null, clue: string | null = null): void {
+    if (this.goalText.textContent !== (text ?? '')) this.goalText.textContent = text ?? '';
+    if (this.goalClue.textContent !== (clue ?? '')) this.goalClue.textContent = clue ?? '';
+    this.goalClue.hidden = clue === null;
+    this.goal.hidden = text === null && clue === null;
   }
 
   /** Buttons in the top-left corner, each with its key, that work with a click too. Null hides them. */

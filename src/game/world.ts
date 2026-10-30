@@ -7,6 +7,7 @@ import { GroundMap } from '../engine/physics/ground';
 import { LightingRig } from '../engine/render/lighting';
 import { TextureLibrary } from '../engine/render/textures';
 import { Triggers } from '../engine/triggers';
+import type { LiveHint } from './liveHint';
 
 /** The per-scene runtime systems a level fills in. The scene manager clears them between scenes. */
 export class World {
@@ -22,6 +23,8 @@ export class World {
   readonly updates = new Set<(dt: number) => void>();
   /** The ways out of the scene and where each leads, for the compass. */
   readonly exits: { to: string; object: Object3D }[] = [];
+  /** Clues for the corner that belong to this scene. */
+  readonly hints: LiveHint[] = [];
 
   clear(): void {
     this.scene.clear();
@@ -33,5 +36,6 @@ export class World {
     this.sounds.stopAll(0.3);
     this.updates.clear();
     this.exits.length = 0;
+    this.hints.length = 0;
   }
 }

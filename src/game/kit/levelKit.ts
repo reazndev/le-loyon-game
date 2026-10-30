@@ -33,6 +33,7 @@ import {
   type SoundOptions,
   type TreeSpot,
 } from './builders';
+import type { LiveHint } from '../liveHint';
 import { NpcBuilder } from './npc';
 
 /** Size of the cells that faces are split into, in meters. Smaller cells light more smoothly. */
@@ -155,6 +156,14 @@ export class LevelKit {
           this.ctx.goTo(options.to, options.spawn);
         },
       });
+  }
+
+  /**
+   * A clue for the top-right corner while the player is in this scene and `options` hold. Give
+   * `near` to tie it to a spot. List urgent clues first: among those that apply, the first wins.
+   */
+  hint(text: string, options: Omit<LiveHint, 'text'> = {}): void {
+    this.ctx.world.hints.push({ text, ...options });
   }
 
   /** An area that loads another scene when the player walks into it. */
