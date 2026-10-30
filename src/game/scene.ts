@@ -1,4 +1,5 @@
 import type { AudioManager } from '../engine/audio/audioManager';
+import type { Action } from '../engine/input/bindings';
 import type { Input } from '../engine/input/input';
 import type { Player } from '../engine/player';
 import type { Atmosphere } from '../engine/render/atmosphere';
@@ -33,6 +34,8 @@ export interface SceneContext {
   readonly time: number;
   /** True while a dialogue, menu, or scene change holds the player still. */
   readonly paused: boolean;
+  /** Whether an input action is held down this frame, for actions held over time such as digging. */
+  held(action: Action): boolean;
   /**
    * Shows a full-frame screen, such as a computer desktop, and gives it all input until the
    * handle closes. Dialogues still show on top and hand input back to the screen.

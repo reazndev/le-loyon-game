@@ -188,6 +188,7 @@ export class Game {
       get paused() {
         return game.ui.open || game.scenes.busy;
       },
+      held: (action) => this.input.isDown(action),
       openScreen: (element, update) => this.ui.openScreen(element, update),
     };
   }

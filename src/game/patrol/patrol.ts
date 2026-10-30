@@ -62,6 +62,8 @@ export class Patrol {
   private readonly roundHandlers: (() => void)[] = [];
   private state: 'resting' | 'walking' | 'caught' | 'done' = 'resting';
   private restLeft: number;
+  /** Seconds to take off the next rest, from `hurry` during a round. */
+  private early = 0;
   private time = 0;
   private sweep = 0;
   private torchYaw = 0;
@@ -114,6 +116,12 @@ export class Patrol {
     return this;
   }
 
+  /** Brings the next round forward by `seconds`, for example after a loud noise. */
+  hurry(seconds: number): void {
+    if (this.state === 'resting') this.restLeft -= seconds;
+    else this.early += seconds;
+  }
+
   get caught(): boolean {
     return this.state === 'caught';
   }
@@ -140,8 +148,10 @@ export class Patrol {
     if (this.restLeft > 0) return;
     const [start] = this.options.route;
     if (!start) return;
-    this.raymond.character.position.set(start.x, 0, start.z);
-    this.bari.character.position.set(start.x + 0.8, 0, start.z + 0.8);
+    // Stand them on the ground, which on a hillside is well above zero.
+    const ground = (x: number, z: number) => this.ctx.world.ground.sample(x, z).height;
+    this.raymond.character.position.set(start.x, ground(start.x, start.z), start.z);
+    this.bari.character.position.set(start.x + 0.8, ground(start.x + 0.8, start.z + 0.8), start.z + 0.8);
     this.show(true);
     this.state = 'walking';
     this.seenThisRound = false;
@@ -157,7 +167,8 @@ export class Patrol {
     this.show(false);
     this.bari.character.stop();
     this.state = this.options.once ? 'done' : 'resting';
-    this.restLeft = this.rest;
+    this.restLeft = this.rest - this.early;
+    this.early = 0;
   }
 
   private updateRound(dt: number): void {
