@@ -3,10 +3,12 @@ import { castModel, type CharacterId } from '../../engine/characters/cast';
 import { Character, type WalkOptions } from '../../engine/characters/character';
 import type { Waypoint } from '../../engine/characters/motion';
 import { collarBell, cowbell } from '../../engine/characters/voices';
+import { playerTuning } from '../../engine/player';
 import { hashString } from '../../engine/random';
 import { dialogues, type EntryId, type NodeId } from '../../content';
 import type { DialogueScript } from '../dialogue';
 import { Placed, type KitContext } from './builders';
+import { stepBack } from './talkFraming';
 
 /**
  * A cast member placed in the level: a villager, Le Loyon (`marc`), Bari, or Marquise. Place
@@ -58,6 +60,7 @@ export class NpcBuilder extends Placed {
         radius: 0.35,
         prompt,
         onInteract: async () => {
+          this.standBack();
           this.talking = true;
           this.character.lookAt = this.ctx.scene.player.camera.position;
           this.character.turnToLook = true;
@@ -74,6 +77,31 @@ export class NpcBuilder extends Placed {
       });
     });
     return this;
+  }
+
+  /**
+   * Eases the reporter back to talking distance over a third of a second, so the person stays in
+   * frame from the chest up. The camera moves with it, because the player doesn't update while a
+   * dialogue holds the input.
+   */
+  private standBack(): void {
+    const { player } = this.ctx.scene;
+    const from = { x: player.position.x, z: player.position.z };
+    const step = stepBack(from, { x: this.character.position.x, z: this.character.position.z });
+    const to = this.ctx.world.collision.move(from, step, playerTuning.radius);
+    const span = { x: to.x - from.x, z: to.z - from.z };
+    let time = 0;
+    const ease = (dt: number) => {
+      time = Math.min(1, time + dt / 0.35);
+      const remaining = 1 - Math.sin((time * Math.PI) / 2);
+      const move = { x: to.x - span.x * remaining - player.position.x, z: to.z - span.z * remaining - player.position.z };
+      player.position.x += move.x;
+      player.position.z += move.z;
+      player.camera.position.x += move.x;
+      player.camera.position.z += move.z;
+      if (time >= 1) this.ctx.world.updates.delete(ease);
+    };
+    if (Math.hypot(span.x, span.z) > 0.02) this.ctx.world.updates.add(ease);
   }
 
   /** Already seated when the scene opens, on a seat `height` meters up. See `Character.sit`. */
