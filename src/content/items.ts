@@ -55,7 +55,7 @@ export const items = {
   legion_tag: {
     name: 'Identity disc, CHALLAND M.',
     description:
-      "An identity disc. 'CHALLAND M., 1958, 172493, LE.' LE: Légion étrangère, the Foreign Legion. Not his name. His name in the Legion.",
+      "A metal disc from the box. 'CHALLAND M., 1958, 172493, LE.' LE, Légion étrangère? Marc Chassot was born in 1958 too.",
     document: 'doc_legion_tag',
   },
   food_parcel: {

@@ -17,7 +17,7 @@ export interface NotebookEntry {
 export const notebook = {
   arrived: { text: 'Leurs. Inn, room 3. Last bus 18:52. Ask about the man in the mask.' },
   abbe_told_graves: {
-    text: 'Three graves. Daniel Menoud, suicide, Dec 96. J.-P. Gremaud, syndic, vanished Jan 97, stone, no body. Marc Chassot, died abroad 95, coffin came home sealed.',
+    text: 'Three graves. Daniel Menoud, suicide, Dec 96. J.-P. Gremaud, syndic, vanished Jan 97, a stone and no body. Marc Chassot, died abroad in 95, the war in Yugoslavia. Back row, with his mother.',
   },
   met_gilles: { text: "Gilles saw him 'staring at a grave'. Back row." },
   bunker_door_wedged: {
@@ -39,7 +39,7 @@ followed. Bearers: Yerly, Dousse, Bapst, Menoud.`,
   odile_talked: {
     text: "BN, twice a week, all year. Bois-Noir? 'D.M. knows.' Daniel Menoud. 'Confession' in November. 'Happy new year, my boy.'",
   },
-  suspects_empty_coffin: { text: "Marc Chassot's coffin. The syndic handed it over. It was light. What was in it?" },
+  suspects_empty_coffin: { text: "Marc Chassot's coffin. Sealed, from the syndic. Nobody saw inside. What was in it?" },
   found_hidden_door: { text: 'A steel door behind a cupboard. K.P. 3. Locked. Candle smoke.' },
   read_gremaud_letter: {
     text: `Gremaud. He knew. The coffin was empty from the start.
@@ -49,10 +49,10 @@ Bread. The larch above the fort.
 CHALLAND M. Who is Challand?`,
   },
   found_forest_grave: {
-    text: 'Gremaud is under the larch. Someone buried him and marked it. Someone who goes up and down past that hatch every day.',
+    text: 'Gremaud is under the larch. Someone buried him and marked it. Someone close enough to come up here every day.',
   },
   editor_called: { text: 'Ruth. Friday before ten. A name and a photo.' },
-  met_veilleur: { text: "veilleur = Yannick. Sixteen. He's seen him seven times." },
+  met_veilleur: { text: "veilleur = Yannick, the boy from the garage. He's seen him six or seven times." },
 } satisfies Partial<Record<Flag, NotebookEntry>>;
 
 export interface NotebookGoal {
@@ -72,7 +72,7 @@ export const notebookGoals: NotebookGoal[] = [
   { if: { count: day(1), notFlag: 'abbe_told_graves' }, text: 'The church. A priest knows who is buried where.' },
   { if: { count: day(1), notFlag: 'dinner_day1' }, text: 'Ask around the village. Then supper at the inn.' },
   { if: { count: night(1), not: { flag: ['read_grave_menoud', 'read_grave_gremaud', 'read_grave_chassot'] } }, text: 'Tonight. The cemetery. The three graves the abbé told me about.' },
-  { if: { count: night(1), notFlag: ['met_raymond', 'first_sighting', 'skipped_follow', 'found_bunker'] }, text: 'All three read. Wait by the graves. Someone is coming up the path.' },
+  { if: { count: night(1), notFlag: ['met_raymond', 'first_sighting', 'skipped_follow', 'found_bunker'] }, text: 'All three read. Wait here. Listen.' },
   { if: { count: night(1), notFlag: ['first_sighting', 'skipped_follow', 'found_bunker'] }, text: 'Stay a while. Watch the back wall, by the forest.' },
   { if: { count: night(1), notFlag: ['found_bunker', 'skipped_follow'] }, text: 'It went out by the back gate. Follow it.' },
   { if: { count: night(1) }, text: 'Back to the inn. Room 3. Sleep.' },

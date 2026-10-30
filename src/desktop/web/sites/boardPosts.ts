@@ -203,7 +203,8 @@ ${billy}`,
     body: `OK I did some research (I am a librarian, haha). In the
 newspaper archive from 1995 there is a death notice from a
 village that MIGHT be Stef's village. A young-ish man who
-died "abroad". 1995 = war in Bosnia. A soldier???
+died "abroad". And 3 years later a man in a mask at the
+cemetery??? Maybe nothing but I got goosebumps.
 
 Here is my scan, sorry quality is bad, the microfilm
 machine at work is ancient.`,
@@ -217,8 +218,8 @@ machine at work is ancient.`,
     posted: 'November 08, 1998 at 18:02:44',
     short: '11/08/98',
     stage: 0,
-    body: `Swiss don't go to war. We have the army only at home.
-It's illegal to fight for another country. So no.
+    body: `People die abroad all the time. Car accidents, skiing.
+A death notice is not a ghost. So no.
 
 ${billy}`,
   },
@@ -303,13 +304,13 @@ pivex`,
     posted: 'November 18, 1998 at 01:12:09',
     short: '11/18/98',
     stage: 2,
-    body: `the journalist came. took the bus at 16h, room upstairs at
+    body: (state) => `the journalist came. took the bus at 16h, room upstairs at
 the inn. went to the abbe. ate the soup.
 
 then went up to the cemetery at night with a torch and read
 the stones. one by one.
 
-then walked into the forest. nobody does that.`,
+${state.hasFlag('skipped_follow') ? 'then stood at the back wall a long time and went down again.' : 'then walked into the forest. nobody does that.'}`,
   },
   {
     id: 487,

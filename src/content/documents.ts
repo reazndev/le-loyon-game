@@ -186,7 +186,7 @@ syndic`,
 1958
 172493
 LE`,
-    translation: `An identity disc. 'CHALLAND M., 1958, 172493, LE.' LE: Légion étrangère, the Foreign Legion. Not his name. His name in the Legion.`,
+    translation: `An identity disc. 'CHALLAND M., 1958, 172493, LE.' LE could be Légion étrangère, the Foreign Legion.`,
   },
   doc_marc_notebook: {
     title: "Marc's notebook",
