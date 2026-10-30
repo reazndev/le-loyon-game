@@ -5,9 +5,9 @@ import type { Atmosphere } from '../../engine/render/atmosphere';
 import type { LevelKit } from '../../game/kit/levelKit';
 import type { SceneContext } from '../../game/scene';
 import type { TimeOfDay } from '../../game/state';
-import { drip } from '../bunker_interior/drips';
 import { chimesBetween } from '../church/clock';
-import { everyFrame } from '../church/everyFrame';
+import { around, everyFrame, nowAndThen } from '../../game/ambient';
+import { waterDrop } from '../../game/ambient/sounds';
 import { towerBell } from '../church/sounds';
 import { diesel, scoped, type MovingSound } from './sounds';
 
@@ -29,28 +29,6 @@ export const villageAtmosphere: Record<TimeOfDay, Atmosphere> = {
     saturation: 0.5,
   },
 };
-
-/**
- * Calls `work` at random, on average every `mean` seconds, never while a dialogue or menu is
- * open. The gaps are exponential, so events come in uneven clumps and long silences.
- */
-export function nowAndThen(kit: LevelKit, ctx: SceneContext, mean: number, work: () => void, first = mean): void {
-  let wait = first * (0.5 + Math.random());
-  everyFrame(kit, (dt) => {
-    if (ctx.paused) return;
-    wait -= dt;
-    if (wait > 0) return;
-    wait = -Math.log(1 - Math.random()) * mean + mean * 0.2;
-    work();
-  });
-}
-
-/** A point `distance` meters from the listener in a random direction, at height `y`. */
-function around(ctx: SceneContext, distance: number, y = 0): Point3 {
-  const angle = Math.random() * Math.PI * 2;
-  const p = ctx.player.position;
-  return { x: p.x + Math.cos(angle) * distance, y, z: p.z + Math.sin(angle) * distance };
-}
 
 export interface VillageAmbience {
   /** Brings the layers in one by one, a few seconds apart. Only needed with `held`. */
@@ -91,7 +69,7 @@ export function villageAmbience(kit: LevelKit, ctx: SceneContext, options: Ambie
   });
 
   const when = (mean: number, work: () => void, first?: number) => nowAndThen(kit, ctx, mean, () => on() && work(), first);
-  when(1.4, () => drip(audio, around(ctx, 3 + Math.random() * 6, 2.4), 0.25));
+  when(1.4, () => waterDrop(audio, around(ctx, 3 + Math.random() * 6, 2.4), 0.25));
   when(night ? 110 : 70, () => {
     const at = around(ctx, 45, 0.5);
     [0, 0.5, 1.1].slice(0, 1 + Math.floor(Math.random() * 3)).forEach((d) => setTimeout(() => bark(audio, { at, volume: 0.35 }), d * 1000));

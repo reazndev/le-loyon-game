@@ -1,13 +1,13 @@
 import type { Placed } from '../../game/kit/builders';
 import { ivyCover, thicket, VERGE_PLANTS, WILD_PLANTS, yew } from '../../game/kit/foliage';
 import type { LevelKit } from '../../game/kit/levelKit';
+import { crows } from '../../game/ambient';
 import { scatter, spotsAlong } from '../../game/kit/scatter';
 import { watchmanPatrol } from '../../game/patrol/patrol';
 import { scareDirector } from '../../game/scares/director';
 import { defineScene, type SceneContext } from '../../game/scene';
 import { hillAmbience, hillAtmosphere } from '../cemetery/atmosphere';
 import { saveNightTwoStart } from '../cemetery/caught';
-import { crows } from '../cemetery/crows';
 import { gateLeaf } from '../cemetery/grounds';
 import { everyFrame } from '../church/everyFrame';
 import { playNode } from '../forest_path/play';
@@ -90,7 +90,7 @@ export const cemeteryPathScene = defineScene({
 
     hillAmbience(kit, ctx.state.time);
     if (!night)
-      crows(kit, [
+      crows(kit, ctx, [
         { x: 12, z: 28.6, y: 1.2 },
         { x: -2, z: 14.5, y: 1.2, yaw: 60 },
         { x: 4.8, z: -14, y: 0, yaw: 200 },

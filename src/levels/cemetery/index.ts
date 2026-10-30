@@ -1,5 +1,6 @@
 import { greenery } from './greenery';
 import type { LevelKit } from '../../game/kit/levelKit';
+import { crows } from '../../game/ambient';
 import { playSound } from '../../game/scares/sounds';
 import { defineScene, type SceneContext } from '../../game/scene';
 import { everyFrame } from '../church/everyFrame';
@@ -9,7 +10,6 @@ import { hillAmbience, hillAtmosphere } from './atmosphere';
 import { BackGate } from './backGate';
 import { stageCemetery } from './beats';
 import { saveNightTwoStart } from './caught';
-import { crows } from './crows';
 import { DigSite } from './digSite';
 import { floor, hill, oldStones, tapAndBin, walls } from './grounds';
 import { graveStones, readGrave } from './graves';
@@ -85,7 +85,7 @@ export const cemeteryScene = defineScene({
 
     exits(kit, ctx, phase, gate);
     hillAmbience(kit, state.time);
-    if (!night) crows(kit, [
+    if (!night) crows(kit, ctx, [
       { x: -6, z: FRONT_Z, y: WALL_HEIGHT + 0.06, yaw: 160 },
       { x: 12.5, z: BACK_Z, y: WALL_HEIGHT + 0.06, yaw: 20 },
       { x: 9.4, z: -6.4, y: 1.0, yaw: 90 },
