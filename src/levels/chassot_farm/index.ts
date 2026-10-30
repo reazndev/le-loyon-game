@@ -12,6 +12,7 @@ import { villageAmbience, villageAtmosphere } from '../village_square/atmosphere
 import { house, palette } from '../village_square/houses';
 import { tractor } from '../village_square/props';
 import { road } from '../village_square/road';
+import { chassotAmbient } from './ambient';
 import { candleAlong, gapGlow } from './candle';
 import { garden, GARDEN } from './garden';
 
@@ -82,6 +83,7 @@ export const chassotFarmScene = defineScene({
       { x: BOUNDS.x0, z: (BOUNDS.z0 + BOUNDS.z1) / 2, w: 1, d: BOUNDS.z1 - BOUNDS.z0 },
       { x: BOUNDS.x1 + 1, z: (BOUNDS.z0 + BOUNDS.z1) / 2, w: 1, d: BOUNDS.z1 - BOUNDS.z0 },
     ].forEach(({ x, z, w, d }) => kit.barrier({ w, d }).at(x, 0, z));
+    chassotAmbient(kit, ctx, { house: HOUSE, barnEast: HOUSE.x + 5 });
     villageAmbience(kit, ctx, { bell: { x: 60, y: 14, z: -10 } });
   },
 });
