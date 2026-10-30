@@ -16,6 +16,8 @@ import { isSpent, unspent } from '../forest_path/spent';
 import { drumBoom, maskSlide, ventHum } from '../forest_path/sounds';
 import { isNight, storyPhase, type StoryPhase } from '../forest_path/story';
 import { yawToward } from '../forest_path/trail';
+import { fortAmbient, SHAFTS } from './ambient';
+import { fortClutter } from './clutter';
 import { buildRooms, movingBlocker } from './concrete';
 import { dripInTheNextRoom } from './drips';
 import { easePose } from './facing';
@@ -182,16 +184,20 @@ export const bunkerInteriorScene = defineScene({
 
     entrance(kit, ctx, phase);
     gasLock(kit, ctx, phase);
-    corridor(kit);
-    guardRoom(kit, ctx, phase);
-    latrines(kit, ctx, phase);
+    kit.batch((still) => {
+      corridor(still);
+      guardRoom(still, ctx, phase);
+      latrines(still, ctx, phase);
+    });
     const kp3 = dormitory(kit, ctx, phase);
     const slideMask = maskStore(kit, ctx, phase);
     machineRoom(kit, ctx, phase, kp3);
     casemate(kit, ctx, phase);
+    fortClutter(kit);
 
     kit.ambience('drone', { volume: 0.16 });
     vents(kit, ctx);
+    fortAmbient(kit, ctx, isNight(phase));
     updates.push(dripInTheNextRoom(rooms, openings));
     scares = kit.use(
       scareDirector(
@@ -213,10 +219,7 @@ export const bunkerInteriorScene = defineScene({
 
 /** Air in the shafts: a grille in the corridor ceiling and one over the generator, each humming. */
 function vents(kit: LevelKit, ctx: SceneContext): void {
-  [
-    { x: 0, y: 2.1, z: -26 },
-    { x: 7.4, y: 2.6, z: -19 },
-  ].forEach((at) => {
+  SHAFTS.forEach((at) => {
     kit.box({ w: 0.5, h: 0.04, d: 0.5 }).texture('rust_metal', { tile: 0.3 }).color(0x3a3a36).at(at.x, at.y - 0.04, at.z);
     kit.box({ w: 0.42, h: 0.01, d: 0.42 }).unlit().color(0x050505).at(at.x, at.y - 0.045, at.z);
     kit.use((k) => k.world.sounds.track(ventHum(ctx.audio, at)));
@@ -385,13 +388,15 @@ function mirrorSmear(kit: LevelKit) {
 }
 
 function dormitory(kit: LevelKit, ctx: SceneContext, phase: StoryPhase): Kp3Door {
-  [3, 4.8, 6.6, 8.4].forEach((x, i) => {
-    bunkStack(kit, x, -33, 0, `bunk-n${i}`);
-    bunkStack(kit, x, -29, 0, `bunk-s${i}`);
+  kit.batch((still) => {
+    [3, 4.8, 6.6, 8.4].forEach((x, i) => {
+      bunkStack(still, x, -33, 0, `bunk-n${i}`);
+      bunkStack(still, x, -29, 0, `bunk-s${i}`);
+    });
+    table(still, 10.2, -33.05, 0, 1.6, 0.7);
+    bench(still, 10.2, -32.35, 0, 1.5);
+    beerCans(still, { x: 6, z: -31, w: 8, d: 1.6 }, 10, 'dorm-cans');
   });
-  table(kit, 10.2, -33.05, 0, 1.6, 0.7);
-  bench(kit, 10.2, -32.35, 0, 1.5);
-  beerCans(kit, { x: 6, z: -31, w: 8, d: 1.6 }, 10, 'dorm-cans');
   kit.hotspot({ prompt: 'Look at the bunks', radius: 0.6, onInteract: () => playNode(ctx, 'fort_bunks') }).at(4.8, 0, -31.9);
   stencil(kit, ['GASMASKEN', 'MASQUES A GAZ'], 0.9).at(9.4, 1.6, -28.02).rotY(180);
   wires(kit, [[11.4, -28.04], [11.96, -28.04], [11.96, -30.5]], 1.9);
