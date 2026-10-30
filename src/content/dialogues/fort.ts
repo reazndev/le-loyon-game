@@ -88,7 +88,7 @@ export const nodes = {
     lines: [
       'Gas masks. Hundreds. Piled to my waist. Eyepieces everywhere, looking at the ceiling, at the wall, at me.',
       'Old rubber, the color of skin. Brown, tan, gray.',
-      "His mask came from here. I'm almost sure of it.",
+      "The mask in the stories came from here. I'm almost sure of it.",
     ],
   },
   fort_masks_look: {
@@ -110,7 +110,7 @@ export const nodes = {
   fort_battery_after: {
     if: { flag: 'found_hidden_door' },
     lines: [
-      'The wires go through the wall into the room behind the steel door. A light. He has a light in there.',
+      'The wires go through the wall into the room behind the steel door. A light. Someone has a light in there.',
     ],
   },
   fort_bunks: {

@@ -10,7 +10,7 @@ export const nodes = {
   forest_shrine_night: {
     if: { count: [['night', '>=', 1]] },
     lines: [
-      "The Virgin's face in the torchlight. Someone has turned her to face the path to the fort.",
+      "The Virgin's face in the torchlight. Someone has turned her to face the path uphill.",
       "She used to face the other way. There's a pale mark in the moss.",
     ],
   },
