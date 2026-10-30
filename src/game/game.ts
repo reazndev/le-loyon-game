@@ -49,6 +49,8 @@ export class Game {
   settings: Settings = loadSettings(localStorage);
   /** Frames rendered since start. */
   frames = 0;
+  /** Multiplies the game clock. Tests raise it to get through held actions and long waits. */
+  timeScale = 1;
   private booted = false;
   private frameCaptures: ((frame: HTMLCanvasElement) => void)[] = [];
   private elapsed = 0;
@@ -163,7 +165,7 @@ export class Game {
 
   private readonly tick = (now: number) => {
     requestAnimationFrame(this.tick);
-    const dt = this.lastTime ? Math.min((now - this.lastTime) / 1000, 0.1) : 0;
+    const dt = (this.lastTime ? Math.min((now - this.lastTime) / 1000, 0.1) : 0) * this.timeScale;
     this.lastTime = now;
     this.elapsed += dt;
 

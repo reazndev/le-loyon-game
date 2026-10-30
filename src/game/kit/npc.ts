@@ -27,6 +27,8 @@ export class NpcBuilder extends Placed {
     });
     super(ctx, character.root);
     this.character = character;
+    // Named by cast id, so tests can find who is on stage.
+    character.root.name = id;
     if (id === 'bari') this.ringOnSteps(collarBell, 0.6);
     if (id === 'marquise') this.ringOnSteps(cowbell, 0.5);
     ctx.later('register', () =>

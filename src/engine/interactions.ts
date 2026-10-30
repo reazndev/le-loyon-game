@@ -58,6 +58,11 @@ export class Interactions {
   focus(from: Vec2, facing: Vec2): Interactable | null {
     return findFocus(this.items, from, facing);
   }
+
+  /** Every object that is enabled now, for tests. */
+  enabled(): Interactable[] {
+    return [...this.items].filter((item) => !item.enabled || item.enabled());
+  }
 }
 
 export function promptText(item: Interactable): string {
