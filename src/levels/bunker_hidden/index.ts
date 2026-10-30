@@ -17,7 +17,9 @@ import { handText, scrawl } from '../forest_path/scrawl';
 import { unspent } from '../forest_path/spent';
 import { candleFlutter, hatchWheel, splash, steelDoorShut } from '../forest_path/sounds';
 import { yawToward } from '../forest_path/trail';
+import { roomAmbience } from './ambience';
 import { takeArrival, type Arrival } from './arrival';
+import { clutter } from './clutter';
 
 /**
  * Fort, command room "K.P. 3". Marc's room behind the steel door: candle, notebook, the photo
@@ -109,6 +111,8 @@ export const bunkerHiddenScene = defineScene({
       await then?.();
     };
     furnish(kit, ctx, arrival, look);
+    clutter(kit);
+    roomAmbience(kit, ctx, CANDLE, TUNNEL);
     const tableCandle = candle(kit, ctx, arrival);
     const scares = kit.use(scareDirector(unspent(ctx.state, roomBeats(tunnel(kit, ctx)))));
     leaveByTheDoor(kit, ctx);
