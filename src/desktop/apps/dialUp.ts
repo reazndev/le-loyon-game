@@ -49,8 +49,8 @@ export class DialUpApp {
 
   private showForm(): void {
     const row = (label: string, ...value: (string | HTMLElement)[]) =>
-      h('div', { style: 'display:flex;align-items:center;gap:8px;height:26px' }, h('span', { style: 'width:96px' }, label), ...value);
-    const stars = () => h('span', { class: 'field', style: 'width:112px' }, '********');
+      h('div', { style: 'display:flex;align-items:center;gap:8px;height:26px;white-space:nowrap' }, h('span', { style: 'width:88px' }, label), ...value);
+    const stars = () => h('span', { class: 'field', style: 'width:84px' }, '********');
     this.body(
       h(
         'div',

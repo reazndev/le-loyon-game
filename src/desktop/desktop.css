@@ -1,6 +1,8 @@
 /* The 1998 home computer, drawn full-frame at 640x480. */
 
 .pc {
+  /* Keeps the cursor and the glass above the desktop but under the game's own UI. */
+  isolation: isolate;
   --face: #c3bfb3;
   --light: #f2eee2;
   --mid: #dcd8cc;
@@ -325,6 +327,7 @@
 /* Start menu */
 .pc-menu {
   position: absolute;
+  z-index: 5;
   display: flex;
   padding: 3px;
 }

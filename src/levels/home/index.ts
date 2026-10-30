@@ -94,6 +94,7 @@ export const homeScene: Scene = (() => {
         () => sounds.forEach((sound) => sound.stop(0.5)),
         () => hum.stop(0.3),
         () => card?.close(),
+        () => computer.hangUp(),
         () => seated && computer.stand(),
       ];
     },

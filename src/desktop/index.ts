@@ -1,7 +1,8 @@
 import type { SceneContext } from '../game/scene';
 import { Computer } from './computer';
 import { forumStage, type ForumStage } from './forum';
-import { homeSetup, innSetup, BOARD_URL } from './setup';
+import { homeSetup, innSetup } from './setup';
+import { BOARD_INDEX } from './web/urls';
 
 export { Computer } from './computer';
 export { forumStage, type ForumStage } from './forum';
@@ -48,7 +49,7 @@ export async function openInnComputer(ctx: SceneContext, options: InnComputerOpt
   const pc = new Computer(ctx, innSetup(options.clock ?? innClock[stage]), stage);
   if (options.onRead) pc.onPostRead = options.onRead;
   const sitting = pc.sit();
-  pc.dialUp.dial(() => pc.launch(() => pc.browser.open(BOARD_URL), 1));
+  pc.dialUp.dial(() => pc.launch(() => pc.browser.open(BOARD_INDEX), 1));
   await sitting;
   pc.hangUp();
 }

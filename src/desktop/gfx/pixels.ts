@@ -3,7 +3,7 @@
 export type Palette = Record<string, string>;
 
 /** Colors shared by every pixel-art grid. A '.' is transparent. */
-export const basePalette: Palette = {
+const basePalette: Palette = {
   k: '#1a1916',
   w: '#f4f2ea',
   g: '#c3bfb3',

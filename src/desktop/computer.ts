@@ -1,5 +1,6 @@
 import './desktop.css';
 import { dialogues } from '../content';
+import { click } from '../engine/audio/generators';
 import type { Input } from '../engine/input/input';
 import type { ScreenHandle } from '../game/gameUi';
 import type { SceneContext } from '../game/scene';
@@ -8,12 +9,12 @@ import { DialUpApp } from './apps/dialUp';
 import { openDrives, openRecycleBin } from './apps/explorer';
 import { MailApp } from './apps/mail';
 import { NotesApp } from './apps/notes';
-import { diskSeek, mouseClick } from './audio/sounds';
+import { chime, diskSeek, mouseClick } from './audio/sounds';
 import { Clock } from './clock';
 import { h, wait } from './dom';
 import type { ForumStage } from './forum';
 import { icon, type IconName } from './gfx/icons';
-import { recordRead } from './progress';
+import { recordRead, villageClues } from './progress';
 import type { Setup } from './setup';
 import { Cursor, type CursorShape } from './ui/cursor';
 import { messageBox } from './ui/messageBox';
@@ -104,7 +105,6 @@ export class Computer {
       h('div', 'pc-dot'),
       h('div', 'pc-crt'),
     );
-    this.startMenu.element.style.zIndex = '5';
     this.startMenu.owner = this.taskbar.startButton;
     this.listen();
     if (import.meta.env.DEV) window.__desktop = this;
@@ -145,20 +145,26 @@ export class Computer {
     else this.dialUp.open(then);
   }
 
+  /** Hangs up, or stops dialing, and stops every transfer and sound the programs started. */
   hangUp(): void {
-    if (!this.connected) return;
+    // The modem relay drops the line with a click, then silence.
+    if (this.connected) click(this.audio, { volume: 0.4 });
     this.connected = false;
     this.dialUp.hangUp();
     this.browser.stopAll();
   }
 
-  /** Records that a page was read. Solving P1 adds the reporter's thought over the screen. */
+  /** Records that a page was read. A clue adds a line to notes.txt; the third solves P1. */
   read(flag: string): void {
-    if (recordRead(this.state, flag)) void this.ctx.dialogue(dialogues.home_ready);
+    const clue = (villageClues as readonly string[]).includes(flag) && !this.state.hasFlag(flag);
+    const solved = recordRead(this.state, flag);
+    if (clue) this.ctx.notify('notes.txt updated');
+    if (solved) void this.ctx.dialogue(dialogues.home_ready);
   }
 
   message(title: string, text: string): Promise<void> {
     this.closeMessage?.();
+    chime(this.audio);
     const box = messageBox(this.modal, title, text);
     this.closeMessage = box.close;
     return box.done.then(() => {

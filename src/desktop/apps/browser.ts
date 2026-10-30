@@ -10,6 +10,7 @@ import { PopupMenu, type MenuEntry } from '../ui/startMenu';
 import type { AppWindow } from '../ui/window';
 import type { LoadEnv, Page, PageEnv } from '../web/page';
 import { normalize, Web } from '../web/router';
+import { SEARCH_URL } from '../web/sites/helvenet';
 import { mountWidgets, type Widget } from '../web/widgets';
 import '../web/web.css';
 
@@ -106,7 +107,6 @@ export class BrowserApp {
     };
     const bookmarksButton = h('div', { class: 'btn', style: 'min-width:0;height:22px', onClick: () => this.toggleBookmarks(bookmarksButton) }, 'Bookmarks');
     this.bookmarks.owner = bookmarksButton;
-    this.bookmarks.element.style.zIndex = '4';
     win.body.append(
       h(
         'div',
@@ -115,7 +115,7 @@ export class BrowserApp {
         tool('Forward', () => this.goForward()),
         tool('Reload', () => this.reload()),
         tool('Home', () => void this.navigate(this.pc.setup.homeUrl)),
-        tool('Search', () => void this.navigate('http://www.helvenet.ch/cgi-bin/search')),
+        tool('Search', () => void this.navigate(SEARCH_URL)),
         tool('Print', () => void this.pc.message('Print', 'No printer is installed.')),
         tool('Stop', () => this.stop()),
         h('span', { style: 'flex:1' }),

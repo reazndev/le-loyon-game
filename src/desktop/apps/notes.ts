@@ -1,6 +1,6 @@
 import type { Computer } from '../computer';
 import { h } from '../dom';
-import { notesText, villageClues } from '../progress';
+import { notesText } from '../progress';
 import { ScrollPane } from '../ui/scrollPane';
 import type { AppWindow } from '../ui/window';
 
@@ -17,9 +17,6 @@ export class NotesApp {
 
   constructor(private readonly pc: Computer) {
     this.pane.content.append(this.text);
-    pc.state.events.on('flag', ({ flag, on }) => {
-      if (on && (villageClues as readonly string[]).includes(flag)) pc.ctx.notify('notes.txt updated');
-    });
   }
 
   open(): void {

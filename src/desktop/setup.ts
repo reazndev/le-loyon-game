@@ -1,4 +1,5 @@
 import { motorbikeWallpaper } from './gfx/wallpaper';
+import { BOARD_INDEX, HELVENET_HOME } from './web/urls';
 
 export type Bookmark = { label: string; url: string } | { folder: string; items: Bookmark[] };
 
@@ -17,18 +18,17 @@ export interface Setup {
   wallpaper?: () => string;
 }
 
-export const HELVENET_PHONE = '0848 80 80 80';
-export const BOARD_URL = 'http://www.alpanom.ch/board/index.html';
+const HELVENET_PHONE = '0848 80 80 80';
 
 export const homeSetup: Setup = {
   mode: 'home',
   clock: '23:10',
   speed: '33,600',
   phone: HELVENET_PHONE,
-  homeUrl: 'http://www.helvenet.ch/',
+  homeUrl: HELVENET_HOME,
   bookmarks: [
-    { label: 'Helvenet - Home', url: 'http://www.helvenet.ch/' },
-    { label: 'Alpine Anomalies Board', url: BOARD_URL },
+    { label: 'Helvenet - Home', url: HELVENET_HOME },
+    { label: 'Alpine Anomalies Board', url: BOARD_INDEX },
     { label: 'SMI weather - Plateau', url: 'http://www.sma.ch/text/plateau.html' },
     { folder: 'Work', items: [{ label: 'Swiss Press Agency login', url: 'http://extranet.spa-presse.ch/login/' }] },
   ],
@@ -41,9 +41,9 @@ export function innSetup(clock: string): Setup {
     clock,
     speed: '28,800',
     phone: HELVENET_PHONE,
-    homeUrl: 'http://www.helvenet.ch/',
+    homeUrl: HELVENET_HOME,
     bookmarks: [
-      { label: 'Alpine Anomalies Board', url: BOARD_URL },
+      { label: 'Alpine Anomalies Board', url: BOARD_INDEX },
       { label: 'MotoNet Romandie', url: 'http://www.motonet-romandie.ch/' },
       { label: 'Allez les Verts! - supporters', url: 'http://members.netcity.ch/~allezlesverts/' },
       { label: 'Leurs - notre village', url: 'http://members.netcity.ch/~leurs/' },

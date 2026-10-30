@@ -16,6 +16,7 @@ export const helvenetPages: Pages = {
     18,
     `
 <center><x-img src="helvenet-logo" alt="HELVENET"></x-img><br>Your gateway to the Internet</center>
+<x-marquee style="color:#1a3a9a">+++ ${headlines.map(([text]) => text).join(' +++ ')} +++</x-marquee>
 <hr>
 <table width="100%" cellspacing="6"><tr>
 <td width="168" bgcolor="#1a3a9a">
