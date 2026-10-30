@@ -1,5 +1,5 @@
 import type { Markers } from './beats';
-import { distanceToTrails, pointAlong, yawToward, type Trail } from './trail';
+import { beside, distanceToTrails, pointAlong, yawToward, type Trail } from './trail';
 import { woodsHeight, type Area } from './woods';
 
 /** Where everything in the Bois-Noir path scene is: the trails, the stream, the shrine, the beats. */
@@ -64,11 +64,6 @@ const along = (trail: Trail, meters: number) => {
 const backTowardCemetery = (trail: Trail, meters: number) => {
   const p = pointAlong(trail, meters);
   return { x: p.x, z: p.z, yaw: yawToward(-p.dx, -p.dz) };
-};
-/** A point `side` meters to the right of a trail (left when negative), seen walking along it. */
-const beside = (trail: Trail, meters: number, side: number) => {
-  const p = pointAlong(trail, meters);
-  return { x: p.x - p.dz * side, z: p.z + p.dx * side, yaw: yawToward(p.dx, p.dz) };
 };
 
 const heifer = along(toStream, 6);

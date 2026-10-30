@@ -156,3 +156,20 @@ export function candleFlutter(audio: AudioManager, at: Point3, volume = 0.18): S
     },
   };
 }
+
+/**
+ * Barbed wire pulled taut between rotten posts as the wind leans on it: a dry tick or two and a
+ * thin ring that dies at once, now and then the post itself groaning in its hole.
+ */
+export function wireTick(audio: AudioManager, at: Point3, volume = 0.3): void {
+  const ticks = 1 + Math.floor(Math.random() * 3);
+  oneShot(audio, { at, volume, bus: 'ambience' }, 2.5, (out, t) => {
+    for (let i = 0; i < ticks; i++) {
+      const start = t + i * (0.12 + Math.random() * 0.25);
+      noiseBurst(audio, out, { start, duration: 0.015, type: 'bandpass', frequency: 3200 + Math.random() * 1500, q: 5, gain: 0.35 });
+      const ring = 1700 + Math.random() * 900;
+      tone(audio, out, { frequency: ring, to: ring * 0.98, start, duration: 0.28, gain: 0.03 });
+    }
+    if (Math.random() < 0.3) noiseBurst(audio, out, { start: t + 0.6, duration: 0.7, type: 'bandpass', frequency: 300 + Math.random() * 120, q: 12, gain: 0.25, attack: 0.3 });
+  });
+}

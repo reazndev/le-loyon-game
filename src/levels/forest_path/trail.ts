@@ -74,3 +74,9 @@ export function pointAlong(trail: Trail, meters: number): TrailPoint {
 
 /** Level yaw in degrees that faces along (dx, dz). 0 faces -Z, 90 faces -X. */
 export const yawToward = (dx: number, dz: number): number => (Math.atan2(-dx, -dz) * 180) / Math.PI;
+
+/** A point `side` meters to the right of a trail (left when negative), seen walking along it. */
+export const beside = (trail: Trail, meters: number, side: number) => {
+  const p = pointAlong(trail, meters);
+  return { x: p.x - p.dz * side, z: p.z + p.dx * side, yaw: yawToward(p.dx, p.dz) };
+};

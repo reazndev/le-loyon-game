@@ -5,7 +5,7 @@ import { cylinderGeometry, spriteGeometry } from '../../engine/render/geometry';
 import { hashString, seededRandom } from '../../engine/random';
 import type { Atmosphere } from '../../engine/render/atmosphere';
 import { createPs1Material } from '../../engine/render/ps1Material';
-import type { TreeSpot } from '../../game/kit/builders';
+import type { MeshBuilder, TreeSpot } from '../../game/kit/builders';
 import { leafyBeech, leafySpruce } from '../../game/kit/foliage';
 import type { LevelKit } from '../../game/kit/levelKit';
 import { scatter } from '../../game/kit/scatter';
@@ -382,7 +382,7 @@ export function fallenLog(kit: LevelKit, x: number, z: number, yaw: number, leng
 }
 
 /** A lumpy mossy boulder, sunk `sink` meters into the ground. Big ones block the player. */
-export function rock(kit: LevelKit, x: number, z: number, size: number, seed: string, sink = 0.08): void {
+export function rock(kit: LevelKit, x: number, z: number, size: number, seed: string, sink = 0.08): MeshBuilder {
   const random = seededRandom(hashString(seed));
   const geometry = new IcosahedronGeometry(1, 0).toNonIndexed();
   const position = geometry.getAttribute('position');
@@ -398,6 +398,7 @@ export function rock(kit: LevelKit, x: number, z: number, size: number, seed: st
   geometry.computeVertexNormals();
   const boulder = kit.mesh(geometry).texture('moss_rock', { tile: 0.8 }).color(0x8a8a7e).at(x, -sink, z).rotY(random() * 360).onGround();
   if (size > 0.45) boulder.collider();
+  return boulder;
 }
 
 /** Invisible walls around an area, hidden in the fog. */
