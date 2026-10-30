@@ -3,7 +3,6 @@ import { dialogues } from '../../content';
 import { noiseBurst, thump } from '../../engine/audio/generators';
 import type { Shape } from '../../engine/physics/collision';
 import type { Atmosphere } from '../../engine/render/atmosphere';
-import type { DialogueScript } from '../../game/dialogue';
 import type { LevelKit } from '../../game/kit/levelKit';
 import { viewAngle } from '../../game/scares/beats';
 import { scareDirector, type ScareDirector } from '../../game/scares/director';
@@ -79,8 +78,8 @@ const TENT_SHEET = { x: -7.6, z: -17.85 };
 const MIRROR = { x: -9.3, z: -13.02 };
 /** Where Marc stands in the passage while he talks through the open door: well back, never within 3 m. */
 const MARC_BACK = { x: 15.2, z: -31 };
-/** The local flag `fort_phone_crank` sets, so a scene can tell turning the crank from leaving it. */
-export const PHONE_CRANKED = 'bunker_interior_phone_cranked';
+/** The fort_phone choice that turns the crank. */
+const CRANK = dialogues.fort_phone.nodes.fort_phone!.choices!.find((choice) => choice.next === 'fort_phone_crank')!.text;
 
 export const markers = {
   bun2_wedge: { beat: 'bun2_wedge', x: 0.45, z: -0.6, yaw: 0, note: 'Day 2, entering: the wedge kicked aside on the floor. Dressed by the scene.' },
@@ -281,13 +280,6 @@ function corridor(kit: LevelKit): void {
   beerCans(kit, { x: 0, z: -24, w: 1.4, d: 22 }, 9, 'corridor-cans');
 }
 
-/** fort_phone, with turning the crank setting PHONE_CRANKED. */
-const phoneScript: DialogueScript = (() => {
-  const script = dialogues.fort_phone;
-  const crank = script.nodes.fort_phone_crank!;
-  return { ...script, nodes: { ...script.nodes, fort_phone_crank: { ...crank, effects: { ...crank.effects, set: PHONE_CRANKED } } } };
-})();
-
 function guardRoom(kit: LevelKit, ctx: SceneContext, phase: StoryPhase): void {
   table(kit, -4.2, -17.45, 0, 1.4, 0.7);
   chair(kit, -4.3, -16.7, 180);
@@ -308,9 +300,8 @@ function guardRoom(kit: LevelKit, ctx: SceneContext, phase: StoryPhase): void {
       prompt: 'Look at the telephone',
       radius: 0.35,
       onInteract: async () => {
-        ctx.state.setFlag(PHONE_CRANKED, false);
-        await ctx.dialogue(phoneScript);
-        if (phase === 'night3' && ctx.state.hasFlag(PHONE_CRANKED)) fire('bun3_phone');
+        const choice = await ctx.ask(dialogues.fort_phone);
+        if (phase === 'night3' && choice === CRANK) fire('bun3_phone');
       },
     })
     .at(-6.2, 0, -15.2);
