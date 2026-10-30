@@ -40,7 +40,7 @@ export function streetLamp(kit: LevelKit, x: number, z: number, lit: boolean): v
   kit.box({ w: 0.42, h: 0.08, d: 0.42 }).texture('rust_metal').color(0x4a4744).at(x, 3.5, z);
   const glass = kit.box({ w: 0.3, h: 0.4, d: 0.3 }).at(x, 3.1, z);
   if (!lit) {
-    glass.texture('glass_dirty').color(0x9a9890);
+    glass.color(0x4e4c46);
     return;
   }
   glass.unlit().color(0xffcf86);

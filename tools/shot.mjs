@@ -7,7 +7,16 @@ import { parseArgs } from 'node:util';
 import { launchBrowser, openGame } from './browser.mjs';
 import { startDevServer } from './devServer.mjs';
 
+// Join "--yaw -90" into "--yaw=-90"; parseArgs would read a negative number as a flag.
+const args = process.argv.slice(2).reduce((out, arg) => {
+  const previous = out[out.length - 1];
+  if (/^-\d/.test(arg) && previous?.startsWith('--') && !previous.includes('=')) out[out.length - 1] = `${previous}=${arg}`;
+  else out.push(arg);
+  return out;
+}, []);
+
 const { values } = parseArgs({
+  args,
   options: {
     scene: { type: 'string', default: 'test' },
     out: { type: 'string' },

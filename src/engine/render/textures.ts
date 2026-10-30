@@ -32,7 +32,7 @@ export class TextureLibrary {
 }
 
 /** Nearest filtering, no mipmaps, and tiling, as on the PS1. */
-export function applyPs1Sampling(texture: Texture): void {
+function applyPs1Sampling(texture: Texture): void {
   texture.magFilter = NearestFilter;
   texture.minFilter = NearestFilter;
   texture.generateMipmaps = false;

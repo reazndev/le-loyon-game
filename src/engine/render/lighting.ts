@@ -59,10 +59,6 @@ export class LightingRig {
     return light;
   }
 
-  removePoint(light: PointLight): void {
-    this.points.delete(light);
-  }
-
   /** Points the flashlight from the given origin along the given direction. */
   aimFlashlight(origin: Vector3, direction: Vector3): void {
     ps1Uniforms.uSpotPos.value.copy(origin);

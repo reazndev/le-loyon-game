@@ -38,7 +38,7 @@ const clamp01 = (v: number) => Math.min(Math.max(v, 0), 1);
 /** Gentle bumps outside the courtyard, flat inside it and along the path. */
 const terrainHeight = (x: number, z: number) => {
   const rise = clamp01((Math.max(Math.abs(x), Math.abs(z)) - HALF - 1) / 4);
-  const offPath = z < -HALF ? clamp01((Math.abs(x) - 1.4) / 2) : 1;
+  const offPath = z < -HALF ? clamp01((Math.abs(x) - 1.8) / 2) : 1;
   const bumps = 0.35 * Math.sin(x * 0.45) * Math.cos(z * 0.38) + 0.25 * Math.sin(z * 0.8 + x * 0.2);
   return -0.05 + rise * offPath * bumps;
 };
@@ -72,7 +72,7 @@ export const testScene = defineScene({
     kit.ground('grass');
     kit.terrain({ w: 64, d: 64, cell: 2, height: terrainHeight }).texture('grass_dead', { tile: 4 }).walkable('grass');
     kit.plane({ w: HALF * 2, d: HALF * 2, cell: 0.75 }).texture('cobblestone', { tile: 2.2 }).walkable('stone');
-    kit.plane({ w: 2.4, d: 26, cell: 1 }).texture('gravel_path', { tile: 2.5 }).at(0, -0.03, -HALF - 13).walkable('gravel');
+    kit.plane({ w: 2.4, d: 26, cell: 1 }).texture('gravel_path', { tile: 2.5 }).at(0, 0, -HALF - 13).walkable('gravel');
 
     doorway(kit, -HALF, HALF, -HALF, 1.5);
     wall(kit, -HALF, -HALF, -HALF, HALF);
@@ -102,6 +102,13 @@ export const testScene = defineScene({
 
     kit.trees('spruce', scatter({ x: 0, z: 0, w: 50, d: 50, count: 70, seed: 'test-spruce', spacing: 2.6, avoid: keepClear })).collider();
     kit.trees('bare', scatter({ x: 0, z: 0, w: 50, d: 50, count: 30, seed: 'test-bare', spacing: 3, avoid: keepClear })).collider();
+
+    scatter({ x: 0, z: 0, w: 40, d: 40, count: 90, seed: 'test-weeds', spacing: 0.9, scale: [0.6, 1.1], avoid: keepClear }).forEach(
+      (spot, i) => {
+        const [texture, w, h] = i % 3 ? ['grass_tuft', 0.9, 0.6] : ['fern_dead', 1.1, 0.9];
+        kit.sprite(texture, { w: w * spot.scale!, h: h * spot.scale! }).at(spot.x, -0.05, spot.z).onGround();
+      },
+    );
 
     kit.barrier({ w: 60, d: 1 }).at(0, 0, -25);
     kit.barrier({ w: 60, d: 1 }).at(0, 0, 25);

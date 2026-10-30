@@ -50,7 +50,7 @@ function spruce(): TreeModel {
       { geometry: trunk, texture: 'bark_spruce', uvScale: [2, 0.5], color: 0x8f8478 },
       {
         geometry: mergeGeometries(crown)!,
-        texture: 'spruce_needles',
+        texture: 'spruce_foliage',
         uvScale: [1.2, 1.2],
         color: 0x76826f,
         cutout: true,

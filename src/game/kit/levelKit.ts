@@ -138,7 +138,7 @@ export class LevelKit {
     const w = options.w ?? 1;
     const h = options.h ?? 2.1;
     return this.box({ w, h, d: 0.08 })
-      .texture(options.texture ?? 'wood_planks', { tile: [w, h] })
+      .texture(options.texture ?? 'door_wood', { tile: [w, h] })
       .collider()
       .interact({
         prompt: options.prompt ?? 'Open the door',
