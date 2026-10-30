@@ -7,6 +7,10 @@ Notes from planning conversations. Each file covers one topic and records what w
 - [Story](story.md): premise, locations, flow, the three graves, endings, and open problems.
 - [AI workflow](ai-workflow.md): which model does which job.
 - [Build plan](build-plan.md): the steps of the unattended build and the rules for it.
+- [Agent brief](agent-brief.md): shared rules for build subagents.
+- [Engine](engine.md): how to run the game and the level kit API.
+- [Textures](textures.md): texture pipeline, names, and FLORA spend.
+- [Script](script/00-overview.md): the full story script, flow, puzzles, flags, and items.
 - [Reference images](references/README.md): mood images for Le Loyon, the bunker, and the forest.
 - [Reference: the CLI game](reference-cli-game.md): what the earlier text adventure had and what we keep.
 

@@ -1,8 +1,8 @@
 import { installDebugHooks, parseDebugParams } from './game/debug';
 import { Game } from './game/game';
-import { testScene } from './levels/test';
+import { allScenes } from './levels';
 
-const scenes = [testScene];
+const scenes = allScenes;
 const START_SCENE = 'test';
 
 const params = parseDebugParams(location.search);

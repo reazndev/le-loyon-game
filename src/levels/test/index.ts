@@ -125,3 +125,5 @@ export const testScene = defineScene({
     }
   },
 });
+
+export const scenes = [testScene];
