@@ -7,8 +7,10 @@ import { isNight, storyPhase, type StoryPhase } from '../forest_path/story';
 import { fridgeHum } from '../../game/ambient/sounds';
 import { loopSound } from '../inn/interior';
 import { roomTone, tvMurmur } from '../inn/sounds';
+import { kitchenAmbient } from './ambient';
 import { buildBelongings } from './belongings';
 import { kitchenClock, type PausableLoop } from './clock';
+import { buildClutter } from './clutter';
 import { buildFurniture } from './furniture';
 import { CLOCK, FRIDGE, HALL_DOOR, HIS_HEAD, LIVING_DOOR, NORTH, ROOM, SOUTH } from './layout';
 import { placeLooks } from './lookSpots';
@@ -48,9 +50,12 @@ export const kitchenScene = defineScene({
   build(kit, ctx) {
     const phase = storyPhase(ctx.state);
     const night = isNight(phase);
-    buildShell(kit, night);
-    buildFurniture(kit, night);
-    const diary = buildBelongings(kit);
+    const diary = kit.batch((still) => {
+      buildShell(still, night);
+      buildFurniture(still, night);
+      buildClutter(still);
+      return buildBelongings(still);
+    });
     const diaryThere = () => !ctx.state.hasItem('gremaud_diary');
     everyFrame(kit, () => (diary.object.visible = diaryThere()));
     placeLooks(kit, ctx, night, diaryThere);
@@ -65,6 +70,7 @@ export const kitchenScene = defineScene({
     loopSound(kit, () => clock);
     loopSound(kit, (audio) => fridgeHum(audio, { x: FRIDGE.x, y: 0.4, z: NORTH + 0.2 }));
     loopSound(kit, (audio) => roomTone(audio, 0.1));
+    kitchenAmbient(kit, ctx, night, clock);
 
     stageBeats(kit, ctx, phase, clock);
   },
