@@ -196,7 +196,7 @@ export function laiterie(kit: LevelKit, night: boolean): void {
   };
   house(kit, spec).at(LAITERIE.x, 0, LAITERIE.z).rotY(LAITERIE.yaw);
   lettering(kit, 5, 8).at(front + 0.05, 2.8, LAITERIE.z).rotY(90);
-  kit.door({ to: 'laiterie', spawn: 'from_square', prompt: 'Go in' }).at(front + 0.25, 0.16, LAITERIE.z).rotY(90);
+  kit.door({ to: 'laiterie', spawn: 'from_square', prompt: 'Go in', locked: () => night, lockedText: 'Closed. The shop shuts at six.' }).at(front + 0.25, 0.16, LAITERIE.z).rotY(90);
   // The milk ramp on the south end, the height of a trailer bed.
   kit.box({ w: 2.2, h: 0.9, d: 3.2 }).texture('concrete_floor', { tile: 1.5 }).color(0x8e8c86).at(front + 1.1, 0, LAITERIE.z + 3.6).collider();
   [
@@ -221,7 +221,7 @@ export function garage(kit: LevelKit, night: boolean): void {
   kit.box({ w: 0.08, h: 3, d: 1.9 }).texture('rust_metal', { tile: 1.5 }).color(0x6a6a64).at(front - 0.06, 0, GARAGE.z - 3.4);
   lettering(kit, 6, 12, 0x6a1a14).at(front - 0.05, 3.5, GARAGE.z).rotY(-90);
   kit.box({ w: 0.06, h: 1.25, d: 0.95 }).texture(night ? 'window_dark' : 'window_lit', { tile: [0.95, 1.25] }).color(night ? 0x9a9c9e : palette.litDay).at(front - 0.03, 1.2, GARAGE.z + 3.2);
-  kit.door({ to: 'garage_dousse', spawn: 'from_square', prompt: 'Go in' }).at(front - 0.08, 0, GARAGE.z + 1.4).rotY(-90);
+  kit.door({ to: 'garage_dousse', spawn: 'from_square', prompt: 'Go in', locked: () => night, lockedText: 'Locked. The workshop is dark.' }).at(front - 0.08, 0, GARAGE.z + 1.4).rotY(-90);
   // An old petrol pump, the kind with a round glass head.
   kit.box({ w: 0.5, h: 1.6, d: 0.4 }).color(0x8a8a82).at(front - 1.4, 0, GARAGE.z + 4.4).collider();
   kit.cylinder({ r: 0.24, h: 0.4, sides: 8 }).color(0xb8b0a0).at(front - 1.4, 1.6, GARAGE.z + 4.4);
