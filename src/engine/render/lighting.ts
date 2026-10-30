@@ -38,8 +38,8 @@ export interface FlashlightSettings {
 export class LightingRig {
   readonly flashlight: FlashlightSettings = {
     color: new Color(1, 0.94, 0.82),
-    intensity: 2.6,
-    range: 14,
+    intensity: 2.2,
+    range: 10,
     angle: 24,
     innerAngle: 10,
   };

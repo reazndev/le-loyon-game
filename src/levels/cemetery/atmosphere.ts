@@ -17,7 +17,7 @@ export const hillAtmosphere: Record<TimeOfDay, Atmosphere> = {
     saturation: 0.5,
   },
   night: {
-    fog: { color: 0x040506, near: 0.4, far: 12, density: 0.14, wisps: 0.35 },
+    fog: { color: 0x111416, near: 0.3, far: 12, density: 0.26, wisps: 0.65 },
     ambient: 0x08090c,
     sun: { color: 0x07080c, direction: [-0.4, 1, 0.3] },
     saturation: 0.48,

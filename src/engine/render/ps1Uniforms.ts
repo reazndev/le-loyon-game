@@ -26,6 +26,6 @@ export const ps1Uniforms = {
   uSpotColor: { value: new Color(0, 0, 0) },
   uSpotRange: { value: 10 },
   uSpotCos: { value: new Vector2(0.9, 0.97) },
-  uSpotFogGlow: { value: 0.16 },
+  uSpotFogGlow: { value: 0.3 },
   uLightFogGlow: { value: 0.22 },
 };

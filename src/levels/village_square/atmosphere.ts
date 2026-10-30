@@ -23,7 +23,7 @@ export const villageAtmosphere: Record<TimeOfDay, Atmosphere> = {
     saturation: 0.55,
   },
   night: {
-    fog: { color: 0x050607, near: 0.5, far: 13, density: 0.12, wisps: 0.3 },
+    fog: { color: 0x111416, near: 0.4, far: 12, density: 0.23, wisps: 0.6 },
     ambient: 0x0a0b0e,
     sun: { color: 0x07080b, direction: [-0.4, 1, 0.3] },
     saturation: 0.5,
