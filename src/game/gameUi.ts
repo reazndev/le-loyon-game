@@ -58,6 +58,11 @@ export class GameUi {
     return this.stack.length > 0;
   }
 
+  /** True while a dialogue is all that is open, with no screen under it, so the player can still look around. */
+  get onlyDialogue(): boolean {
+    return this.stack.length === 1 && this.dialogueStep !== null;
+  }
+
   update(dt: number, input: Input): void {
     this.overlay.menu.keyLabel = interactLabel[input.lastDevice];
     this.stack.at(-1)?.update(dt, input);

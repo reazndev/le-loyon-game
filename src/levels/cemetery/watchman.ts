@@ -1,7 +1,7 @@
 import { Vector3 } from 'three';
 import { dialogues } from '../../content';
 import { headingOf } from '../../engine/characters/motion';
-import { growl } from '../../engine/characters/voices';
+import { growl, preloadBark } from '../../engine/characters/voices';
 import type { Vec2 } from '../../engine/physics/collision';
 import type { LevelKit } from '../../game/kit/levelKit';
 import { watchmanPatrol, type Patrol, type PatrolStop } from '../../game/patrol/patrol';
@@ -45,6 +45,7 @@ export class FirstMeeting {
       return torch;
     });
     this.show(false);
+    preloadBark(ctx.audio);
   }
 
   /** Behind the reporter's back, two meters and four, kept inside the walls. */

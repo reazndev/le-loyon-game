@@ -142,9 +142,10 @@ function nightOne(kit: LevelKit, ctx: SceneContext, staging: Staging, gate: Back
     }
     // The silence starts at the first grave read tonight, or soon after arriving anyway.
     if (ctx.time > 30) startSilence();
-    if (silenceSince !== null && ctx.time - silenceSince > LATEST_SECONDS && facingAwayFromGate()) bark();
-    if (raymondGoneAt === null || sightingAt !== null || state.hasFlag('first_sighting')) return;
     const allRead = state.hasFlag('read_grave_menoud') && state.hasFlag('read_grave_gremaud') && state.hasFlag('read_grave_chassot');
+    // The notebook tells the reporter to wait once all three are read, so he comes whichever way they face.
+    if ((allRead && builtUp()) || (silenceSince !== null && ctx.time - silenceSince > LATEST_SECONDS)) bark();
+    if (raymondGoneAt === null || sightingAt !== null || state.hasFlag('first_sighting')) return;
     if (allRead && ctx.time - raymondGoneAt > 12 && fromSighting > 11) {
       staging.scares.fire('cem1_back_wall');
       sightingAt = ctx.time;

@@ -74,13 +74,20 @@ export function cowbell(audio: AudioManager, options: OneShot = {}): void {
   });
 }
 
-/** One deep bark from an old dog. */
+const BARK_URL = `${import.meta.env.BASE_URL}assets/audio/bark.ogg`;
+
+/** Fetches the bark ahead of time, for a scene where the first one has to land on cue. */
+export function preloadBark(audio: AudioManager): void {
+  audio.load(BARK_URL).catch(() => undefined);
+}
+
+/** One deep bark from an old dog, a recording played a little faster or slower each time. */
 export function bark(audio: AudioManager, options: OneShot = {}): void {
-  oneShot(audio, { volume: 0.9, ...options }, 0.6, (out, t) => {
-    const pitch = vary(240, 0.12);
-    tone(audio, out, { type: 'sawtooth', frequency: pitch, to: pitch * 0.7, start: t, duration: 0.2, gain: 0.35, attack: 0.012 });
-    tone(audio, out, { type: 'square', frequency: pitch * 2.02, to: pitch * 1.3, start: t, duration: 0.14, gain: 0.08, attack: 0.01 });
-    noiseBurst(audio, out, { start: t, duration: 0.17, type: 'bandpass', frequency: vary(850), q: 1.4, gain: 0.5, attack: 0.012 });
+  audio.play(BARK_URL, {
+    bus: options.bus ?? 'sfx',
+    volume: options.volume ?? 0.9,
+    rate: vary(0.95, 0.06),
+    ...(options.at ? { at: options.at, refDistance: 2 } : {}),
   });
 }
 

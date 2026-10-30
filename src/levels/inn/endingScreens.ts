@@ -89,6 +89,7 @@ function creditsScreen(): HTMLElement {
     el('div', 'font-size:28px;letter-spacing:4px', 'LE LOYON'),
     el('div', 'opacity:0.7', 'Leurs, canton of Fribourg, November 1998.'),
     el('div', 'opacity:0.7', 'Leurs and everyone in it are invented.'),
+    el('div', 'opacity:0.45;font-size:12px;margin-top:24px', 'Dog bark: "Barking" by Piecesofuk, CC BY-SA 4.0, Wikimedia Commons.'),
   );
   return screen;
 }
