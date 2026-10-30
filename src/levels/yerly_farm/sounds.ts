@@ -2,7 +2,7 @@ import type { AudioManager, Point3 } from '../../engine/audio/audioManager';
 import { noiseBurst } from '../../engine/audio/generators';
 import { oneShot, tone } from '../../engine/characters/voices';
 
-/** The farm's animals: a cow lowing in the shed, hens muttering in their run. */
+/** The farm's animals and what they rattle: a cow lowing in the shed, hens in their run, the dog's chain, loose iron. */
 
 const vary = (value: number, amount = 0.1) => value * (1 + (Math.random() - 0.5) * 2 * amount);
 
@@ -33,5 +33,27 @@ export function cluck(audio: AudioManager, at: Point3, volume = 0.3): void {
       tone(audio, out, { type: 'square', frequency: pitch, to: pitch * 0.7, start: s, duration: 0.06, gain: 0.08, attack: 0.005 });
       noiseBurst(audio, out, { start: s, duration: 0.05, type: 'bandpass', frequency: vary(1500), q: 3, gain: 0.25 });
     }
+  });
+}
+
+/** A dog chain dragged a little way over stone: a run of small dull clinks. */
+export function chainRattle(audio: AudioManager, at: Point3, volume = 0.3): void {
+  const links = 4 + Math.floor(Math.random() * 5);
+  oneShot(audio, { at, volume, bus: 'ambience' }, links * 0.09 + 0.5, (out, t) => {
+    for (let i = 0; i < links; i++) {
+      const s = t + i * vary(0.07, 0.5);
+      noiseBurst(audio, out, { start: s, duration: 0.03, type: 'bandpass', frequency: vary(3600, 0.25), q: 6, gain: 0.35 * (1 - i / (links + 2)) });
+      tone(audio, out, { frequency: vary(2300, 0.2), start: s, duration: 0.05, gain: 0.03 });
+    }
+  });
+}
+
+/** A loose sheet of corrugated iron knocking against the boards it hangs on: a hollow, rattling bong. */
+export function tinKnock(audio: AudioManager, at: Point3, volume = 0.4): void {
+  oneShot(audio, { at, volume, bus: 'ambience' }, 1.4, (out, t) => {
+    noiseBurst(audio, out, { start: t, duration: 0.08, type: 'lowpass', frequency: 900, gain: 0.5 });
+    [168, 391, 655, 1012].forEach((f, n) => tone(audio, out, { type: n ? 'sine' : 'triangle', frequency: vary(f, 0.03), start: t, duration: 0.9 - n * 0.15, gain: 0.12 / (n + 1) }));
+    // It settles back against the wall a beat later.
+    if (Math.random() < 0.6) noiseBurst(audio, out, { start: t + vary(0.22, 0.3), duration: 0.05, type: 'bandpass', frequency: 700, q: 2, gain: 0.25 });
   });
 }
