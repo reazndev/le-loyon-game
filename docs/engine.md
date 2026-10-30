@@ -68,7 +68,7 @@ For automated tests. Defined in `src/game/debug.ts`.
 | `src/engine/input/` | Key and gamepad bindings, the `Input` class |
 | `src/engine/audio/` | `AudioManager`, procedural generators, footsteps |
 | `src/engine/ui/` | The overlay: prompt, dialogue box, menus, document and photo views, viewfinder, fade, notices, the font |
-| `src/engine/player.ts` | Tank controls, head bob, footstep events |
+| `src/engine/player.ts` | WASD movement with mouse look, head bob, footstep events |
 | `src/game/` | `Game` loop, state, saves, settings, dialogue runner, items, inventory, notebook, scenes, the level kit, debug hooks |
 | `src/game/camera/` | The Polaroid: viewfinder, shots, prints, photo ids, camera sounds |
 | `src/content/` | The script as data: dialogues, documents, items, flags, notebook, endings |
@@ -424,12 +424,13 @@ Sounds started with `kit.sound` or `kit.ambience` stop with the scene. Stop soun
 
 ## Controls
 
-| Action | Keyboard | Gamepad |
+| Action | Keyboard and mouse | Gamepad |
 |---|---|---|
 | Walk forward, back | W, S, Up, Down | Left stick, d-pad |
-| Turn | A, D, Left, Right | Left stick, d-pad |
+| Step left, right | A, D | Left stick |
+| Look around | Mouse, or Left and Right to turn | Right stick, d-pad to turn |
 | Walk faster | Shift | RB or RT |
-| Interact, confirm | E, Enter, Space | A |
+| Interact, confirm | E, Enter, Space, left click | A |
 | Back, cancel | Esc, Backspace | B |
 | Inventory | Tab, I | Y |
 | Flashlight | F | X |
@@ -437,7 +438,7 @@ Sounds started with `kit.sound` or `kit.ambience` stop with the scene. Stop soun
 | Camera | Q | LT |
 | Pause | Esc | Start |
 
-Bindings live in `src/engine/input/bindings.ts`. Player speeds, turn rate, eye height (1.65 m), head bob, and field of view (60) live in `playerTuning` in `src/engine/player.ts`.
+Click the frame to capture the mouse for looking; Esc releases it, and sitting at a computer releases it too. Bindings live in `src/engine/input/bindings.ts`. Player speeds, turn rate, eye height (1.65 m), head bob, and field of view (60) live in `playerTuning` in `src/engine/player.ts`.
 
 ## Example level
 
@@ -556,7 +557,7 @@ The door and the exit lead to `chapel_inside` and `village`, which must be regis
 
 - The scene renders into a 640x480 target. A post pass reduces it to 15-bit color with a 4x4 Bayer dither and light grain, and CSS scales the canvas with nearest-neighbor filtering into a letterboxed frame. The frame uses a whole-number scale when that loses less than 15% of the space.
 - The PS1 material snaps vertices to a 320x240 grid, so geometry wobbles as the camera moves. Change `ps1Uniforms.uSnap` in `src/engine/render/ps1Uniforms.ts` to tune it.
-- Textures are affine-mapped (they warp on big polygons, as on the PS1), sampled with nearest filtering, and have no mipmaps.
+- Textures are perspective-correct, sampled with nearest filtering, and have no mipmaps. The PS1's affine warp was dropped because it bent textures badly up close.
 - Lighting is per vertex: ambient, one directional light, up to 8 point lights, and the flashlight. Light can reach 2x brightness. Lamps and the flashlight also brighten the fog near what they light.
 - The UI is HTML laid out in 640x480 frame pixels and scaled with the frame. The font is DotGothic16 at 16 px, and 12 px for subtitles. At fractional frame scales, an SVG filter rounds the alpha of every text pixel to 0 or 1, so text keeps hard edges like the nearest-neighbor 3D frame.
 

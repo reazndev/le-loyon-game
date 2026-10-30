@@ -1,5 +1,4 @@
 import { MathUtils, type Object3D } from 'three';
-import { playerTuning } from '../../engine/player';
 import { dialogues } from '../../content';
 import type { BoxShape, Vec2 } from '../../engine/physics/collision';
 import type { DialogueScript } from '../../game/dialogue';
@@ -327,7 +326,7 @@ export class DigSite {
     this.pitch = MathUtils.damp(this.pitch, lookingDown ? COFFIN_PITCH : 0, 3, dt);
     const dip = this.holding ? -0.12 * Math.max(0, Math.sin((this.stroke / STROKE_EVERY) * Math.PI * 2)) : 0;
     if (Math.abs(this.pitch) < 0.001 && dip === 0) return;
-    ctx.player.camera.rotation.x = MathUtils.degToRad(playerTuning.pitchDeg) + this.pitch + dip;
+    ctx.player.camera.rotation.x = ctx.player.pitch + this.pitch + dip;
   }
 
   private growPile(): void {

@@ -9,9 +9,9 @@ describe('handshake', () => {
     expect(digits).toHaveLength(10);
   });
 
-  it('lasts about eighteen seconds and ends connected', () => {
-    expect(script.duration).toBeGreaterThan(16);
-    expect(script.duration).toBeLessThan(20);
+  it('lasts about four and a half seconds and ends connected', () => {
+    expect(script.duration).toBeGreaterThan(4);
+    expect(script.duration).toBeLessThan(5);
     expect(script.status.map((s) => s.text)).toEqual([
       'Dialing...',
       'Verifying user name and password...',

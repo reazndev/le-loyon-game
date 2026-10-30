@@ -3,6 +3,10 @@ export type Action =
   | 'down'
   | 'left'
   | 'right'
+  | 'strafeLeft'
+  | 'strafeRight'
+  | 'turnLeft'
+  | 'turnRight'
   | 'fast'
   | 'interact'
   | 'cancel'
@@ -18,10 +22,10 @@ export const keyBindings: Record<string, Action[]> = {
   KeyW: ['up'],
   ArrowDown: ['down'],
   KeyS: ['down'],
-  ArrowLeft: ['left'],
-  KeyA: ['left'],
-  ArrowRight: ['right'],
-  KeyD: ['right'],
+  ArrowLeft: ['left', 'turnLeft'],
+  KeyA: ['left', 'strafeLeft'],
+  ArrowRight: ['right', 'turnRight'],
+  KeyD: ['right', 'strafeRight'],
   ShiftLeft: ['fast'],
   ShiftRight: ['fast'],
   KeyE: ['interact'],
@@ -50,8 +54,13 @@ export const gamepadBindings: Record<number, Action[]> = {
   9: ['pause'],
   12: ['up'],
   13: ['down'],
-  14: ['left'],
-  15: ['right'],
+  14: ['left', 'turnLeft'],
+  15: ['right', 'turnRight'],
+};
+
+/** Mouse bindings by `MouseEvent.button`. They only count while the pointer is locked to the game. */
+export const mouseBindings: Record<number, Action[]> = {
+  0: ['interact'],
 };
 
 /** Prompt labels for the interact button on each device. */

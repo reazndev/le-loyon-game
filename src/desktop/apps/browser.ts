@@ -220,17 +220,17 @@ export class BrowserApp {
     try {
       if (!cached) {
         this.setStatus(`Contacting host: ${host}...`);
-        await wait(600 + Math.random() * 600, signal);
+        await wait(150 + Math.random() * 150, signal);
       }
       if (lookup.kind === 'no-response') {
-        await wait(2600, signal);
+        await wait(1200, signal);
         this.finish('Document: Done.');
         await this.pc.message('Navigator', 'Server not responding.\n\nThe server may be down or busy. Try again later.');
         return;
       }
       if (!cached) {
         this.setStatus('Host contacted. Waiting for reply...');
-        await wait(400 + Math.random() * 500, signal);
+        await wait(100 + Math.random() * 120, signal);
       }
       if (push) {
         this.history.splice(this.index + 1);
@@ -277,7 +277,7 @@ export class BrowserApp {
   private async arrive(page: Page, slow: number, signal: AbortSignal): Promise<void> {
     const content = this.pane.content;
     const height = content.scrollHeight;
-    const seconds = clamp(page.size * 0.12, 0.6, 2.8) * slow;
+    const seconds = clamp(page.size * 0.04, 0.2, 0.9) * slow;
     const steps = slow ? Math.ceil(height / 18) : 1;
     for (let i = 1; i <= steps; i++) {
       content.style.clipPath = `inset(0 0 ${Math.max(0, height - (i * height) / steps)}px 0)`;
@@ -300,7 +300,7 @@ export class BrowserApp {
       const box = widget.element.getBoundingClientRect();
       const scale = this.pc.root.getBoundingClientRect().width / 640;
       const area = (box.width / scale) * (box.height / scale);
-      await widget.arrive!(slow ? clamp(0.5 + area / 30000, 0.6, 3) * slow : 0, signal);
+      await widget.arrive!(slow ? clamp(0.15 + area / 90000, 0.2, 1) * slow : 0, signal);
     }
   }
 

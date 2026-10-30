@@ -29,8 +29,7 @@ uniform vec3 uSpotColor;
 uniform float uSpotRange;
 uniform vec2 uSpotCos;
 
-varying vec2 vUvAffine;
-varying float vAffineW;
+varying vec2 vUv;
 varying vec3 vLight;
 varying vec3 vTint;
 varying vec3 vWorldPos;
@@ -97,10 +96,8 @@ void main() {
   }
   gl_Position = clip;
 
-  // WebGL2 interpolates varyings with perspective correction. Pre-multiplying by w and dividing
-  // in the fragment shader cancels it out, which gives the PS1's affine texture warp.
-  vAffineW = clip.w;
-  vUvAffine = uv * uUvScale * clip.w;
+  // Perspective-correct, unlike the PS1: its affine warp bent textures badly up close.
+  vUv = uv * uUvScale;
 
   vWorldPos = world;
   vViewDist = length(viewPos.xyz);
@@ -140,8 +137,7 @@ uniform vec3 uSpotColor;
 uniform float uSpotFogGlow;
 uniform float uLightFogGlow;
 
-varying vec2 vUvAffine;
-varying float vAffineW;
+varying vec2 vUv;
 varying vec3 vLight;
 varying vec3 vTint;
 varying vec3 vWorldPos;
@@ -177,7 +173,7 @@ float fogAmount(float dist) {
 }
 
 void main() {
-  vec4 texel = texture2D(uMap, vUvAffine / vAffineW);
+  vec4 texel = texture2D(uMap, vUv);
   float fog = fogAmount(vViewDist);
 
   #ifdef GLOW
@@ -223,7 +219,7 @@ export interface Ps1MaterialUniforms extends Record<string, IUniform> {
 
 export type Ps1Material = ShaderMaterial & { uniforms: Ps1MaterialUniforms };
 
-/** Creates the PS1 look material: snapped vertices, affine textures, vertex lighting, fog. */
+/** Creates the PS1 look material: snapped vertices, vertex lighting, fog. */
 export function createPs1Material(options: Ps1MaterialOptions = {}): Ps1Material {
   const uniforms: Ps1MaterialUniforms = {
     ...ps1Uniforms,

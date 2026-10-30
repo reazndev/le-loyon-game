@@ -83,7 +83,7 @@ export class DialUpApp {
         const then = this.then;
         this.close();
         then?.();
-      }, (script.duration + 1.2) * 1000),
+      }, (script.duration + 0.5) * 1000),
     ];
     this.timers.push(blink);
   }

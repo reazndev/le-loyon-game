@@ -128,6 +128,8 @@ export class Computer {
    * frame with the screen. Resolves when they stand up.
    */
   sit(delay = 0): Promise<void> {
+    // The desktop has its own pointer, so the real one comes back from mouse look.
+    if (document.pointerLockElement) document.exitPointerLock();
     this.root.classList.remove('on');
     this.root.style.visibility = 'hidden';
     this.hiddenFor = delay;

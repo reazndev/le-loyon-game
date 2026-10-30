@@ -15,15 +15,17 @@ export const playerTuning = {
   /** A hurried walk, not a run. */
   fastSpeed: 2.5,
   backSpeed: 0.9,
-  /** Degrees per second. Slow on purpose: turning around should take a while. */
-  turnSpeed: 95,
+  /** Degrees per second, for the arrow keys and the right stick. The mouse turns as fast as it moves. */
+  turnSpeed: 120,
+  /** How far the player can look up or down, in degrees. */
+  maxPitchDeg: 80,
   fieldOfView: 60,
   /** Head bob height in meters. */
   bob: 0.028,
   /** Meters per footstep. */
   stride: 0.7,
   fastStride: 0.85,
-  /** A slight downward tilt, so the ground ahead stays in view. */
+  /** A slight downward tilt on arrival, so the ground ahead stays in view. */
   pitchDeg: -3,
 };
 
@@ -41,14 +43,16 @@ export interface PlayerWorld {
 }
 
 /**
- * The first-person body: tank movement, ground following, head bob, and footsteps.
+ * The first-person body: walking and strafing, mouse look, ground following, head bob, and footsteps.
  * Yaw 0 looks down -Z; positive yaw turns left, the same as Three.js rotation around Y.
+ * Positive pitch looks up.
  */
 export class Player {
   readonly camera = new PerspectiveCamera(playerTuning.fieldOfView, 4 / 3, 0.05, 100);
   readonly position = new Vector3();
   readonly events = new Emitter<{ footstep: FootstepEvent }>();
   yaw = 0;
+  pitch = MathUtils.degToRad(playerTuning.pitchDeg);
   /** Lower and slower. Toggled by the crouch action; standing up again on every `place`. */
   crouched = false;
   private eyeHeight = playerTuning.eyeHeight;
@@ -59,6 +63,7 @@ export class Player {
   place(x: number, y: number, z: number, yawDeg: number): void {
     this.position.set(x, y, z);
     this.yaw = MathUtils.degToRad(yawDeg);
+    this.pitch = MathUtils.degToRad(playerTuning.pitchDeg);
     this.stepPhase = 0;
     this.bobWeight = 0;
     this.crouched = false;
@@ -71,18 +76,29 @@ export class Player {
     return new Vector3(-Math.sin(this.yaw), 0, -Math.cos(this.yaw));
   }
 
+  /** Unit vector to the player's right, in the XZ plane. */
+  right(): Vector3 {
+    return new Vector3(Math.cos(this.yaw), 0, -Math.sin(this.yaw));
+  }
+
   update(dt: number, movement: Movement, fast: boolean, world: PlayerWorld): void {
-    this.yaw -= MathUtils.degToRad(playerTuning.turnSpeed) * movement.turn * dt;
+    const turnRate = MathUtils.degToRad(playerTuning.turnSpeed) * dt;
+    const maxPitch = MathUtils.degToRad(playerTuning.maxPitchDeg);
+    this.yaw -= turnRate * movement.turn + movement.look.x;
+    this.pitch = MathUtils.clamp(this.pitch + turnRate * movement.tilt + movement.look.y, -maxPitch, maxPitch);
 
     const speed = this.crouched
       ? playerTuning.crouchSpeed
-      : movement.forward >= 0
-        ? fast
+      : movement.forward < 0
+        ? playerTuning.backSpeed
+        : fast
           ? playerTuning.fastSpeed
-          : playerTuning.walkSpeed
-        : playerTuning.backSpeed;
+          : playerTuning.walkSpeed;
     this.eyeHeight = MathUtils.damp(this.eyeHeight, this.crouched ? playerTuning.crouchEyeHeight : playerTuning.eyeHeight, 9, dt);
-    const step = this.forward().multiplyScalar(movement.forward * speed * dt);
+    const direction = this.forward().multiplyScalar(movement.forward).addScaledVector(this.right(), movement.strafe);
+    // Diagonals are no faster than straight lines.
+    if (direction.lengthSq() > 1) direction.normalize();
+    const step = direction.multiplyScalar(speed * dt);
     const from = { x: this.position.x, z: this.position.z };
     const to = world.collision.move(from, { x: step.x, z: step.z }, playerTuning.radius);
     const moved = Math.hypot(to.x - from.x, to.z - from.z);
@@ -113,9 +129,8 @@ export class Player {
     // The head is lowest when a foot lands, at whole step counts.
     const lift = Math.abs(wave) * playerTuning.bob * this.bobWeight;
     const sway = wave * playerTuning.bob * 0.4 * this.bobWeight;
-    const right = new Vector3(Math.cos(this.yaw), 0, -Math.sin(this.yaw));
-    this.camera.position.copy(this.position).addScaledVector(right, sway);
+    this.camera.position.copy(this.position).addScaledVector(this.right(), sway);
     this.camera.position.y += this.eyeHeight + lift;
-    this.camera.rotation.set(MathUtils.degToRad(playerTuning.pitchDeg), this.yaw, 0, 'YXZ');
+    this.camera.rotation.set(this.pitch, this.yaw, 0, 'YXZ');
   }
 }

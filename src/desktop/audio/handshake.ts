@@ -24,8 +24,10 @@ const dtmf: Record<string, [number, number]> = {
 const SWISS_TONE = 425;
 const DIGIT_ON = 0.09;
 const DIGIT_GAP = 0.07;
+/** The real handshake took about 18 seconds; played this many times faster so nobody waits. */
+const SPEED_UP = 4;
 
-/** About 18 seconds: dial tone, the number, two rings, then the answer tone, probing, and training. */
+/** About 4.5 seconds: dial tone, the number, two rings, then the answer tone, probing, and training. */
 export function handshake(number: string, speed: string): Handshake {
   const digits = [...number].filter((c) => c in dtmf);
   const dialStart = 1.6;
@@ -60,14 +62,15 @@ export function handshake(number: string, speed: string): Handshake {
     { kind: 'click', start: train + 4.0 },
   ];
   const duration = train + 4.5;
+  const fast = (t: number) => t / SPEED_UP;
   return {
-    sounds,
+    sounds: sounds.map((sound) => ({ ...sound, start: fast(sound.start), ...('duration' in sound ? { duration: fast(sound.duration) } : {}) })),
     status: [
       { at: 0, text: 'Dialing...' },
-      { at: train, text: 'Verifying user name and password...' },
-      { at: train + 2.6, text: 'Logging on to network...' },
-      { at: duration, text: `Connected at ${speed} bps` },
+      { at: fast(train), text: 'Verifying user name and password...' },
+      { at: fast(train + 2.6), text: 'Logging on to network...' },
+      { at: fast(duration), text: `Connected at ${speed} bps` },
     ],
-    duration,
+    duration: fast(duration),
   };
 }

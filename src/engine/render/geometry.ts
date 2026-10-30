@@ -3,8 +3,8 @@ import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js
 
 /**
  * Geometry for the level kit. UVs are in meters so a material's UV scale sets texel density,
- * and faces are split into cells of about `cell` meters. Vertex lighting and affine warping
- * both need those extra vertices: a flashlight on a single large quad lights nothing.
+ * and faces are split into cells of about `cell` meters. Vertex lighting needs those extra
+ * vertices: a flashlight on a single large quad lights nothing.
  */
 
 const segments = (length: number, cell: number) => Math.max(1, Math.ceil(length / cell));

@@ -72,7 +72,9 @@ export class PolaroidCamera {
 
     const handle = ui.openScreen(finder.element, (dt, input) => {
       if (busy) return;
-      player.update(dt, { forward: 0, turn: this.deps.movement(input).turn * AIM_TURN }, false, world);
+      const { turn, tilt, look } = this.deps.movement(input);
+      const aim = { turn: turn * AIM_TURN, tilt: tilt * AIM_TURN, look: { x: look.x * AIM_TURN, y: look.y * AIM_TURN } };
+      player.update(dt, { forward: 0, strafe: 0, ...aim }, false, world);
       if (input.pressed('cancel') || input.pressed('camera')) return lower();
       if (!input.pressed('interact')) return;
       busy = true;
