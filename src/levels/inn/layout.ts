@@ -45,8 +45,11 @@ export const SCREEN = { x: DESK.x + 0.13, y: DESK.top + 0.17, z: DESK.z };
 /** Where the reporter sits at the computer, facing the screen with the doorway behind. */
 export const SEAT = { x: -7.75, z: 2.6, yaw: 90 };
 export const PHONE = { x: -6.3, y: 1.5, z: STUBLI.z0 + 0.1 };
-/** Where Yannick stands in the stübli doorway, a step back in the dark café. */
-export const DOORWAY = { x: -4.7, z: STUBLI_DOOR.z };
+/**
+ * Where Yannick sits on the third evening: the corner bench behind the regulars' table, behind
+ * the reporter's right shoulder at the computer, where the monitor's light only just reaches.
+ */
+export const YANNICK_SEAT = { x: -6.8, z: -0.24, height: 0.45 };
 
 export const BED = { x: 8.55, z: -9.9 };
 export const ROOM3_DESK = { x: 6.55, z: -10.25 };

@@ -4,7 +4,7 @@ import { scareDirector, type ScareDirector } from '../../game/scares/director';
 import { otherStep } from '../../game/scares/sounds';
 import type { SceneContext } from '../../game/scene';
 import type { InnDressing } from './dressing';
-import { CORRIDOR, CORRIDOR_DOORS, DOORWAY, PHONE, ROOM3, STAIRS, UPPER } from './layout';
+import { CORRIDOR, CORRIDOR_DOORS, PHONE, ROOM3, STAIRS, UPPER, YANNICK_SEAT } from './layout';
 import { doorShut } from './sounds';
 
 /** A beat that only fires when the scene calls `scares.fire`. */
@@ -50,7 +50,7 @@ export function stageBeats(kit: LevelKit, ctx: SceneContext, dressing: InnDressi
     ],
   };
   const beats: Beat[] = [
-    { id: 'inn_doorway', when: MANUAL, do: [{ stinger: 'sfx_floorboard', at: DOORWAY }] },
+    { id: 'inn_doorway', when: MANUAL, do: [{ stinger: 'sfx_floorboard', at: YANNICK_SEAT }] },
     {
       id: 'vil_inn_phone',
       when: MANUAL,

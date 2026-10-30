@@ -377,8 +377,8 @@ const leaveOpen = {
   },
 };
 
-/** Where Yannick stands in the stübli doorway on the third evening. */
-const DOORWAY = { x: -4.7, z: 2.6 };
+/** Where Yannick sits in the stübli on the third evening, behind the reporter at the computer. */
+const YANNICK = { x: -6.8, z: -0.24 };
 
 const dayThreeMorning = {
   name: 'day_3_morning',
@@ -430,11 +430,11 @@ const veilleur = {
     await s.seconds(3);
     // Back closes the windows, then stands the reporter up.
     while ((await s.eval(() => window.__game.modal())) === 'screen') await s.key('Escape', 10);
-    await s.eval((door) => {
+    await s.eval((seat) => {
       const p = window.__game.pose();
-      window.__game.teleport(p.x, p.y, p.z, (Math.atan2(-(door.x - p.x), -(door.z - p.z)) * 180) / Math.PI);
-    }, DOORWAY);
-    await s.awaitTalk('Yannick in the doorway');
+      window.__game.teleport(p.x, p.y, p.z, (Math.atan2(-(seat.x - p.x), -(seat.z - p.z)) * 180) / Math.PI);
+    }, YANNICK);
+    await s.awaitTalk('Yannick behind the reporter');
     await s.until(() => window.__game.state().time === 'night', 'night 3');
     await s.inScene('inn');
     await s.shot('17-veilleur');

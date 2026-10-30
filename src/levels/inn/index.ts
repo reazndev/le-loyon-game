@@ -5,7 +5,7 @@ import { everyFrame } from '../church/everyFrame';
 import { stageBeats } from './beats';
 import { buildCafe } from './cafe';
 import { placeCafeCast } from './cast';
-import { doorway } from './doorway';
+import { veilleur } from './veilleur';
 import { cafeLit, dressInn, type InnDressing } from './dressing';
 import { loopSound } from './interior';
 import { CAFE, FRONT_DOOR, KITCHEN_DOOR, ROOM3_DESK, SCREEN, SEAT, STUBLI, UPPER } from './layout';
@@ -19,8 +19,8 @@ import { buildUpstairs, lookOutOfRoom3 } from './upstairs';
 /**
  * Auberge de la Croix-Blanche. The café with its six tables and Monique at the counter, the
  * stübli with Yannick's computer and the phone, and room 3 upstairs. The inn turns the story:
- * supper starts nights 1 and 2, Yannick in the doorway starts night 3, the bed in room 3 ends
- * nights 1 and 2, and the phone in the stübli ends the game.
+ * supper starts nights 1 and 2, Yannick behind the reporter in the stübli starts night 3, the
+ * bed in room 3 ends nights 1 and 2, and the phone in the stübli ends the game.
  */
 
 const FROM_SQUARE = { x: FRONT_DOOR.x, z: CAFE.z1 - 0.8, yaw: 0 };
@@ -67,7 +67,7 @@ export const innScene = defineScene({
     placeCafeCast(kit, ctx, dressing);
     const scares = stageBeats(kit, ctx, dressing);
     const phone = new InnPhone(kit, ctx, dressing, scares);
-    const showYannick = doorway(kit, ctx, scares);
+    const showYannick = veilleur(kit, ctx, scares);
     buildStubli(kit, dressing, { useComputer: () => void sitAtComputer(ctx, dressing, showYannick) });
     buildUpstairs(kit, ctx, dressing, { onBed: () => void lieDown(ctx), onWindow: () => void lookOutOfRoom3(ctx) });
     kit.door({ to: 'village_square', spawn: 'from_inn', w: FRONT_DOOR.w, h: FRONT_DOOR.h, prompt: 'Go out' }).at(FRONT_DOOR.x, 0, CAFE.z1 + 0.02);
