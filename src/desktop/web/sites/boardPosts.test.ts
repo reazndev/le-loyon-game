@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { GameState } from '../../../game/state';
-import { postById, posts, replies, threadRoots, visiblePosts } from './boardPosts';
+import { flatThread, postById, posts, readingOrder, replies, rootOf, threadRoots, visiblePosts } from './boardPosts';
 
 describe('board posts', () => {
   it('have unique ids and replies to posts of the same or an earlier stage', () => {
@@ -44,5 +44,22 @@ describe('board posts', () => {
   it('gives the bus times in the post that solves part of P1', () => {
     const bus = posts.find((post) => post.reads === 'pro_read_thread_bus')!;
     expect(bus.body).toContain('18:52');
+  });
+
+  it('reads a thread flat, each reply under the post it answers', () => {
+    const gasMask = threadRoots(0).find((post) => post.subject.startsWith('GAS MASK MAN'))!;
+    const thread = flatThread(gasMask, 0);
+    const bus = thread.findIndex((post) => post.reads === 'pro_read_thread_bus');
+    expect(thread[0]).toBe(gasMask);
+    expect(thread[bus + 1]!.subject).toBe('Re: bus');
+    expect(thread.every((post) => rootOf(post) === gasMask)).toBe(true);
+  });
+
+  it('puts every visible post once in reading order', () => {
+    ([0, 5] as const).forEach((stage) => {
+      const order = readingOrder(stage);
+      expect(order).toHaveLength(visiblePosts(stage).length);
+      expect(new Set(order).size).toBe(order.length);
+    });
   });
 });

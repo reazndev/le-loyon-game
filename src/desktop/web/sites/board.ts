@@ -3,7 +3,7 @@ import type { ForumStage } from '../../forum';
 import { starTile } from '../../gfx/gifs';
 import type { Page, PageEnv, Pages } from '../page';
 import { BOARD_BASE as BASE, BOARD_INDEX, RING_LIST, STEF_HOME } from '../urls';
-import { postById, replies, threadRoots, visiblePosts, type Post } from './boardPosts';
+import { flatThread, postById, readingOrder, replies, rootOf, threadRoots, type Post } from './boardPosts';
 import { webring } from './webring';
 
 const POST_SCRIPT = 'http://www.alpanom.ch/cgi-bin/wwwboard.pl';
@@ -16,13 +16,20 @@ const look: Pick<Page, 'background' | 'colors'> = {
 
 const yellow = (text: string) => `<font color="#f0e040">${text}</font>`;
 
-function messageUrl(post: Post): string {
-  return `${BASE}messages/${post.id}.html`;
+/** A thread's page, named after the message number of its first post. */
+function threadUrl(root: Post): string {
+  return `${BASE}messages/${root.id}.html`;
+}
+
+/** A post's place on its thread's page. */
+function postUrl(post: Post): string {
+  const root = rootOf(post);
+  return post === root ? threadUrl(root) : `${threadUrl(root)}#m${post.id}`;
 }
 
 function listItem(post: Post, stage: ForumStage): string {
   const children = replies(post, stage);
-  return `<li><a href="${messageUrl(post)}">${esc(post.subject)}</a> - ${esc(post.author)} <i>${post.short}</i>${
+  return `<li><a href="${postUrl(post)}">${esc(post.subject)}</a> - ${esc(post.author)} <i>${post.short}</i>${
     children.length ? `<ul>${children.map((child) => listItem(child, stage)).join('')}</ul>` : ''
   }</li>`;
 }
@@ -83,41 +90,55 @@ function author(post: Post): string {
   return post.email ? `<a href="mailto:${post.email}">${esc(post.author)}</a>` : esc(post.author);
 }
 
-function postPage(post: Post, stage: ForumStage): Page {
-  const nav = `<center>[ <a href="#followups">Follow Ups</a> ] [ <a href="#postfp">Post Followup</a> ] [ <a href="${BOARD_INDEX}">Alpine Anomalies Board</a> ] [ <a href="${BASE}faq.html">FAQ</a> ]</center>`;
-  const body = (env: PageEnv) => (typeof post.body === 'string' ? post.body : post.body(env.state));
-  const posted = (env: PageEnv) => (typeof post.posted === 'string' ? post.posted : post.posted(env.time));
+/**
+ * A thread as one flat page: the first post and every reply in order, each with its author and
+ * date. Previous and Next message step through the whole board in reading order, so a player can
+ * read on without going back to the index. A post counts as read once it scrolls into view.
+ */
+function threadPage(root: Post, stage: ForumStage): Page {
+  const thread = flatThread(root, stage);
+  const order = readingOrder(stage);
+  const body = (post: Post, env: PageEnv) => (typeof post.body === 'string' ? post.body : post.body(env.state));
+  const posted = (post: Post, env: PageEnv) => (typeof post.posted === 'string' ? post.posted : post.posted(env.time));
+  const toIndex = `[ <a href="${BOARD_INDEX}">Back to index</a> ]`;
+  const jump = (post: Post | undefined, label: string) =>
+    post ? `[ <a href="${rootOf(post) === root ? `#m${post.id}` : postUrl(post)}">${label}</a> ] ` : '';
+  const nav = (post: Post) => {
+    const at = order.indexOf(post);
+    return `<center>${jump(order[at - 1], 'Previous message')}${jump(order[at + 1], 'Next message')}${toIndex}</center>`;
+  };
+  const message = (post: Post, env: PageEnv) => `
+<hr>
+<a name="m${post.id}"></a>
+<div data-seen="${post.id}">
+${yellow(esc(post.subject))}<br>
+Posted by ${author(post)} on ${posted(post, env)}${post.parent ? `, in reply to ${esc(postById(post.parent)!.author)}` : ''}:<br><br>
+<pre>${esc(body(post, env))}</pre>
+${post.image ? `<center><x-img src="${post.image.src}" w="${post.image.w}" h="${post.image.h}" alt="${post.image.alt}"></x-img></center><br>` : ''}
+${post.link ? `<ul><li><a href="${post.link.url}">${esc(post.link.title)}</a></li></ul><br>` : ''}
+</div>
+${nav(post)}`;
   const quote = (env: PageEnv) =>
-    body(env)
+    body(root, env)
       .split('\n')
       .map((line) => `: ${line}`)
       .join('\n');
-  const children = replies(post, stage);
   return {
-    title: post.subject,
-    size: 6 + (post.image ? 30 : 0),
+    title: root.subject,
+    size: 4 + thread.length * 2 + thread.filter((post) => post.image).length * 30,
     ...look,
     html: (env) => `
-${nav}
+<center>${toIndex} [ <a href="#postfp">Post Followup</a> ] [ <a href="${BASE}faq.html">FAQ</a> ]</center>
+${thread.map((post) => message(post, env)).join('')}
 <hr>
-<center><h1>${yellow(esc(post.subject))}</h1></center>
-<hr>
-<p>Posted by ${author(post)} on ${posted(env)}:</p>
-${post.parent ? `<p>In Reply to: <a href="${messageUrl(postById(post.parent)!)}">${esc(postById(post.parent)!.subject)}</a> posted by ${esc(postById(post.parent)!.author)}</p>` : ''}
-<pre>${esc(body(env))}</pre>
-${post.image ? `<center><x-img src="${post.image.src}" w="${post.image.w}" h="${post.image.h}" alt="${post.image.alt}"></x-img></center><br>` : ''}
-${post.link ? `<ul><li><a href="${post.link.url}">${esc(post.link.title)}</a></li></ul><br>` : ''}
-<hr>
-<a name="followups">Follow Ups:</a><br>
-<ul>${children.map((child) => listItem(child, stage)).join('')}</ul>
-<br><hr>
 <a name="postfp"></a>
-${postForm(post.subject.startsWith('Re: ') ? post.subject : `Re: ${post.subject}`, quote(env), 'Post a Followup')}
+${postForm(`Re: ${root.subject}`, quote(env), 'Post a Followup')}
 <hr>
-${nav}`,
-    onLoad(env) {
-      if (post.reads) env.read(post.reads);
-      env.postRead(String(post.id));
+<center>${toIndex}</center>`,
+    onSeen(key, env) {
+      const post = postById(Number(key));
+      if (post?.reads) env.read(post.reads);
+      env.postRead(key);
     },
   };
 }
@@ -178,6 +199,6 @@ export function boardPages(stage: ForumStage): Pages {
     [`${BASE}faq.html`]: faq,
     [`${BASE}links.html`]: links,
     [POST_SCRIPT]: postingDisabled,
-    ...Object.fromEntries(visiblePosts(stage).map((post) => [messageUrl(post), postPage(post, stage)])),
+    ...Object.fromEntries(threadRoots(stage).map((root) => [threadUrl(root), threadPage(root, stage)])),
   };
 }

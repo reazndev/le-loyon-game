@@ -17,7 +17,7 @@ export interface InnComputerOptions {
   stage?: Exclude<ForumStage, 0>;
   /** Taskbar time at power on, "HH:MM". Default: a time that fits the stage. */
   clock?: string;
-  /** Runs with the message number of each board post the player opens. The stage 5 post "you" is 503. */
+  /** Runs with the message number of each board post the player scrolls to. The stage 5 post "you" is 503. */
   onRead?: (postId: string) => void;
 }
 

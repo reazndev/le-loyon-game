@@ -451,3 +451,18 @@ export function visiblePosts(stage: ForumStage): Post[] {
 export function replies(post: Post, stage: ForumStage): Post[] {
   return visiblePosts(stage).filter((reply) => reply.parent === post.id);
 }
+
+/** The post that started the thread `post` is in. */
+export function rootOf(post: Post): Post {
+  return post.parent === undefined ? post : rootOf(postById(post.parent)!);
+}
+
+/** A thread as its flat page shows it: the first post, then each reply right under the post it answers. */
+export function flatThread(root: Post, stage: ForumStage): Post[] {
+  return [root, ...replies(root, stage).flatMap((reply) => flatThread(reply, stage))];
+}
+
+/** Every visible post in reading order, thread by thread down the list, for Previous and Next message. */
+export function readingOrder(stage: ForumStage): Post[] {
+  return threadRoots(stage).flatMap((root) => flatThread(root, stage));
+}
