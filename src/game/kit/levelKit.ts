@@ -12,7 +12,7 @@ import {
 import type { PointLightOptions } from '../../engine/render/lighting';
 import { createPs1Material } from '../../engine/render/ps1Material';
 import { mergeStatic } from '../../engine/render/staticBatch';
-import type { TreeKind } from '../../engine/render/trees';
+import type { TreeKind, TreeModel } from '../../engine/render/trees';
 import type { CharacterId } from '../../engine/characters/cast';
 import {
   BarrierBuilder,
@@ -114,8 +114,8 @@ export class LevelKit {
     return this.add(new MeshBuilder(this.ctx, geometry));
   }
 
-  /** Instanced trees, one per spot. See `scatter` for random spots. */
-  trees(kind: TreeKind, spots: TreeSpot[]): TreesBuilder {
+  /** Instanced trees, one per spot. See `scatter` for random spots and `foliage.ts` for leafy models. */
+  trees(kind: TreeKind | TreeModel, spots: TreeSpot[]): TreesBuilder {
     return this.add(new TreesBuilder(this.ctx, kind, spots));
   }
 

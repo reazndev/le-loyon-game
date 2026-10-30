@@ -1,4 +1,5 @@
 import {
+  Color,
   DoubleSide,
   Euler,
   Group,
@@ -19,7 +20,7 @@ import type { GroundPatch, Surface } from '../../engine/physics/ground';
 import type { PointLight, PointLightOptions } from '../../engine/render/lighting';
 import { createPs1Material, setDefine, type Ps1Material } from '../../engine/render/ps1Material';
 import { DYNAMIC } from '../../engine/render/staticBatch';
-import { treeModel, type TreeKind } from '../../engine/render/trees';
+import { treeModel, type TreeKind, type TreeModel } from '../../engine/render/trees';
 import type { SceneContext } from '../scene';
 import type { World } from '../world';
 
@@ -295,23 +296,28 @@ export interface TreeSpot {
   yaw?: number;
 }
 
-/** Many trees of one kind as instanced meshes. Each tree stands on the ground under it. */
+/**
+ * Many trees of one kind as instanced meshes. Each tree stands on the ground under it. Pass a
+ * kind for the engine's stock trees or a model, such as one from `foliage.ts`.
+ */
 export class TreesBuilder extends Placed {
   private readonly trunkRadius: number;
+  private shadeSpread = 0;
 
   constructor(
     ctx: KitContext,
-    kind: TreeKind,
+    kind: TreeKind | TreeModel,
     private readonly spots: TreeSpot[],
   ) {
     super(ctx, new Group());
-    const model = treeModel(kind);
+    const model = typeof kind === 'string' ? treeModel(kind) : kind;
     this.trunkRadius = model.trunkRadius;
     const meshes = model.parts.map((part) => {
       const material = createPs1Material({
         map: ctx.world.textures.get(part.texture),
         uvScale: part.uvScale,
         color: part.color,
+        vertexColors: part.geometry.hasAttribute('color'),
         ...(part.cutout ? { alphaTest: 0.5, side: DoubleSide } : {}),
       });
       const mesh = new InstancedMesh(part.geometry, material, spots.length);
@@ -332,9 +338,16 @@ export class TreesBuilder extends Placed {
     return this;
   }
 
+  /** Darkens or lightens each tree by up to `spread` (0.2 is a fifth), so a stand isn't stamped copies. */
+  shade(spread: number): this {
+    this.shadeSpread = spread;
+    return this;
+  }
+
   private placeInstances(meshes: InstancedMesh[]): void {
     const groupY = worldPosition(this.object).y;
     const matrix = new Matrix4();
+    const tint = new Color();
     this.spots.forEach((spot, i) => {
       const p = this.object.localToWorld(new Vector3(spot.x, 0, spot.z));
       const scale = spot.scale ?? 1;
@@ -346,9 +359,15 @@ export class TreesBuilder extends Placed {
         new Vector3(scale, scale, scale),
       );
       meshes.forEach((mesh) => mesh.setMatrixAt(i, matrix));
+      if (this.shadeSpread) {
+        // Keyed on the spot, so the same tree keeps its shade every visit.
+        const k = 1 + this.shadeSpread * Math.sin(spot.x * 12.9898 + spot.z * 78.233);
+        meshes.forEach((mesh) => mesh.setColorAt(i, tint.setScalar(k)));
+      }
     });
     meshes.forEach((mesh) => {
       mesh.instanceMatrix.needsUpdate = true;
+      if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
       mesh.computeBoundingSphere();
     });
   }
