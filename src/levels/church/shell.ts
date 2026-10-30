@@ -24,10 +24,13 @@ export function wall(kit: LevelKit, from: [number, number], to: [number, number]
   const length = Math.hypot(x2 - x1, z2 - z1);
   const yaw = (Math.atan2(-(z2 - z1), x2 - x1) * 180) / Math.PI;
   const point = (along: number) => [x1 + ((x2 - x1) * along) / length, z1 + ((z2 - z1) * along) / length] as const;
-  const piece = (a: number, b: number, y0: number, y1: number) => {
+  // Colliders are footprints on the floor plan, so only full-height pieces get one. A lintel or a
+  // sill with a collider would close its doorway.
+  const piece = (a: number, b: number, y0: number, y1: number, solid = false) => {
     if (b - a < 0.01 || y1 - y0 < 0.01) return;
     const [x, z] = point((a + b) / 2);
-    kit.box({ w: b - a, h: y1 - y0, d: WALL, cell: 1.5 }).texture('plaster_wall', { tile: 2.4 }).color(WHITEWASH).at(x, y0, z).rotY(yaw).collider();
+    const box = kit.box({ w: b - a, h: y1 - y0, d: WALL, cell: 1.5 }).texture('plaster_wall', { tile: 2.4 }).color(WHITEWASH).at(x, y0, z).rotY(yaw);
+    if (solid) box.collider();
     if (y0 > 0) return;
     kit.box({ w: b - a, h: DADO_HEIGHT, d: WALL + 0.06 }).texture('church_stone', { tile: 1.4 }).color(DADO).at(x, 0, z).rotY(yaw);
   };
@@ -37,12 +40,12 @@ export function wall(kit: LevelKit, from: [number, number], to: [number, number]
     .forEach((gap) => {
       const a = gap.at - gap.w / 2;
       const b = gap.at + gap.w / 2;
-      piece(start, a, 0, h);
+      piece(start, a, 0, h, true);
       piece(a, b, 0, gap.y ?? 0);
       piece(a, b, (gap.y ?? 0) + gap.h, h);
       start = b;
     });
-  piece(start, length, 0, h);
+  piece(start, length, 0, h, true);
 }
 
 /**
@@ -127,8 +130,9 @@ export function buildShell(kit: LevelKit, night: boolean): void {
   wall(kit, [CHANCEL.x0, CHANCEL.z0], [CHANCEL.x1, CHANCEL.z0], CHANCEL.h, [
     { at: SACRISTY_DOOR.x - CHANCEL.x0, w: SACRISTY_DOOR.w, h: SACRISTY_DOOR.h, y: RAISED },
   ]);
-  kit.box({ w: cw, h: RAISED, d: cd, cell: 0.75 }).texture('church_floor', { tile: 1.4 }).color(0xa29c90).at(0, 0, cz).walkable('stone');
-  kit.box({ w: cw, h: RAISED / 2, d: 0.4 }).texture('church_stone', { tile: 1 }).color(0x9a968c).at(0, 0, CHANCEL.z1 + 0.2).walkable('stone');
+  // A little narrower than the arch, so their ends don't share a plane with the dado and flicker.
+  kit.box({ w: cw - 0.02, h: RAISED, d: cd, cell: 0.75 }).texture('church_floor', { tile: 1.4 }).color(0xa29c90).at(0, 0, cz).walkable('stone');
+  kit.box({ w: cw - 0.02, h: RAISED / 2, d: 0.4 }).texture('church_stone', { tile: 1 }).color(0x9a968c).at(0, 0, CHANCEL.z1 + 0.2).walkable('stone');
   kit.ceiling({ w: cw, d: cd, cell: 1.5 }).texture('plaster_wall', { tile: 3 }).color(0x8a8882).at(0, CHANCEL.h, cz);
   windowPane(kit, CHANCEL.x0, -14.2, 1, { w: 0.9, h: 2.6, y: 2.4 }, night);
 

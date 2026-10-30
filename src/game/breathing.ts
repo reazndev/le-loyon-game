@@ -14,7 +14,9 @@ const RESTED_AFTER = 18;
 /** Winded enough to hear it, and calm enough to stop. About five seconds of running starts it. */
 const START = 0.4;
 const STOP = 0.12;
-const LOUDEST = 0.9;
+const LOUDEST = 0.45;
+/** How far into the gasping loop full wind goes: 1 stops at fast breathing, 2 is all gasping. */
+const HARDEST = 1.35;
 /** Average seconds between cold breaths, when not out of breath. */
 const COLD_EVERY = 14;
 
@@ -45,7 +47,7 @@ export class Breathing {
     this.nextCold = COLD_EVERY * (0.5 + Math.random());
     if (!cold || this.panting) return;
     const shiver = Math.random() < 0.55;
-    this.audio.play(url(shiver ? `shiver_${pick(SHIVERS)}` : `sniff_${pick(SNIFFS)}`), { bus: 'sfx', volume: shiver ? 0.5 : 0.45 });
+    this.audio.play(url(shiver ? `shiver_${pick(SHIVERS)}` : `sniff_${pick(SNIFFS)}`), { bus: 'sfx', volume: shiver ? 0.3 : 0.25 });
   }
 
   /** Starts all three loops silent, each from a random point so they never line up. */
@@ -63,10 +65,10 @@ export class Breathing {
     });
   }
 
-  /** Light breathing first, then fast, then gasping, by how far past the start the reporter is. */
+  /** Light breathing first, then fast, then a touch of gasping, by how far past the start the reporter is. */
   private mix(loops: Output[]): void {
     const level = this.panting ? Math.min(1, (this.wind - STOP) / (START - STOP)) * LOUDEST : 0;
-    const p = Math.max(0, (this.wind - START) / (1 - START)) * 2;
+    const p = Math.max(0, (this.wind - START) / (1 - START)) * HARDEST;
     const weights = [Math.max(0, 1 - p), Math.max(0, 1 - Math.abs(p - 1)), Math.max(0, p - 1)];
     loops.forEach((output, i) => output.input.gain.setTargetAtTime(level * weights[i]!, this.audio.now, 0.4));
   }
