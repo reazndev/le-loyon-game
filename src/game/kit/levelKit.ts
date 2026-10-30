@@ -11,6 +11,7 @@ import {
 } from '../../engine/render/geometry';
 import type { PointLightOptions } from '../../engine/render/lighting';
 import { createPs1Material } from '../../engine/render/ps1Material';
+import { mergeStatic } from '../../engine/render/staticBatch';
 import type { TreeKind } from '../../engine/render/trees';
 import type { CharacterId } from '../../engine/characters/cast';
 import {
@@ -164,6 +165,19 @@ export class LevelKit {
     return this.add(new Placed(this.ctx, group));
   }
 
+  /**
+   * Builds children in a group, then merges their meshes that share a material into one draw
+   * call each, and returns what `build` returns. Use it for the still parts of a level; mark
+   * anything the level later moves, hides, or recolors with `.dynamic()`, or build it outside.
+   */
+  batch<T>(build: (kit: LevelKit) => T): T {
+    const group = new Group();
+    const result = build(new LevelKit(this.ctx, group));
+    this.parent.add(group);
+    this.ctx.later('merge', () => mergeStatic(group));
+    return result;
+  }
+
   /** A looping sound file at a point in the level. */
   sound(src: string, options: SoundOptions = {}): SoundBuilder {
     return this.add(new SoundBuilder(this.ctx, src, options));
@@ -208,7 +222,7 @@ export class LevelKit {
 export class KitSession {
   readonly kit: LevelKit;
   private readonly root: Object3D;
-  private readonly queues: Record<Phase, (() => void)[]> = { ground: [], place: [], register: [] };
+  private readonly queues: Record<Phase, (() => void)[]> = { ground: [], place: [], register: [], merge: [] };
 
   constructor(context: Omit<KitContext, 'later'>) {
     const ctx: KitContext = { ...context, later: (phase, work) => this.queues[phase].push(work) };
@@ -217,7 +231,7 @@ export class KitSession {
   }
 
   finish(): void {
-    (['ground', 'place', 'register'] as const).forEach((phase) => {
+    (['ground', 'place', 'register', 'merge'] as const).forEach((phase) => {
       this.root.updateMatrixWorld(true);
       this.queues[phase].splice(0).forEach((work) => work());
     });

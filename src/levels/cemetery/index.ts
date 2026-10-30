@@ -38,12 +38,14 @@ export const cemeteryScene = defineScene({
     saveNightTwoStart(ctx, 'cemetery_path');
 
     kit.ground('grass', 0);
-    hill(kit, night);
-    floor(kit);
-    walls(kit);
-    tapAndBin(kit);
-    oldStones(kit, ctx);
-    ossuary(kit);
+    kit.batch((still) => {
+      hill(still, night);
+      floor(still);
+      walls(still);
+      tapAndBin(still);
+      oldStones(still, ctx);
+      ossuary(still);
+    });
 
     // On the night of the dig the back gate starts shut, so that it can be found open (cem2_back_gate).
     const gate = new BackGate(kit, ctx, state.hasFlag('first_sighting') && phase !== 'night2');
@@ -66,15 +68,17 @@ export const cemeteryScene = defineScene({
     if (phase === 'night2') round = nightTwoRound(kit, ctx, site, staging.scares);
 
     const digging = () => phase === 'night2' && state.hasItem('shovel') && !state.hasFlag('opened_coffin') && !site.inHole;
-    const { windmill } = graveStones(kit, {
-      digging,
-      lanternLit: phase === 'night1' || phase === 'night3',
-      read: async (grave) => {
-        await readGrave(ctx, grave);
-        staging.read(grave);
-      },
-      dig: (grave) => digWrongGrave(ctx, grave, () => round?.alarm()),
-    });
+    const { windmill } = kit.batch((still) =>
+      graveStones(still, {
+        digging,
+        lanternLit: phase === 'night1' || phase === 'night3',
+        read: async (grave) => {
+          await readGrave(ctx, grave);
+          staging.read(grave);
+        },
+        dig: (grave) => digWrongGrave(ctx, grave, () => round?.alarm()),
+      }),
+    );
     everyFrame(kit, windmill);
 
     exits(kit, ctx, phase, gate);

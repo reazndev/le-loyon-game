@@ -17,12 +17,16 @@ import type { Shape } from '../../engine/physics/collision';
 import type { GroundPatch, Surface } from '../../engine/physics/ground';
 import type { PointLight, PointLightOptions } from '../../engine/render/lighting';
 import { createPs1Material, setDefine, type Ps1Material } from '../../engine/render/ps1Material';
+import { DYNAMIC } from '../../engine/render/staticBatch';
 import { treeModel, type TreeKind } from '../../engine/render/trees';
 import type { SceneContext } from '../scene';
 import type { World } from '../world';
 
-/** When deferred work runs after `build` returns. Ground first, so later phases can sample it. */
-export type Phase = 'ground' | 'place' | 'register';
+/**
+ * When deferred work runs after `build` returns. Ground first, so later phases can sample it;
+ * merge last, once colliders have read each mesh's own geometry.
+ */
+export type Phase = 'ground' | 'place' | 'register' | 'merge';
 
 export interface KitContext {
   world: World;
@@ -92,6 +96,12 @@ export class Placed {
   /** Turns around the vertical axis. Positive turns counterclockwise seen from above. */
   rotY(degrees: number): this {
     this.object.rotation.y = MathUtils.degToRad(degrees);
+    return this;
+  }
+
+  /** Keeps the object out of `kit.batch` merging, for parts the level moves, hides, or recolors. */
+  dynamic(): this {
+    this.object.userData[DYNAMIC] = true;
     return this;
   }
 

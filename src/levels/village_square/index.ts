@@ -34,21 +34,26 @@ export const villageSquareScene = defineScene({
     const night = isNight(phase);
 
     kit.ground('grass');
-    ground(kit);
-    const church = churchFront(kit, ctx, night);
-    const abbe = presbytery(kit, night);
-    inn(kit, night);
-    const home = gremaud(kit, night);
+    let lift = (): Promise<void> => Promise.resolve();
+    // Everything that stands still goes into one batch; the parts beats move are marked dynamic.
+    const { church, abbe, home, houseTwo, street } = kit.batch((still) => {
+      ground(still);
+      inn(still, night);
+      laiterie(still, night);
+      garage(still, night);
+      outlyingHouses(still, night);
+      return {
+        church: churchFront(still, ctx, night),
+        abbe: presbytery(still, night),
+        home: gremaud(still, night),
+        houseTwo: doorHouses(still, ctx, night),
+        street: streetFurniture(still, ctx, night, () => lift()),
+      };
+    });
     kit.exit({ w: 1, d: 1.8, to: 'house_gremaud', spawn: 'from_square' }).at(GREMAUD_GATE.x + 0.4, 0, GREMAUD_GATE.z);
-    laiterie(kit, night);
-    garage(kit, night);
-    const houseTwo = doorHouses(kit, ctx, night);
-    outlyingHouses(kit, night);
     exits(kit);
     villagers(kit, ctx, phase);
 
-    let lift = (): Promise<void> => Promise.resolve();
-    const street = streetFurniture(kit, ctx, night, () => lift());
     lift = stageBeats(kit, ctx, phase, {
       curtain: home.curtain,
       houseTwoLight: houseTwo.upstairs,

@@ -48,7 +48,7 @@ export interface HouseSpec {
   window?: (slot: WindowSlot) => WindowLook;
   /** Lit windows get a halo in the fog. For night, when a lit window is the only thing to see. */
   glow?: boolean;
-  /** Hands over the lit pane, the curtain, or the dark behind the boards, for scenes that change them. */
+  /** Hands over the lit pane, the curtain, or the dark behind the boards, for scenes that change them. They stay out of `kit.batch`. */
   capture?: (slot: WindowSlot, part: MeshBuilder) => void;
 }
 
@@ -107,7 +107,7 @@ export function house(kit: LevelKit, spec: HouseSpec) {
               const along = face === 'left' ? -x : x;
               const slot = { face, floor, col };
               const shown = look(slot);
-              windowAt(wall, shown, spec.shutter ?? palette.shutterGreen, (part) => spec.capture?.(slot, part)).at(along, PLINTH + floor * FLOOR + SILL, 0);
+              windowAt(wall, shown, spec.shutter ?? palette.shutterGreen, (part) => spec.capture?.(slot, part.dynamic())).at(along, PLINTH + floor * FLOOR + SILL, 0);
               if (spec.glow && shown === 'lit') wall.glow(2.2, 0xffc878).at(along, PLINTH + floor * FLOOR + SILL + WINDOW.h / 2, 0.3);
             });
           }

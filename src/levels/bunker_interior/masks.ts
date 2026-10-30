@@ -27,12 +27,12 @@ const RUBBER = [0x2c2319, 0x241d15, 0x201b15, 0x23221e, 0x29251f, 0x1c1b17];
 const GLASS = 0x050606;
 const METAL = 0x1f1e1a;
 
+/** Keeps the shapes' indices, so the heap shares vertices instead of repeating each one per triangle. */
 function tinted(geometry: BufferGeometry, color: number): BufferGeometry {
-  const flat = geometry.index ? geometry.toNonIndexed() : geometry;
   const c = new Color(color);
-  const count = flat.getAttribute('position').count;
-  flat.setAttribute('color', new Float32BufferAttribute(Array.from({ length: count * 3 }, (_, i) => [c.r, c.g, c.b][i % 3]!), 3));
-  return flat;
+  const count = geometry.getAttribute('position').count;
+  geometry.setAttribute('color', new Float32BufferAttribute(Array.from({ length: count * 3 }, (_, i) => [c.r, c.g, c.b][i % 3]!), 3));
+  return geometry;
 }
 
 /** One mask facing +Z, about 25 cm tall, centered on its facepiece. */

@@ -66,7 +66,8 @@ export function gremaudHouse(kit: LevelKit, look: (slot: WindowSlot) => WindowLo
       .group((l) => {
         l.box({ w: DOOR.w, h: DOOR.h, d: 0.06 }).texture('door_wood', { tile: [DOOR.w, DOOR.h] }).color(0xa49482).at(DOOR.w / 2, 0, 0);
       })
-      .at(DOOR.x - DOOR.w / 2, 0.2, DOOR.z);
+      .at(DOOR.x - DOOR.w / 2, 0.2, DOOR.z)
+      .dynamic();
 
     // The geranium box under the front window, empty for winter.
     g.box({ w: 1.1, h: 0.2, d: 0.22 }).texture('wood_planks', { tile: 0.6 }).color(0x6a4a3a).at(-2.9, 1.15, front + 0.12);

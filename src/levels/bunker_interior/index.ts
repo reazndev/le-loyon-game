@@ -1,4 +1,4 @@
-import { CircleGeometry, CylinderGeometry, Euler, SphereGeometry, Vector3, type Group } from 'three';
+import { CircleGeometry, CylinderGeometry, Euler, SphereGeometry, Vector3, type Group, type Object3D } from 'three';
 import { dialogues } from '../../content';
 import { noiseBurst, thump } from '../../engine/audio/generators';
 import type { Shape } from '../../engine/physics/collision';
@@ -22,7 +22,7 @@ import { dripInTheNextRoom } from './drips';
 import { isFriendlyKnock } from './knock';
 import { floorMask, heapPoses, maskPile, uprightMask, type HeapOptions, type MaskPose } from './masks';
 import { beerCans, bench, bunkStack, ceilingRuns, chair, graffiti, locker, stencil, stubs, table, wires } from './props';
-import type { Opening, Room } from './rooms';
+import { neighbors, roomAt, type Opening, type Room } from './rooms';
 import { fortBeats } from './scares';
 
 /**
@@ -644,7 +644,8 @@ function maskStore(kit: LevelKit, ctx: SceneContext, phase: StoryPhase): () => v
     // The clean shelf: six, and a gap where a seventh was.
     ...[-26.55, -26.15, -25.75, -25.35, -24.55, -24.15].map((z) => uprightMask(3.22, 1.58, z, -90)),
   ];
-  maskPile(kit, poses, 'mask-store');
+  // A 130k-triangle heap: drawn only from the rooms that can see it, not through the walls.
+  updates.push(onlyNear(maskPile(kit, poses, 'mask-store').object, 'masks'));
   [4.1, 4.75, 5.4, 6.05, 6.7, 7.35].forEach((x) => kit.box({ w: 0.03, h: 0.03, d: 0.06 }).color(0x2a2a26).at(x, 1.74, -27.37));
 
   // A heap mound under the masks, so no floor shows through, and a barrier round its core.
@@ -675,6 +676,16 @@ function maskStore(kit: LevelKit, ctx: SceneContext, phase: StoryPhase): () => v
   wires(kit, [[11.46, -23.4], [11.46, -27.4]], 1.9);
   if (phase === 'day2') turnToLeave(ctx);
   return slidingMask(kit, ctx);
+}
+
+/** Shows `object` only while the player is in `room` or one opening away from it. */
+function onlyNear(object: Object3D, room: string): (dt: number, ctx: SceneContext) => void {
+  const near = [room, ...neighbors(openings, room)];
+  return (_, ctx) => {
+    // In a doorway the player is in no room; keep what the last room showed.
+    const here = roomAt(rooms, ctx.player.position.x, ctx.player.position.z);
+    if (here) object.visible = near.includes(here.id);
+  };
 }
 
 /** Seconds in the mask store before turning to the door sets off bun2_masks. */

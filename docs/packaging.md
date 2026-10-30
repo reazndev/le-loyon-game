@@ -66,27 +66,27 @@ Neither build is code-signed, so Windows SmartScreen warns on first run. Signing
 
 `node tools/package/perf.mjs --gpu` loads the heaviest views and reports draw calls, triangles, CPU time per frame, GPU time per frame from a timer query, and JS allocations per frame. Without `--gpu` it runs on SwiftShader, which gives real CPU and allocation numbers but no useful GPU time. Run it in a checkout nobody is editing, because the dev server reloads the page when files change.
 
-Numbers from 2026-10-30 at commit `e399d45`, on a Core Ultra 200V laptop with Intel Arc 140V integrated graphics (Mesa), 640x480, 240 frames:
+Numbers from 2026-10-30, after the level fixes below, on a Core Ultra 200V laptop with Intel Arc 140V integrated graphics (Mesa), 640x480, 180 frames. "Was" columns are from commit `4b1d37f`, before those fixes.
 
-| View | Draw calls | Triangles | CPU ms (p95) | GPU ms | Alloc KB/frame |
+| View | Draw calls (was) | Triangles (was) | CPU ms, p95 (was) | GPU ms (was) | Alloc KB/frame (was) |
 |---|---|---|---|---|---|
-| village_square day | 130 | 22k | 4.2 (8.0) | 0.5 | 59 |
-| forest_path day | 18 | 168k | 1.5 (3.6) | 0.7 | 36 |
-| cemetery day | 232 | 76k | 5.0 (9.5) | 0.6 | 106 |
-| cemetery night | 113 | 75k | 3.5 (7.2) | 0.5 | 73 |
-| bunker_interior, facing the mask heap | 179 | 145k | 4.1 (7.3) | 1.1 | 92 |
-| yerly_farm day | 8 | 6k | 1.8 (3.6) | 0.6 | 27 |
+| village_square day | 29 (130) | 64k (22k) | 1.5, 2.1 (2.7, 5.3) | 0.67 (0.58) | 25 (60) |
+| forest_path day | 19 | 39k | 1.3, 1.9 | 0.75 | 35 |
+| cemetery day | 46 (236) | 84k (76k) | 1.1, 1.9 (3.7, 5.3) | 0.67 (0.79) | 42 (110) |
+| cemetery night | 29 (117) | 84k (75k) | 1.1, 2.0 (3.8, 4.5) | 0.71 (0.65) | 40 (78) |
+| bunker_interior, facing the mask heap | 182 | 145k | 2.2, 2.7 | 1.19 (1.24) | 88 |
+| bunker_interior, corridor with the heap behind the wall | 52 | 6k (140k) | 1.8, 3.1 | 0.60 (1.30) | 45 |
+| yerly_farm day | 8 | 6k | 1.2, 2.4 | 0.37 | 30 |
 
-Every view holds 60 fps with a steady 16.6 ms frame. GPU time stays near 1 ms, so a GPU ten times slower, such as an Intel UHD 620, still fits in the 16.6 ms budget. CPU time grows with the number of meshes in the scene, so on a slow CPU the cemetery and the village square are the first to drop frames.
+Every view holds 60 fps with a steady 16.6 ms frame. GPU time stays near 1 ms, so a GPU ten times slower, such as an Intel UHD 620, still fits in the 16.6 ms budget.
 
 What changed to get here:
 
 - Tree models are indexed again after merging, which cuts tree vertex work 2.7 to 4.4 times and forest GPU time by about a quarter.
 - Collision rejects far shapes before any math or allocation. That cut forest allocations from 63 to 36 KB per frame.
+- `kit.batch` merges the still meshes of the village square and the cemetery by material (`src/engine/render/staticBatch.ts`). The square went from 1,694 meshes to 110, the cemetery from 761 to 137. Grass tufts in both are now one instanced mesh each. The merged meshes are no longer culled part by part, so more triangles are drawn, but GPU time barely moves.
+- The mask heap keeps the indices of its shapes, and it is hidden unless the player is in the mask store or a room next to it.
 
-What is left lives in level code:
+What is left:
 
-- **The mask heap** in `bunker_interior` is one 400k-vertex, non-indexed mesh, 133k triangles. It is drawn whenever the camera faces it, even through walls. Running `mergeVertices` on the merged heap, and hiding it outside the mask store and the rooms next to it, would remove most of the bunker's GPU time.
-- **The cemetery** draws about 260 small boxes and 270 quads as separate meshes. Merging static props that share a material, per area, would cut its draw calls by more than half.
-- **The village square** has 1,674 meshes, 820 of them copies of one 32-vertex part. Three.js walks and culls every mesh each frame, so instancing or merging that part is the cheapest CPU saving there.
 - Instanced trees are culled as one group, so trees behind the fog are still drawn. GPU time is small enough that this can wait.

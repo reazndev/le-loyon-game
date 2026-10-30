@@ -24,6 +24,7 @@ const views = [
   { scene: 'forest_path', pos: '0,0,72.5', yaw: 0 },
   { scene: 'cemetery' },
   { scene: 'bunker_interior', pos: '9.6,0,-25', yaw: 90, label: 'bunker_interior (mask heap)' },
+  { scene: 'bunker_interior', pos: '0,0,-21', yaw: -120, label: 'bunker_interior (corridor, heap behind the wall)' },
   { scene: 'yerly_farm' },
 ].filter((view) => !values.only || view.scene === values.only);
 

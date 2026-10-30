@@ -1,7 +1,7 @@
 import type { LevelKit } from '../../game/kit/levelKit';
 import { scatter } from '../../game/kit/scatter';
 import type { SceneContext } from '../../game/scene';
-import { rock, undergrowth } from '../forest_path/woods';
+import { billboards, rock, undergrowth } from '../forest_path/woods';
 import {
   BACK_GATE,
   BED_LENGTH,
@@ -55,9 +55,8 @@ export function floor(kit: LevelKit): void {
   // Tufts of long wet grass where nobody walks.
   const onPath = (x: number, z: number) => Math.abs(x) < PATH_WIDTH / 2 + 0.3 || CROSS_PATHS.some((p) => Math.abs(z - p) < CROSS_PATH_WIDTH / 2 + 0.2);
   const onGrave = (x: number, z: number) => graves.some((g) => inside({ ...bedOf(g), z: bedOf(g).z - 0.35, d: BED_LENGTH + 0.8 }, x, z, 0.15));
-  scatter({ x: 0, z: 0, w: GROUNDS.w - 1, d: GROUNDS.d - 1, count: 150, seed: 'cemetery-tufts', spacing: 0.9, scale: [0.6, 1.1], avoid: (x, z) => onPath(x, z) || onGrave(x, z) || inside(SHED, x, z, 0.4) }).forEach((spot) =>
-    kit.sprite('grass_tuft', { w: 0.7 * spot.scale!, h: 0.45 * spot.scale! }).color(0x6e705c).at(spot.x, 0, spot.z),
-  );
+  const tufts = scatter({ x: 0, z: 0, w: GROUNDS.w - 1, d: GROUNDS.d - 1, count: 150, seed: 'cemetery-tufts', spacing: 0.9, scale: [0.6, 1.1], avoid: (x, z) => onPath(x, z) || onGrave(x, z) || inside(SHED, x, z, 0.4) });
+  billboards(kit, { texture: 'grass_tuft', w: 0.7, h: 0.45, color: 0x6e705c, sink: 0 }, tufts);
   const pathEnd = ROWS[4] + 1.2;
   const pathLength = FRONT_Z + 6 - pathEnd;
   kit

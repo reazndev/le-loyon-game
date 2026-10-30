@@ -4,6 +4,7 @@ import type { LevelKit } from '../../game/kit/levelKit';
 import { scatter } from '../../game/kit/scatter';
 import type { SceneContext } from '../../game/scene';
 import { distanceToTrails } from '../forest_path/trail';
+import { billboards } from '../forest_path/woods';
 import { BOUNDS, BUS_STOP, churchLane, FOUNTAIN, gremaudLane, LAMP, mainRoad, MEMORIAL, PHONE_BOX, ROAD_WIDTH, SQUARE } from './layout';
 import { bench, busStop, fountain, fribourgFlag, hikingSign, memorial, noticeCase, phoneBox, streetLamp } from './props';
 import { road } from './road';
@@ -40,9 +41,8 @@ export function ground(kit: LevelKit): void {
   // Tufts and a few weeds where the grass meets the walls; none on the roads.
   const paved = (x: number, z: number) =>
     distanceToTrails(roads, x, z) < ROAD_WIDTH / 2 + 0.6 || (Math.abs(x - SQUARE.x) < SQUARE.w / 2 + 0.5 && Math.abs(z - SQUARE.z) < SQUARE.d / 2 + 0.5);
-  scatter({ x: cx, z: cz, w: w - 24, d: d - 24, count: 420, seed: 'village-tufts', spacing: 1.3, scale: [0.6, 1.2], avoid: paved }).forEach((s) =>
-    kit.sprite('grass_tuft', { w: 0.8 * s.scale!, h: 0.45 * s.scale! }).color(0x7a7c66).at(s.x, -0.04, s.z).onGround(),
-  );
+  const tufts = scatter({ x: cx, z: cz, w: w - 24, d: d - 24, count: 420, seed: 'village-tufts', spacing: 1.3, scale: [0.6, 1.2], avoid: paved });
+  billboards(kit, { texture: 'grass_tuft', w: 0.8, h: 0.45, color: 0x7a7c66, sink: 0.04 }, tufts);
   // Lime trees by the church and a few bare fruit trees in the gardens.
   kit
     .trees('bare', [
@@ -78,7 +78,7 @@ export function streetFurniture(kit: LevelKit, ctx: SceneContext, night: boolean
   kit
     .group((g) => {
       phoneBox(g);
-      if (night) parts.phoneLamp = g.box({ w: 0.32, h: 0.04, d: 0.32 }).color(0xd8e0d0).unlit().at(0, 2.31, 0);
+      if (night) parts.phoneLamp = g.box({ w: 0.32, h: 0.04, d: 0.32 }).color(0xd8e0d0).unlit().at(0, 2.31, 0).dynamic();
     })
     .at(PHONE_BOX.x, 0, PHONE_BOX.z)
     .rotY(-90);

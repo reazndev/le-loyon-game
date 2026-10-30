@@ -124,6 +124,8 @@ export interface Billboard {
   w: number;
   h: number;
   color: number;
+  /** Meters the bottom edge is sunk into the ground at scale 1. Default 0.12, for trees on slopes. */
+  sink?: number;
 }
 
 const treePictures = {
@@ -181,7 +183,7 @@ export function billboards(kit: LevelKit, picture: Billboard, spots: readonly Tr
       spots.forEach((spot, i) => {
         const scale = spot.scale ?? 1;
         // Sunk a little so the picture's bottom edge never floats on a slope.
-        const y = ctx.world.ground.sample(spot.x, spot.z).height - 0.12 * scale;
+        const y = ctx.world.ground.sample(spot.x, spot.z).height - (picture.sink ?? 0.12) * scale;
         mesh.setMatrixAt(i, matrix.compose(new Vector3(spot.x, y, spot.z), new Quaternion(), new Vector3(scale, scale, scale)));
         mesh.setColorAt(i, base.clone().multiplyScalar(0.82 + random() * 0.3));
       });

@@ -114,7 +114,9 @@ function windmill(kit: LevelKit, grave: Grave): () => void {
   const blades = kit.group((g) => {
     g.box({ w: 0.26, h: 0.035, d: 0.01 }).color(0xa04a3e).at(0, -0.017, 0);
     g.box({ w: 0.035, h: 0.26, d: 0.01 }).color(0xb8a24a).at(0, -0.13, 0);
-  }).at(x, 0.42, z + 0.02);
+  })
+    .at(x, 0.42, z + 0.02)
+    .dynamic();
   return () => {
     blades.object.rotation.z += 0.02;
   };
