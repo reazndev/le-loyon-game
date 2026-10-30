@@ -35,6 +35,17 @@ export function gravelPath(kit: LevelKit, trail: Trail, width: number, height: H
   geometry.setIndex(indices);
   geometry.computeVertexNormals();
   kit.mesh(geometry).texture('gravel_path', { tile: 1.8 }).color(0xa6a296).doubleSided();
+  // One gravel ground patch per leg, so steps on the path crunch instead of falling on grass.
+  kit.use((k) =>
+    trail.slice(1).forEach(([bx, bz], i) => {
+      const [ax, az] = trail[i]!;
+      k.world.ground.add({
+        area: { kind: 'box', x: (ax + bx) / 2, z: (az + bz) / 2, hw: Math.hypot(bx - ax, bz - az) / 2 + width / 2, hd: width / 2, angle: Math.atan2(az - bz, bx - ax) },
+        heightAt: (x, z) => height(x, z) + 0.05,
+        surface: 'gravel',
+      });
+    }),
+  );
 }
 
 /**
