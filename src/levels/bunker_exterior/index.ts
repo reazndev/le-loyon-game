@@ -34,6 +34,7 @@ import {
 } from '../forest_path/woods';
 import { nightMist } from '../../game/ambient/mist';
 
+import { nightSky } from '../../game/ambient/sky';
 /**
  * La grange du Bois-Noir. A clearing with the 1940s fort dressed as a hay barn. Behind it an
  * animal track climbs past the escape hatch to a thicket; on day 3 the way goes on to the larch.
@@ -170,6 +171,7 @@ export const bunkerExteriorScene = defineScene({
     nightMist(kit, ctx);
   },
 
+    nightSky(kit, ctx);
   update: lostInTheFog(trails),
 });
 

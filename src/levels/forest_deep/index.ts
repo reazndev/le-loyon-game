@@ -35,6 +35,7 @@ import { startle } from '../../game/scares/startles';
 import { mistAlong, nightMist } from '../../game/ambient/mist';
 
 /**
+import { nightSky } from '../../game/ambient/sky';
  * Bois-Noir, haut. The animal track above the fort winds up to a single larch, golden among
  * black spruce. Under it Marc buried the syndic. Reached only on day 3, from the fort's thicket.
  */
@@ -202,6 +203,7 @@ function grave(kit: LevelKit, ctx: SceneContext, scares: ScareDirector): void {
     [-0.1, 0.15],
     [0.25, -0.12],
     [0.6, 0.12],
+    nightSky(kit, ctx);
     [0.9, -0.05],
     [-0.6, -0.02],
     [0.05, -0.02],

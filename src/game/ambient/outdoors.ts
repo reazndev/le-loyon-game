@@ -9,6 +9,7 @@ import { loop } from './soundscape';
 import { windSway } from './sway';
 import { weather, type Weather } from './weather';
 import { nightMist } from './mist';
+import { nightSky } from './sky';
 
 export interface OutdoorWeather {
   /** How loud the drizzle hisses in the grass and leaves all around. */
@@ -19,7 +20,7 @@ export interface OutdoorWeather {
 
 /**
  * The weather in an open outdoor scene, from `weather()`: grass and tree cards in the wind,
- * mist along the ground, the reporter's breath, and from night 2 the drizzle, with its hiss
+ * mist along the ground, stars and the moon at night, the reporter's breath, and from night 2 the drizzle, with its hiss
  * all around and on `tin` if there is one. Returns the weather for the scene's own layers.
  */
 export function outdoorWeather(kit: LevelKit, ctx: SceneContext, options: OutdoorWeather = {}): Weather {
@@ -28,6 +29,7 @@ export function outdoorWeather(kit: LevelKit, ctx: SceneContext, options: Outdoo
   windSway(kit, 0.5 + sky.wind);
   particles(kit, fogWisps(night ? { opacity: 0.3 } : {}));
   nightMist(kit, ctx);
+  nightSky(kit, ctx);
   if (sky.breath) breathVapor(kit, ctx);
   if (sky.drizzle) {
     particles(kit, drizzle());
