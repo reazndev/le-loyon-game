@@ -11,6 +11,7 @@ import { unspent } from '../forest_path/spent';
 import { isNight, storyPhase, type StoryPhase } from '../forest_path/story';
 import { distanceToTrails, type Trail } from '../forest_path/trail';
 import { scatter } from '../../game/kit/scatter';
+import { dressClearing, keepClear } from './debris';
 import {
   enclose,
   fallenLog,
@@ -138,8 +139,9 @@ export const bunkerExteriorScene = defineScene({
     spruceWall(kit, { area, seed: 'fort', trails, from: 10, to: 24, count: 220, avoid: (x, z) => inClearing(x, z) < 7 });
     const offTrail = (inner: number, outer: number) => (x: number, z: number) =>
       distanceToTrails(trails, x, z) < inner || inClearing(x, z) < 0.5 || calm(x, z) > outer || Math.hypot(x - HATCH.x, z - HATCH.z) < 2;
-    undergrowth(kit, area, { seed: 'fort-low', count: 800, mix: lowPlants, spacing: 0.75, avoid: offTrail(1.2, 9) });
-    undergrowth(kit, area, { seed: 'fort-tall', count: 900, mix: tallPlants, spacing: 1, avoid: offTrail(2, 14) });
+    const props = keepClear(approach, track);
+    undergrowth(kit, area, { seed: 'fort-low', count: 800, mix: lowPlants, spacing: 0.75, avoid: (x, z) => offTrail(1.2, 9)(x, z) || props.low(x, z) });
+    undergrowth(kit, area, { seed: 'fort-tall', count: 900, mix: tallPlants, spacing: 1, avoid: (x, z) => offTrail(2, 14)(x, z) || props.tall(x, z) || props.low(x, z) });
     mossPatches(kit, height, scatter({ ...area, count: 90, seed: 'fort-moss', spacing: 2.4, avoid: offTrail(1.4, 10) }));
     [
       [-7, 7, 0.6],
@@ -155,6 +157,7 @@ export const bunkerExteriorScene = defineScene({
     fort(kit, ctx, phase, scares);
     hatch(kit, ctx, phase);
     thicket(kit, ctx, phase);
+    dressClearing(kit, ctx, { height, floor: FLOOR, approach, track });
 
     enclose(kit, area);
     kit.exit({ w: 6, d: 1, to: 'forest_path', spawn: 'from_bunker' }).at(0, 0, 27.8);
