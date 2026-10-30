@@ -15,7 +15,7 @@ export type HatKind = 'flat_cap' | 'peaked_cap' | 'bus_cap' | 'headscarf' | 'hoo
 export const faceSkin = {
   face_driver: 0x816659,
   face_farmer: 0xa86b58,
-  face_innkeeper: 0xa6775c,
+  face_innkeeper: 0xa07969,
   face_mechanic: 0x826254,
   face_old_woman: 0xa27660,
   face_priest: 0xa87a62,

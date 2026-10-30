@@ -99,7 +99,7 @@ tools/textures/ps1-texture.sh faded.png public/assets/textures/face_<name>.png 3
 |---|---|---|---|
 | `driver` | 512 | 372 | 708 |
 | `farmer` | 516 | 364 | 698 |
-| `innkeeper` | 512 | 358 | 628 |
+| `innkeeper` | 516 | 386 | 700 |
 | `mechanic` | 512 | 364 | 684 |
 | `old_woman` | 512 | 468 | 748 |
 | `priest` | 512 | 398 | 728 |
