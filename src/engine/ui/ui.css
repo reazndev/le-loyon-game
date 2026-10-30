@@ -235,7 +235,7 @@ body {
   position: absolute;
   right: 0;
   bottom: 0;
-  border: 2px solid rgba(150, 140, 120, 0.7);
+  filter: drop-shadow(2px 2px 0 rgba(0, 0, 0, 0.6));
   pointer-events: auto;
   cursor: pointer;
   transition: transform 0.25s ease-out;
@@ -331,16 +331,15 @@ body {
 
 .ui-nav[data-held='map'] .ui-nav-map {
   right: 50%;
-  bottom: 24px;
-  border: 6px solid #6b5432;
-  transform: translateX(50%) perspective(700px) rotateX(16deg);
+  bottom: 16px;
+  transform: translateX(50%) perspective(700px) rotateX(18deg) rotate(-2deg);
   transform-origin: 50% 100%;
-  box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.6);
+  filter: drop-shadow(5px 5px 0 rgba(0, 0, 0, 0.6));
 }
 
 .ui-nav[data-held='map'] .ui-nav-canvas {
-  width: 300px;
-  height: 300px;
+  width: 360px;
+  height: 360px;
 }
 
 .ui-goal {

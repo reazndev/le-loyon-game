@@ -1,4 +1,5 @@
 import type { Shape, Vec2 } from '../physics/collision';
+import type { Surface } from '../physics/ground';
 import { el } from './dom';
 
 /** What the map and compass show this frame. */
@@ -10,14 +11,28 @@ export interface NavigationView {
   bearing: number | null;
   target: Vec2 | null;
   walls: Iterable<Shape>;
+  /** What the ground is at a point, so paths and floors show. */
+  ground: (x: number, z: number) => Surface;
   exits: Vec2[];
   keys: { compass: string; map: string };
 }
 
 type Held = 'compass' | 'map' | null;
 
-const SMALL = { size: 96, range: 22 };
-const LARGE = { size: 300, range: 45 };
+/** Map pixels across, and meters from the player to the edge. Drawn small and shown enlarged, so the pixels stay chunky. */
+const SMALL = { size: 48, range: 22, round: true };
+const LARGE = { size: 120, range: 45, round: false };
+
+/** Old paper, greyed by the fog, and ink. Paths and floors are shaded into the paper. */
+const PAPER: Record<Surface, string> = { grass: '#8a8166', snow: '#8a8166', gravel: '#a59a7b', stone: '#a1987c', wood: '#77694d' };
+const STAIN = '#6c6450';
+const INK = '#2b241a';
+const RED_INK = '#7e2016';
+/** Seconds between redraws: the map is a sketch, not a live feed. */
+const REDRAW = 0.1;
+
+/** The same grain every frame, from the pixel's place on the sheet. */
+const grain = (x: number, y: number) => ((x * 73856093) ^ (y * 19349663)) >>> 0;
 
 /**
  * The minimap in the bottom-right corner with the compass resting on its top edge. Either can be
@@ -25,6 +40,8 @@ const LARGE = { size: 300, range: 45 };
  */
 export class NavigationHud {
   held: Held = null;
+  private drawnAt = 0;
+  private drawnHeld: Held = null;
   private readonly root: HTMLElement;
   private readonly map: HTMLCanvasElement;
   private readonly compass: HTMLElement;
@@ -61,66 +78,105 @@ export class NavigationHud {
     this.mapKey.textContent = view.keys.map;
     this.compassKey.textContent = view.keys.compass;
     this.compassKey.hidden = view.keys.compass === '';
+    const now = performance.now() / 1000;
+    if (now - this.drawnAt < REDRAW && this.drawnHeld === this.held) return;
+    this.drawnAt = now;
+    this.drawnHeld = this.held;
     this.draw(view, this.held === 'map' ? LARGE : SMALL);
   }
 
-  /** Draws the walls around the player, heading up, with the ways out and the target. */
-  private draw(view: NavigationView, { size, range }: { size: number; range: number }): void {
+  /** Draws the walls around the player in ink on old paper, heading up, with the ways out and the target. */
+  private draw(view: NavigationView, { size, range, round }: { size: number; range: number; round: boolean }): void {
     if (this.map.width !== size) this.map.width = this.map.height = size;
     const g = this.map.getContext('2d')!;
-    const scale = size / 2 / range;
+    g.imageSmoothingEnabled = false;
+    g.clearRect(0, 0, size, size);
+    const mid = size / 2;
+    const scale = mid / range;
     const forward = { x: -Math.sin(view.yaw), z: -Math.cos(view.yaw) };
     const right = { x: Math.cos(view.yaw), z: -Math.sin(view.yaw) };
     const toMap = (x: number, z: number): [number, number] => {
       const dx = x - view.player.x;
       const dz = z - view.player.z;
-      return [size / 2 + (dx * right.x + dz * right.z) * scale, size / 2 - (dx * forward.x + dz * forward.z) * scale];
+      return [mid + (dx * right.x + dz * right.z) * scale, mid - (dx * forward.x + dz * forward.z) * scale];
+    };
+    const toWorld = (px: number, py: number): Vec2 => {
+      const across = (px + 0.5 - mid) / scale;
+      const ahead = (mid - py - 0.5) / scale;
+      return { x: view.player.x + across * right.x + ahead * forward.x, z: view.player.z + across * right.z + ahead * forward.z };
     };
     const near = (p: Vec2, extra = 0) => Math.abs(p.x - view.player.x) < range * 1.5 + extra && Math.abs(p.z - view.player.z) < range * 1.5 + extra;
+    // A round scrap in the corner; a sheet with torn edges and two folds in hand.
+    const fromEdge = (x: number, y: number) =>
+      round ? mid - 0.5 - Math.hypot(x + 0.5 - mid, y + 0.5 - mid) : Math.min(x, y, size - 1 - x, size - 1 - y) - (grain(x, y) % 3);
 
-    g.fillStyle = this.held === 'map' ? '#cdbf98' : 'rgba(12, 12, 10, 0.7)';
-    g.fillRect(0, 0, size, size);
-    g.fillStyle = this.held === 'map' ? '#5a4a30' : 'rgba(190, 182, 160, 0.75)';
+    for (let y = 0; y < size; y++) {
+      for (let x = 0; x < size; x++) {
+        const edge = fromEdge(x, y);
+        if (edge < 0) continue;
+        const at = toWorld(x, y);
+        // Stains creep in from the edge, and a few specks of dirt sit on the sheet.
+        const stained = edge < 2 + (grain(x, y) % 3) || grain(x, y) % 37 === 0;
+        g.fillStyle = stained ? STAIN : PAPER[view.ground(at.x, at.z)];
+        g.fillRect(x, y, 1, 1);
+      }
+    }
+    g.save();
+    g.beginPath();
+    if (round) g.arc(mid, mid, mid - 1.5, 0, Math.PI * 2);
+    else g.rect(2, 2, size - 4, size - 4);
+    g.clip();
+
+    g.fillStyle = INK;
     for (const shape of view.walls) {
       if (!near(shape, shape.kind === 'box' ? Math.max(shape.hw, shape.hd) : shape.r)) continue;
-      g.beginPath();
       if (shape.kind === 'circle') {
         const [x, y] = toMap(shape.x, shape.z);
-        g.arc(x, y, Math.max(1, shape.r * scale), 0, Math.PI * 2);
-      } else {
-        const c = Math.cos(shape.angle);
-        const s = Math.sin(shape.angle);
-        [[-1, -1], [1, -1], [1, 1], [-1, 1]].forEach(([u, v], i) => {
-          const lx = u! * shape.hw;
-          const lz = v! * shape.hd;
-          const [x, y] = toMap(shape.x + c * lx + s * lz, shape.z - s * lx + c * lz);
-          if (i === 0) g.moveTo(x, y);
-          else g.lineTo(x, y);
-        });
-        g.closePath();
+        const r = Math.max(0.5, shape.r * scale);
+        g.fillRect(Math.round(x - r), Math.round(y - r), Math.max(1, Math.round(r * 2)), Math.max(1, Math.round(r * 2)));
+        continue;
       }
+      const c = Math.cos(shape.angle);
+      const s = Math.sin(shape.angle);
+      g.beginPath();
+      [[-1, -1], [1, -1], [1, 1], [-1, 1]].forEach(([u, v], i) => {
+        const lx = u! * shape.hw;
+        const lz = v! * shape.hd;
+        const [x, y] = toMap(shape.x + c * lx + s * lz, shape.z - s * lx + c * lz);
+        if (i === 0) g.moveTo(Math.round(x), Math.round(y));
+        else g.lineTo(Math.round(x), Math.round(y));
+      });
+      g.closePath();
       g.fill();
     }
-    g.fillStyle = '#d8b040';
+    // Ways out: a small open ring in red ink.
+    g.strokeStyle = RED_INK;
+    g.lineWidth = 1;
     view.exits.forEach((exit) => {
       const [x, y] = toMap(exit.x, exit.z);
-      g.fillRect(x - 2, y - 2, 4, 4);
+      g.strokeRect(Math.round(x) - 1.5, Math.round(y) - 1.5, 3, 3);
     });
+    g.restore();
+
+    // The target: a red X, held to the edge of the sheet when it is further away.
     if (view.target) {
       const [tx, ty] = toMap(view.target.x, view.target.z);
-      const edge = size / 2 - 4;
-      const k = Math.min(1, edge / Math.max(Math.abs(tx - size / 2), Math.abs(ty - size / 2), 1));
-      g.fillStyle = '#c0392b';
-      g.beginPath();
-      g.arc(size / 2 + (tx - size / 2) * k, size / 2 + (ty - size / 2) * k, 3.5, 0, Math.PI * 2);
-      g.fill();
+      const edge = mid - 5;
+      const k = Math.min(1, edge / Math.max(Math.hypot(tx - mid, ty - mid), 1));
+      const x = Math.round(mid + (tx - mid) * k);
+      const y = Math.round(mid + (ty - mid) * k);
+      g.fillStyle = RED_INK;
+      [-2, -1, 0, 1, 2].forEach((d) => {
+        g.fillRect(x + d, y + d, 1, 1);
+        g.fillRect(x + d, y - d, 1, 1);
+      });
     }
-    g.fillStyle = '#f2ede0';
-    g.beginPath();
-    g.moveTo(size / 2, size / 2 - 6);
-    g.lineTo(size / 2 + 4, size / 2 + 4);
-    g.lineTo(size / 2 - 4, size / 2 + 4);
-    g.closePath();
-    g.fill();
+
+    // The reporter: a small ink arrowhead, always pointing up.
+    g.fillStyle = RED_INK;
+    [[0, -3, 1], [-1, -2, 3], [-1, -1, 3], [-2, 0, 5], [-2, 1, 2], [1, 1, 2]].forEach(([dx, dy, w]) =>
+      g.fillRect(Math.round(mid) + dx!, Math.round(mid) + dy!, w!, 1),
+    );
+
   }
 }

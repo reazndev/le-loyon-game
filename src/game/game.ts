@@ -252,6 +252,7 @@ export class Game {
       bearing: target && from.distanceTo(target) > 2 ? bearing(from, this.player.forward(), target) : null,
       target: target && { x: target.x, z: target.z },
       walls: this.world.collision.all,
+      ground: (x, z) => this.world.ground.sample(x, z, from.y + 1).surface,
       exits: this.world.exits.map((exit) => {
         const at = exit.object.getWorldPosition(new Vector3());
         return { x: at.x, z: at.z };
