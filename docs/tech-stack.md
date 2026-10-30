@@ -7,7 +7,7 @@
 | Rendering | Three.js |
 | Language | TypeScript |
 | Dev server and bundler | Vite |
-| Desktop builds | Electron (Windows `.exe`, Linux AppImage) |
+| Desktop builds | Electron, packaged with electron-builder: Linux AppImage, Windows portable zip, and an NSIS installer built on Windows. See [packaging.md](packaging.md). |
 | Browser demo | Same build, uploaded to itch.io |
 | 3D assets | Blender, exported as glTF |
 | Textures | Aseprite or Krita, 64 to 256 px |
@@ -27,7 +27,7 @@ Claude writes the code. That changed the pick from Godot 4 to Three.js:
 ## Trade-offs we accept
 
 - No level editor. Claude builds levels in code. The user can add Blender models later.
-- Electron builds are large, around 100 MB. That doesn't matter for a game.
+- Electron builds are large: the AppImage is 118 MB and the Windows zip 135 MB, of which the game is about 1.5 MB. That doesn't matter for a game.
 
 ## Alternatives considered
 
