@@ -14,6 +14,8 @@ import { playNode } from '../forest_path/play';
 import { isNight, storyPhase, type StoryPhase } from '../forest_path/story';
 import { distanceToTrails, pointAlong, yawToward, type Trail } from '../forest_path/trail';
 import { barbedWire, gravelPath } from './hillside';
+import { bench, crossOfferings, fenceSign } from './props';
+import { billboards } from '../forest_path/woods';
 
 /**
  * Chemin du cimetière. A gravel path climbs from behind the church in three switchbacks between
@@ -39,6 +41,8 @@ const CROSS = { x: -15.6, z: 4.6 };
 const CHURCH = { x: -1, z: 54, w: 15, d: 9 };
 const SIDE_DOOR = { x: 2.5, z: CHURCH.z - CHURCH.d / 2 };
 const GATE_Z = -40;
+/** The lower edge of the church roof on the path's side, above the ground at its foot. */
+const EAVES = { y: 7.62, z: CHURCH.z - CHURCH.d / 2 - 0.3 };
 
 /** The hill rises about thirteen meters from the church to the cemetery, with a cross slope. */
 const height = (x: number, z: number): number => {
@@ -69,15 +73,19 @@ export const cemeteryPathScene = defineScene({
       .color(0x8a8e76)
       .at(0, 0, 4)
       .walkable('grass');
-    gravelPath(kit, path, 1.6, height);
     const fenced = path.slice(1, -1).map((p, i) => [p, path[i + 2]!] as Trail).filter((_, i) => i % 2 === 0);
-    barbedWire(kit, fenced, 1.6);
+    kit.batch((still) => {
+      gravelPath(still, path, 1.6, height);
+      barbedWire(still, fenced, 1.6);
+      church(still, ctx, night);
+      wayside(still, ctx, phase);
+      cemeteryWall(still);
+      // At the eastern bend, facing down the hill toward the church.
+      bench(still, { x: 16.8, z: 27.2 }, { x: 16.8, z: 40 });
+      fenceSign(still, { x: 4.27, z: 37.36 }, { x: 3.25, z: 36.13 });
+    });
     fenceVerges(kit, fenced, 1.9);
-
     meadow(kit);
-    church(kit, ctx, night);
-    wayside(kit, ctx, phase);
-    cemeteryWall(kit);
 
     kit.exit({ w: 6, d: 1, to: 'cemetery', spawn: 'front_gate' }).at(0, 0, GATE_Z + 1.2);
     kit.exit({ w: 1, d: 6, to: 'village_square', spawn: 'church_door' }).at(-9.5, 0, 46);
@@ -95,6 +103,9 @@ export const cemeteryPathScene = defineScene({
         { x: 12, z: 28.6, y: 1.2 },
         { x: -2, z: 14.5, y: 1.2, yaw: 60 },
         { x: 4.8, z: -14, y: 0, yaw: 200 },
+        // On the church's eaves, black against the fog.
+        { x: CHURCH.x - 3.5, z: EAVES.z, y: EAVES.y, yaw: 170 },
+        { x: CHURCH.x + 2.2, z: EAVES.z, y: EAVES.y, yaw: 200 },
       ]);
     stagePath(kit, phase);
   },
@@ -103,9 +114,7 @@ export const cemeteryPathScene = defineScene({
 /** Wet grass, tufts, a few bare trees and the posts of an old hay rack in the fog. */
 function meadow(kit: LevelKit): void {
   const offPath = (x: number, z: number) => distanceToTrails([path], x, z) < 1.6 || (Math.abs(x - CHURCH.x) < 10 && z > 44);
-  scatter({ x: 0, z: 4, w: 56, d: 100, count: 700, seed: 'hill-tufts', spacing: 0.9, scale: [0.7, 1.4], avoid: offPath }).forEach((spot) =>
-    kit.sprite('grass_tuft', { w: 1 * spot.scale!, h: 0.62 * spot.scale! }).color(0x80826a).at(spot.x, -0.04, spot.z).onGround(),
-  );
+  billboards(kit, { texture: 'grass_tuft', w: 1, h: 0.62, color: 0x80826a, sink: 0.04 }, scatter({ x: 0, z: 4, w: 56, d: 100, count: 700, seed: 'hill-tufts', spacing: 0.9, scale: [0.7, 1.4], avoid: offPath }));
   kit.trees('bare', scatter({ x: 0, z: 4, w: 60, d: 96, count: 11, seed: 'hill-trees', spacing: 12, avoid: (x, z) => distanceToTrails([path], x, z) < 5 })).collider().shade(0.12);
   kit.trees('spruce', scatter({ x: 0, z: GATE_Z - 6, w: 70, d: 10, count: 26, seed: 'hill-spruce', spacing: 3, scale: [1, 1.4] })).collider().shade(0.12);
 }
@@ -157,11 +166,12 @@ function wayside(kit: LevelKit, ctx: SceneContext, phase: StoryPhase): void {
       parts.rosary = g.group((r) => {
         [0, 1, 2, 3, 4, 5, 6].forEach((i) => r.box({ w: 0.025, h: 0.025, d: 0.025 }).color(0x2a2420).at(Math.sin(i * 0.5) * 0.05, -0.04 - i * 0.035, 0));
         r.box({ w: 0.012, h: 0.07, d: 0.004 }).color(0x8a8070).at(0, -0.32, 0);
-      }).at(0, 0.62, 0.08);
+      }).at(0, 0.62, 0.08).dynamic();
     })
     .at(CROSS.x, 0, CROSS.z)
     .rotY(facing)
     .onGround();
+  crossOfferings(kit, CROSS, { x: -6, z: -3 });
   kit.hotspot({ prompt: 'Look at the cross', radius: 0.6, onInteract: () => playNode(ctx, 'path_cross') }).at(CROSS.x, 0, CROSS.z);
 
   if (phase !== 'night1') return;
