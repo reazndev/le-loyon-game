@@ -1,11 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { forestAtmosphere } from './woods';
-import { fogSight } from './fogFigure';
+import { fogSight } from './fogSight';
 
 describe('fogSight', () => {
-  it('hides a figure just past the torch beam at night', () => {
-    const { fog } = forestAtmosphere.night;
-    const sight = fogSight({ near: fog.near, far: fog.far, density: fog.density ?? 0, wisps: fog.wisps ?? 0 });
+  it('hides a figure just past the torch beam in the forest at night', () => {
+    const sight = fogSight({ near: 0.4, far: 11, density: 0.16, wisps: 0.3 });
     expect(sight).toBeGreaterThan(10);
     expect(sight).toBeLessThan(12.5);
   });

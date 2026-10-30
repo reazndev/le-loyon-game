@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { fogSight } from './fogFigure';
+import { fogSight } from '../../game/scares/fogSight';
 import { main, markers } from './layout';
 import { stepsAway } from './scares';
 import { distanceToTrails } from './trail';

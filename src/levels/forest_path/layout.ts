@@ -140,11 +140,11 @@ export const markers = {
   },
   for2_roofline: {
     beat: 'for2_roofline',
-    x: 5,
+    x: 7.5,
     y: 5,
-    z: -13.5,
-    yaw: yawToward(5 - heifer.x, -13.5 - heifer.z),
-    note: 'The fort as a dark barn roof up the right branch, shown only while the fog thins, once, when the player looks up the branch from the fork. It stands nearer than the real fort: nothing past the fog is drawn.',
+    z: -25.5,
+    yaw: yawToward(7.5 - heifer.x, -25.5 - heifer.z),
+    note: 'The fort as a dark barn roof up the right branch, about 26 m from the fork, shown only while the fog thins, once, when the player looks up the branch. The real fort is further on; the roof stands where thinned fog can just uncover it.',
   },
   for2_stump_shape: {
     beat: 'for2_stump',

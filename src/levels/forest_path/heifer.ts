@@ -100,7 +100,7 @@ function stageTheFork(kit: LevelKit, ctx: SceneContext): Beat[] {
       id: 'for2_roofline',
       when: [{ enter: { ...markers.for2_heifer_fork, r: 7 } }, { look: { ...ROOF, within: 34, angle: 14, hold: 1 } }],
       do: [
-        { fog: { far: 20, density: 0.06, seconds: 5, fade: 2.5 } },
+        { fog: { far: 30, density: 0.045, seconds: 5, fade: 2.5 } },
         { run: () => void (roof.object.visible = true) },
         { after: 3.5, run: (c) => c.say('A barn. Up there in the trees. Why would anyone build a barn in a forest?') },
         { after: 10.5, run: () => void (roof.object.visible = false) },

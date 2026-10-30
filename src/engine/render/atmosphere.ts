@@ -25,6 +25,9 @@ export interface Atmosphere {
   flashlight?: boolean;
 }
 
+/** The camera's far plane for a fog: a little past where the fog hides everything. */
+export const cameraFar = (fogFar: number): number => fogFar * 1.15;
+
 /** Writes an atmosphere to the shared uniforms and returns the values the renderer needs. */
 export function applyAtmosphere(atmosphere: Atmosphere): { background: Color; far: number; saturation: number } {
   const { fog } = atmosphere;
@@ -42,7 +45,7 @@ export function applyAtmosphere(atmosphere: Atmosphere): { background: Color; fa
   }
   return {
     background: new Color(fog.color),
-    far: fog.far * 1.15,
+    far: cameraFar(fog.far),
     saturation: atmosphere.saturation ?? 0.75,
   };
 }

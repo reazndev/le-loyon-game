@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { fogSight } from '../forest_path/fogFigure';
+import { fogSight } from '../../game/scares/fogSight';
 import { distanceToTrails } from '../forest_path/trail';
 import { forestAtmosphere } from '../forest_path/woods';
 import { markers, track, watchedFrom } from './index';

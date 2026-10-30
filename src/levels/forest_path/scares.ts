@@ -3,7 +3,6 @@ import type { Beat, ScareAction } from '../../game/scares/beats';
 import { scareDirector, type ScareDirector } from '../../game/scares/director';
 import { otherStep } from '../../game/scares/sounds';
 import type { SceneContext } from '../../game/scene';
-import { fogFigure } from './fogFigure';
 import { markers } from './layout';
 import { unspent } from './spent';
 import { isNight, type StoryPhase } from './story';
@@ -37,31 +36,27 @@ export function stageForestPath(kit: LevelKit, ctx: SceneContext, phase: StoryPh
   const night1 = phase === 'night1';
   const beats: Beat[] = [...extra];
   if (night1) {
-    const ahead = fogFigure(kit, {
-      at: for1_ahead,
-      face: for1_ahead.yaw,
-      vanish: 'never',
-      near: 8.5,
-      leave: [for1_ahead_exit],
-    });
-    const again = fogFigure(kit, {
-      at: for1_ahead_again_from,
-      face: for1_ahead_again_from.yaw - 90,
-      walk: [for1_ahead_again_to],
-      near: 7,
-      leave: [for1_ahead_again_to],
-    });
     beats.push(
       {
         id: 'for1_ahead',
         when: { enter: { ...markers.for1_ahead_trigger, r: 2.5 } },
         if: { flag: 'first_sighting' },
-        do: [{ silence: 18 }, { run: ahead }],
+        do: [{ silence: 18 }, { figure: { at: for1_ahead, face: for1_ahead.yaw, vanish: 'never', near: 8.5, leave: [for1_ahead_exit] } }],
       },
       {
         id: 'for1_ahead_again',
         when: { enter: { ...markers.for1_ahead_again_trigger, r: 2.5 } },
-        do: [{ run: again }],
+        do: [
+          {
+            figure: {
+              at: for1_ahead_again_from,
+              face: for1_ahead_again_from.yaw - 90,
+              walk: [for1_ahead_again_to],
+              near: 7,
+              leave: [for1_ahead_again_to],
+            },
+          },
+        ],
       },
       {
         id: 'for1_fork_steps',

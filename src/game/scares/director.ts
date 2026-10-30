@@ -1,11 +1,13 @@
 import { Vector3 } from 'three';
 import type { Point3 } from '../../engine/audio/audioManager';
 import type { Surface } from '../../engine/physics/ground';
+import { cameraFar } from '../../engine/render/atmosphere';
 import { ps1Uniforms } from '../../engine/render/ps1Uniforms';
 import type { KitContext } from '../kit/builders';
 import { NpcBuilder } from '../kit/npc';
 import { BeatTracker, viewAngle, type Beat, type FigureSpec, type Place, type ScareAction, type Senses } from './beats';
 import { Figure, type Viewer } from './figure';
+import { fogSight, liveFog } from './fogSight';
 import { RandomEvents, type RandomEventId, type RandomEventOptions } from './randomEvents';
 import { otherStep, playSound } from './sounds';
 
@@ -97,7 +99,7 @@ export class ScareDirector {
     } else if ('silence' in action) {
       this.silence(action.silence);
     } else if ('fog' in action) {
-      this.thickenFog(action.fog);
+      this.changeFog(action.fog);
     } else if ('stinger' in action) {
       const at = this.place(action.at ?? 'behind', 2);
       playSound(audio, action.stinger === true ? 'sfx_hit' : action.stinger, { at, volume: 2 });
@@ -132,25 +134,36 @@ export class ScareDirector {
     this.after(SILENCE_FADE + seconds, () => audio.fadeBus('ambience', audio.busLevel('ambience'), SILENCE_RETURN));
   }
 
-  private thickenFog(fog: { far?: number; density?: number; seconds: number; fade?: number }): void {
+  /**
+   * Eases the fog to new values and back. When the fog thins, the camera's far plane moves out
+   * with it, so what the thinner fog uncovers is drawn.
+   */
+  private changeFog(fog: { far?: number; density?: number; seconds: number; fade?: number }): void {
     this.fogRestore?.();
-    const base = { far: ps1Uniforms.uFogFar.value, density: ps1Uniforms.uFogDensity.value };
+    const camera = this.ctx.scene.player.camera;
+    const base = { far: ps1Uniforms.uFogFar.value, density: ps1Uniforms.uFogDensity.value, camera: camera.far };
     const goal = { far: fog.far ?? base.far * 0.6, density: fog.density ?? base.density * 1.8 };
     const fade = fog.fade ?? 4;
     const start = this.clock;
     const end = start + fade * 2 + fog.seconds;
     const ease = (k: number) => k * k * (3 - 2 * k);
+    const setCamera = (far: number) => {
+      camera.far = far;
+      camera.updateProjectionMatrix();
+    };
     const tick = () => {
       const t = this.clock - start;
       const k = ease(Math.min(1, t / fade, Math.max(0, (end - this.clock) / fade)));
       ps1Uniforms.uFogFar.value = base.far + (goal.far - base.far) * k;
       ps1Uniforms.uFogDensity.value = base.density + (goal.density - base.density) * k;
+      setCamera(Math.max(base.camera, cameraFar(ps1Uniforms.uFogFar.value)));
     };
     this.ctx.world.updates.add(tick);
     this.fogRestore = () => {
       this.ctx.world.updates.delete(tick);
       ps1Uniforms.uFogFar.value = base.far;
       ps1Uniforms.uFogDensity.value = base.density;
+      setCamera(base.camera);
       this.fogRestore = null;
     };
     this.after(end - start, () => this.fogRestore?.());
@@ -180,16 +193,23 @@ export class ScareDirector {
     return { x: player.position.x, z: player.position.z, eye, view: this.view, time, state };
   }
 
+  /**
+   * A spot past the edge of the fog counts as out of view, so a figure on the path ahead can
+   * be there already and come out of the fog as the player walks on.
+   */
   private viewer(): Viewer {
     const eye = this.ctx.scene.player.camera.position;
     const view = this.view;
-    return { eye, angleTo: (point) => viewAngle({ eye, view }, point), sight: ps1Uniforms.uFogFar.value * 1.1 };
+    const sight = fogSight(liveFog());
+    return { eye, angleTo: (point) => (eye.distanceTo(point) > sight ? 180 : viewAngle({ eye, view }, point)), sight };
   }
 
   private castFigure(spec: FigureSpec): NpcBuilder {
     const npc = new NpcBuilder(this.ctx, spec.who ?? 'marc');
     npc.object.visible = false;
     this.ctx.world.scene.add(npc.object);
+    // Characters follow the ground from where their feet are, so start them at the spot's height.
+    this.ctx.later('register', () => (npc.character.position.y = this.ctx.world.ground.sample(spec.at.x, spec.at.z).height));
     return npc;
   }
 }

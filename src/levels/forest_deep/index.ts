@@ -1,10 +1,10 @@
 import { ConeGeometry, SphereGeometry } from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import type { LevelKit } from '../../game/kit/levelKit';
+import type { ScareAction } from '../../game/scares/beats';
 import { scareDirector, type ScareDirector } from '../../game/scares/director';
 import { defineScene, type SceneContext } from '../../game/scene';
 import type { Markers } from '../forest_path/beats';
-import { fogFigure } from '../forest_path/fogFigure';
 import { lostInTheFog } from '../forest_path/lost';
 import { playNode } from '../forest_path/play';
 import { handText, scrawl } from '../forest_path/scrawl';
@@ -93,9 +93,7 @@ export const markers = {
  * up, and at the next turn it is there again in the same place relative to the player.
  */
 function stageLarch(kit: LevelKit, ctx: SceneContext): ScareDirector {
-  const watcher = (at: { x: number; z: number }) => fogFigure(kit, { at, vanish: 'unseen', near: 8, timeout: 30 });
-  const first = watcher(markers.for3_watched_1);
-  const second = watcher(markers.for3_watched_2);
+  const watcher = (at: { x: number; z: number }): ScareAction => ({ figure: { at, vanish: 'unseen', near: 8, timeout: 30 } });
   return kit.use(
     scareDirector(unspent(ctx.state, [
       { id: 'for3_grave', when: { after: Number.POSITIVE_INFINITY }, do: [{ silence: 6 }] },
@@ -103,12 +101,12 @@ function stageLarch(kit: LevelKit, ctx: SceneContext): ScareDirector {
         id: 'for3_watched',
         when: { enter: { ...markers.for3_watched_trigger_1, r: 2.5 } },
         if: { flag: 'found_forest_grave' },
-        do: [{ run: first }],
+        do: [watcher(markers.for3_watched_1)],
       },
       {
         id: 'for3_watched_again',
         when: { enter: { ...markers.for3_watched_trigger_2, r: 2.5 } },
-        do: [{ run: second }],
+        do: [watcher(markers.for3_watched_2)],
       },
     ])),
   );
