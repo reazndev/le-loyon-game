@@ -64,10 +64,17 @@ _Proposal._ Surnames are common in the canton of Fribourg.
 
 Because Le Loyon is about 40 and the game is set in the late 1990s, his "death" is recent, only a few years old. The villagers who whisper about him knew him.
 
-## Open story questions
+## Resolved in the script
 
-- **How Marc ended up in Bosnia.** Decided: the Bosnian War. Switzerland stayed out, and Swiss law forbids its citizens to serve in foreign armies, which gives Marc a second reason to hide. _Proposal:_ he joined the French Foreign Legion at about 20, under a false identity as the Legion allowed, and served with French UN troops in Bosnia. That explains how he was reported dead under the wrong name. These details need fact-checking before we write dialogue.
-- **Why he visits the graves.** _Proposal:_ Daniel Menoud was his childhood friend. The syndic Gremaud knew Marc was alive and helped him hide before he vanished. That gives each grave a reason to exist and a second mystery for the player.
+The full script in [script/](script/00-overview.md) settles the questions that were open here. Summary:
+
+- **Empty coffin.** Marc served in the Foreign Legion from 1978 as "Marc Challand". He was listed missing in August 1995 and walked home. The syndic Gremaud, his godfather, staged the funeral with an empty coffin on 18 November 1995 and left the bunker key and a letter inside.
+- **Gremaud.** He carried food to the bunker until his heart gave out on the forest path in January 1997. Marc buried him under a larch. The player first reads it as murder.
+- **The graves.** Daniel Menoud was Marc's childhood friend who kept the secret. Marc lights his grave lantern on Saturdays.
+- **The forum user who knows where you are.** "veilleur", the innkeeper's 16-year-old son Yannick.
+- **Research changes.** See [script/research.md](script/research.md).
+
+Everything below this point is the earlier brainstorm. The script supersedes it where they differ.
 
 ## Ideas still under discussion
 
