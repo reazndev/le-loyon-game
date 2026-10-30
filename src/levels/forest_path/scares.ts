@@ -3,7 +3,8 @@ import type { Beat, ScareAction } from '../../game/scares/beats';
 import { scareDirector, type ScareDirector } from '../../game/scares/director';
 import { otherStep } from '../../game/scares/sounds';
 import type { SceneContext } from '../../game/scene';
-import { markers } from './layout';
+import { lookPoint } from './beats';
+import { height, markers } from './layout';
 import { unspent } from './spent';
 import { isNight, type StoryPhase } from './story';
 
@@ -75,7 +76,7 @@ export function stageForestPath(kit: LevelKit, ctx: SceneContext, phase: StoryPh
   if (isNight(phase))
     beats.push({
       id: 'for1_shrine',
-      when: { look: { ...markers.for1_shrine, within: 5, hold: 0.8 } },
+      when: { look: { ...lookPoint(markers.for1_shrine, height), within: 5, hold: 0.8 } },
       do: [{ silence: 7 }],
     });
   if (phase === 'night3')

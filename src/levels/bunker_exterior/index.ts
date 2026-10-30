@@ -3,7 +3,7 @@ import type { LevelKit } from '../../game/kit/levelKit';
 import { scareDirector, type ScareDirector } from '../../game/scares/director';
 import { playSound } from '../../game/scares/sounds';
 import { defineScene, type SceneContext } from '../../game/scene';
-import type { Markers } from '../forest_path/beats';
+import { lookPoint, type Markers } from '../forest_path/beats';
 import { lostInTheFog } from '../forest_path/lost';
 import { playNode } from '../forest_path/play';
 import { handText, scrawl } from '../forest_path/scrawl';
@@ -82,7 +82,7 @@ function stageFort(kit: LevelKit, ctx: SceneContext, phase: StoryPhase): ScareDi
         },
         {
           id: 'for3_hatch',
-          when: { look: { ...markers.for3_hatch, y: 0.3, within: 6, angle: 14, hold: 1 } },
+          when: { look: { ...lookPoint(markers.for3_hatch, height, 0.3), within: 6, angle: 14, hold: 1 } },
           if: { count: [['day', '==', 3], ['night', '==', 0]] },
           do: [{ silence: 9 }],
         },

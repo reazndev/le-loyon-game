@@ -16,3 +16,13 @@ export interface BeatMarker {
 }
 
 export type Markers = Record<string, BeatMarker>;
+
+/**
+ * A marker as the point a `look` trigger aims at. The director wants a height in the world, and
+ * markers keep theirs above the ground, which climbs meters across a forest scene.
+ */
+export const lookPoint = (marker: BeatMarker, ground: (x: number, z: number) => number, above = marker.y ?? 1.5) => ({
+  x: marker.x,
+  z: marker.z,
+  y: ground(marker.x, marker.z) + above,
+});

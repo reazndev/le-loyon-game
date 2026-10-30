@@ -4,6 +4,7 @@ import type { LevelKit } from '../../game/kit/levelKit';
 import { viewAngle, type Beat } from '../../game/scares/beats';
 import type { SceneContext } from '../../game/scene';
 import { everyFrame } from '../church/everyFrame';
+import { lookPoint } from './beats';
 import { height, markers } from './layout';
 import { heiferAtTheFork, type StoryPhase } from './story';
 
@@ -98,7 +99,7 @@ function stageTheFork(kit: LevelKit, ctx: SceneContext): Beat[] {
   const beats: Beat[] = [
     {
       id: 'for2_roofline',
-      when: [{ enter: { ...markers.for2_heifer_fork, r: 7 } }, { look: { ...ROOF, within: 34, angle: 14, hold: 1 } }],
+      when: [{ enter: { ...markers.for2_heifer_fork, r: 7 } }, { look: { ...lookPoint(ROOF, height), within: 34, angle: 14, hold: 1 } }],
       do: [
         { fog: { far: 30, density: 0.045, seconds: 5, fade: 2.5 } },
         { run: () => void (roof.object.visible = true) },
@@ -108,7 +109,7 @@ function stageTheFork(kit: LevelKit, ctx: SceneContext): Beat[] {
     },
     {
       id: 'for2_stump',
-      when: { look: { ...SHAPE, within: 22, angle: 9, hold: 0.6 } },
+      when: { look: { ...lookPoint(SHAPE, height), within: 22, angle: 9, hold: 0.6 } },
       do: [{ run: () => void (shapeArmed = true) }],
     },
     {
@@ -118,7 +119,7 @@ function stageTheFork(kit: LevelKit, ctx: SceneContext): Beat[] {
     },
   ];
   const view = new Vector3();
-  const top = new Vector3(SHAPE.x, height(SHAPE.x, SHAPE.z) + (SHAPE.y ?? 1.2), SHAPE.z);
+  const top = lookPoint(SHAPE, height);
   let awayFor = 0;
   everyFrame(kit, (dt) => {
     if (!shapeArmed || !shape.object.visible || ctx.paused) return;
