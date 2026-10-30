@@ -14,6 +14,14 @@ export function scrawl(
   pixels: [width: number, height: number],
   draw: (g: CanvasRenderingContext2D) => void,
 ): MeshBuilder {
+  const builder = kit.mesh(new PlaneGeometry(size.w, size.h).translate(0, size.h / 2, 0));
+  builder.mesh.material.dispose();
+  builder.mesh.material = createPs1Material({ map: paintedTexture(pixels, draw), alphaTest: 0.5 });
+  return builder;
+}
+
+/** A small canvas painted in code, sampled nearest-neighbor like every other texture. */
+export function paintedTexture(pixels: [width: number, height: number], draw: (g: CanvasRenderingContext2D) => void): CanvasTexture {
   const canvas = document.createElement('canvas');
   [canvas.width, canvas.height] = pixels;
   const g = canvas.getContext('2d')!;
@@ -23,10 +31,7 @@ export function scrawl(
   texture.magFilter = NearestFilter;
   texture.minFilter = NearestFilter;
   texture.generateMipmaps = false;
-  const builder = kit.mesh(new PlaneGeometry(size.w, size.h).translate(0, size.h / 2, 0));
-  builder.mesh.material.dispose();
-  builder.mesh.material = createPs1Material({ map: texture, alphaTest: 0.5 });
-  return builder;
+  return texture;
 }
 
 /** One line of hand-sprayed or hand-written text, slightly tilted. */

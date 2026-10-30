@@ -1,5 +1,4 @@
-import { ConeGeometry, SphereGeometry } from 'three';
-import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import { SphereGeometry, type CanvasTexture } from 'three';
 import type { LevelKit } from '../../game/kit/levelKit';
 import type { ScareAction } from '../../game/scares/beats';
 import { scareDirector, type ScareDirector } from '../../game/scares/director';
@@ -7,9 +6,10 @@ import { defineScene, type SceneContext } from '../../game/scene';
 import type { Markers } from '../forest_path/beats';
 import { lostInTheFog } from '../forest_path/lost';
 import { playNode } from '../forest_path/play';
-import { handText, scrawl } from '../forest_path/scrawl';
+import { handText, paintedTexture } from '../forest_path/scrawl';
 import { unspent } from '../forest_path/spent';
 import { distanceToTrails, pointAlong, yawToward, type Trail } from '../forest_path/trail';
+import { larch } from './larch';
 import { enclose, fallenLog, forestAmbience, forestAtmosphere, forestFloor, rock, trailStrip, undergrowth, woodland, woodsHeight, type Area } from '../forest_path/woods';
 
 /**
@@ -143,7 +143,7 @@ export const forestDeepScene = defineScene({
     rock(kit, -3.8, -6, 0.5, 'larch-rock-2');
 
     const scares = stageLarch(kit, ctx);
-    larch(kit);
+    larch(kit, LARCH);
     grave(kit, ctx, scares);
 
     enclose(kit, area);
@@ -154,27 +154,6 @@ export const forestDeepScene = defineScene({
 
   update: lostInTheFog([track]),
 });
-
-/** Bare and golden in a forest of black spruce. It stands out like a lamp. */
-function larch(kit: LevelKit): void {
-  kit.cylinder({ r: 0.26, h: 13, sides: 7, cell: 2 }).texture('bark_spruce', { tile: [1, 2] }).color(0x8c7a64).at(LARCH.x, -0.2, LARCH.z).onGround().collider();
-  // Many short drooping tiers, narrow at the top, so from below it reads as a tree and not a parasol.
-  const tiers = Array.from({ length: 10 }, (_, i) => {
-    const t = i / 9;
-    const radius = 0.35 + 1.55 * (1 - t);
-    const h = 1.5 - t * 0.5;
-    return new ConeGeometry(radius, h, 7, 1, true).translate(0, 2.6 + i * 0.95 + h / 2, 0).toNonIndexed();
-  });
-  kit
-    .mesh(mergeGeometries(tiers)!)
-    .texture('spruce_foliage', { tile: 1.3 })
-    .color(0xc8902c)
-    .emissive(0x301c04)
-    .cutout()
-    .doubleSided()
-    .at(LARCH.x, -0.2, LARCH.z)
-    .onGround();
-}
 
 /** A mound of fieldstones the length of a man, a cross of split branches, a jam jar, pine cones. */
 function grave(kit: LevelKit, ctx: SceneContext, scares: ScareDirector): void {
@@ -196,12 +175,8 @@ function grave(kit: LevelKit, ctx: SceneContext, scares: ScareDirector): void {
   const head = { x: GRAVE.x - 1.45, z: GRAVE.z };
   kit.group((g) => {
     g.box({ w: 0.07, h: 1.05, d: 0.07 }).texture('bark_birch', { tile: 0.5 }).color(0x9a8c78);
-    g.box({ w: 0.62, h: 0.12, d: 0.06 }).texture('bark_birch', { tile: 0.5 }).color(0x9a8c78).at(0, 0.66, 0);
+    g.box({ w: 0.62, h: 0.12, d: 0.06 }).map(carvedCrossbar(), { tile: [0.62, 0.12] }).at(0, 0.66, 0);
     g.box({ w: 0.09, h: 0.09, d: 0.08 }).color(0x4e4e4c).at(0, 0.67, 0);
-    scrawl(g, { w: 0.58, h: 0.11 }, [64, 12], (c) => {
-      handText(c, 'J.-P. G.', 2, 6, { size: 9, color: '#d8c8a0', font: 'serif' });
-      handText(c, '14.I.1997', 34, 6, { size: 8, color: '#d8c8a0', font: 'serif' });
-    }).at(0, 0.665, 0.035);
   })
     .at(head.x, -0.05, head.z)
     .onGround();
@@ -224,6 +199,25 @@ function grave(kit: LevelKit, ctx: SceneContext, scares: ScareDirector): void {
       },
     })
     .at(GRAVE.x - 0.5, 0, GRAVE.z);
+}
+
+/**
+ * The crossbar's own wood with the initials and the date cut into it by knife. The cuts are only
+ * a shade darker than the wood, so from a few steps away they read as grain.
+ */
+function carvedCrossbar(): CanvasTexture {
+  return paintedTexture([64, 12], (c) => {
+    c.fillStyle = '#867a66';
+    c.fillRect(0, 0, 64, 12);
+    c.fillStyle = '#766a58';
+    [1, 4, 8, 10].forEach((y, i) => c.fillRect(i * 7, y, 64 - i * 9, 1));
+    const carve = (text: string, x: number, size: number) => {
+      handText(c, text, x + 1, 7, { size, color: '#968a74', font: 'serif' });
+      handText(c, text, x, 6, { size, color: '#4e4436', font: 'serif' });
+    };
+    carve('J.-P. G.', 0, 8);
+    carve('14.I.1997', 37, 8);
+  });
 }
 
 export const scenes = [forestDeepScene];
