@@ -33,6 +33,8 @@ const views = [
   { scene: 'laiterie' },
   { scene: 'garage_dousse' },
   { scene: 'house_gremaud_kitchen' },
+  { scene: 'inn' },
+  { scene: 'church' },
 ].filter((view) => !values.only || view.scene === values.only);
 
 const frames = Number(values.frames);
