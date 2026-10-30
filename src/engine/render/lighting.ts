@@ -40,8 +40,8 @@ export class LightingRig {
     color: new Color(1, 0.94, 0.82),
     intensity: 2.2,
     range: 10,
-    angle: 24,
-    innerAngle: 10,
+    angle: 16,
+    innerAngle: 6,
   };
   flashlightOn = false;
   private readonly fault = new FlashlightFault();

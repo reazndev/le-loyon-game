@@ -1,4 +1,4 @@
-import { Vector3 } from 'three';
+import { MathUtils, Vector3 } from 'three';
 import { AudioManager } from '../engine/audio/audioManager';
 import { playFootstep } from '../engine/audio/footsteps';
 import { click } from '../engine/audio/generators';
@@ -44,6 +44,8 @@ export const CONTINUE_SLOTS = [SAVE_SLOT, AUTO_SLOT, 'sleep'];
 
 /** How fast the beam catches up with the view, per second. Lower trails further behind. */
 const FLASHLIGHT_FOLLOW = 9;
+/** How far the beam jolts off its aim when running flat out, as a fraction of the way to the side. */
+const TORCH_SHAKE = 0.05;
 
 /** Owns every system and runs the frame loop. */
 export class Game {
@@ -70,6 +72,9 @@ export class Game {
   private lastTime = 0;
   /** Where the beam points. It trails the view a little, like a torch swung by hand. */
   private readonly beam = new Vector3();
+  /** How hard the torch is shaking now, 0 to 1, and how hard it is heading for. */
+  private shake = 0;
+  private shakeTarget = 0;
   private frameWaiters: { frame: number; resolve: () => void }[] = [];
 
   constructor(frame: HTMLElement, scenes: Scene[]) {
@@ -227,8 +232,10 @@ export class Game {
     const before = { x: player.position.x, z: player.position.z };
     player.update(dt, this.movement(input), input.isDown('fast'), world);
     const at = { x: player.position.x, z: player.position.z };
-    const running = input.isDown('fast') && !player.crouched && Math.hypot(at.x - before.x, at.z - before.z) > dt * 2;
+    const speed = Math.hypot(at.x - before.x, at.z - before.z) / Math.max(dt, 1e-4);
+    const running = input.isDown('fast') && !player.crouched && speed > 2;
     this.breathing.update(dt, running, world.cold);
+    this.shakeTarget = running ? 1 : speed > 0.3 ? 0.2 : 0;
     world.triggers.update(at);
 
     const forward = player.forward();
@@ -286,7 +293,18 @@ export class Game {
     // Snaps on a scene change or a sharp turn, such as a cutscene cut, instead of sweeping across.
     if (this.scenes.busy || this.beam.dot(aim) < 0) this.beam.copy(aim);
     else this.beam.lerp(aim, 1 - Math.exp(-FLASHLIGHT_FOLLOW * dt)).normalize();
-    this.world.lights.aimFlashlight(hand, this.beam);
+    // The torch jolts in the hand with each stride when running, and barely moves at a walk.
+    this.shake = MathUtils.damp(this.shake, this.ui.open ? 0 : this.shakeTarget, 4, dt);
+    const t = this.elapsed;
+    const jolt = this.shake * TORCH_SHAKE;
+    const up = new Vector3().crossVectors(right, forward);
+    const shaken = this.beam
+      .clone()
+      .addScaledVector(right, Math.sin(t * 15.7) * jolt + Math.sin(t * 6.1) * jolt * 0.4)
+      .addScaledVector(up, Math.abs(Math.sin(t * 9.4)) * jolt * 1.2 - jolt * 0.6)
+      .normalize();
+    hand.addScaledVector(up, Math.sin(t * 18.8) * jolt * 0.4);
+    this.world.lights.aimFlashlight(hand, shaken);
     this.world.lights.update(camera.position, this.elapsed);
     this.audio.setListener(camera.position, forward);
   }
