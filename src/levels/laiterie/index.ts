@@ -6,6 +6,8 @@ import { loopSound, WALL } from '../inn/interior';
 import { clockTick, houseCreak, nowAndThen, radio, roomTone } from '../inn/sounds';
 import { stageBeats } from './beats';
 import { shopBell } from './bell';
+import { laiterieAmbient } from './ambient';
+import { buildClutter } from './clutter';
 import { buildDairy } from './dairy';
 import { BELL, CHRISTINE, CLOCK, DOOR, RADIO, ROOM, TANK } from './layout';
 import { buildShell } from './shell';
@@ -43,9 +45,13 @@ export const laiterieScene = defineScene({
   build(kit, ctx) {
     const night = ctx.state.time === 'night';
     kit.ground('wood', 0);
-    buildShell(kit, night);
-    buildDairy(kit, ctx);
-    buildShop(kit, ctx, night);
+    kit.batch((still) => {
+      buildShell(still, night);
+      buildDairy(still, ctx);
+      buildShop(still, ctx, night);
+      buildClutter(still);
+    });
+    laiterieAmbient(kit, ctx, night);
     if (!night) kit.npc('christine').at(CHRISTINE.x, 0, CHRISTINE.z).faceYaw(CHRISTINE.yaw).watch(4).talk('christine');
 
     kit.door({ to: 'village_square', spawn: 'from_laiterie', w: DOOR.w, h: DOOR.h, prompt: 'Go out' }).at(DOOR.x, 0, ROOM.z1 - WALL / 2 - 0.05);

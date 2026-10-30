@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { laiterieBeats } from './beats';
 import { bellStrikes } from './bell';
+import { secondHandAngle } from './secondHand';
 
 describe('the shop bell', () => {
   it('bounces several times, quicker and softer, when the door swings open', () => {
@@ -32,5 +33,14 @@ describe('the laiterie beats', () => {
 
   it('fires once and remembers it', () => {
     expect(laiterieBeats('day2', ring)[0]).toMatchObject({ set: 'lai_bell_draft' });
+  });
+});
+
+describe('the second hand', () => {
+  it('jumps once a second and comes round in a minute', () => {
+    expect(secondHandAngle(0)).toBe(0);
+    expect(secondHandAngle(0.9)).toBe(0);
+    expect(secondHandAngle(15.2)).toBeCloseTo(Math.PI / 2);
+    expect(secondHandAngle(60.5)).toBe(0);
   });
 });
