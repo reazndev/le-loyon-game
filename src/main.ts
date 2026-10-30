@@ -3,7 +3,7 @@ import { Game } from './game/game';
 import { allScenes } from './levels';
 
 const scenes = allScenes;
-const START_SCENE = 'test';
+const START_SCENE = 'home';
 
 const params = parseDebugParams(location.search);
 const game = new Game(document.getElementById('frame')!, scenes);
