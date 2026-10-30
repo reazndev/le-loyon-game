@@ -9,5 +9,5 @@ export { caught, endings, type Ending } from './endings';
 export { checkStory, derived, flags, holds, type CountName, type DerivedFlag, type Flag, type StoryFlag } from './flags';
 export { items, miscPhoto, miscPhotoCaptions, type Item, type ItemId } from './items';
 export { notebook, notebookGoals, type NotebookEntry, type NotebookGoal } from './notebook';
-export { speakers } from './speakers';
+export { namesHeardIn, speakerLabel, speakers } from './speakers';
 export { splitTranslation } from './translation';

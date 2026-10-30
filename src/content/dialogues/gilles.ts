@@ -61,7 +61,7 @@ export const nodes = {
   },
   gilles_day2: {
     speaker: speakers.gilles,
-    lines: ["You're the one who walked into Bois-Noir at night. Monique's boy told me. Yannick tells me everything."],
+    lines: ["You're the one who walked into Bois-Noir at night. Word gets round fast here."],
     choices: [
       { text: 'Did you know Marc Chassot?', next: 'gilles_marc_1' },
       { text: 'Do you have a key to the old bunker?', next: 'gilles_bunker' },

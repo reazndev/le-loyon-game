@@ -1,4 +1,4 @@
-import { dialogues, documents, type DocumentId } from '../content';
+import { dialogues, documents, namesHeardIn, speakerLabel, type DocumentId } from '../content';
 import { interactLabel } from '../engine/input/bindings';
 import type { Input } from '../engine/input/input';
 import type { DocumentLook } from '../engine/ui/documentView';
@@ -70,8 +70,11 @@ export class GameUi {
     const box = this.overlay.dialogue;
     const show = (step: DialogueStep) => {
       this.dialogueStep = step.kind === 'end' ? null : step;
-      if (step.kind === 'line') box.showLine(displayLine(step.speaker, step.text));
-      if (step.kind === 'choice') box.showLine(displayLine(step.speaker, step.text ?? ''), step.choices.map(choiceText));
+      if (step.kind === 'end') return;
+      this.hearNames([step.text ?? '', ...(step.kind === 'choice' ? step.choices : [])].join(' '));
+      const speaker = step.speaker && speakerLabel(step.speaker, (flag) => this.state.hasFlag(flag));
+      if (step.kind === 'line') box.showLine(displayLine(speaker, step.text));
+      if (step.kind === 'choice') box.showLine(displayLine(speaker, step.text ?? ''), step.choices.map(choiceText));
     };
     const ended = this.present(
       (dt, input, close) => {
@@ -109,7 +112,13 @@ export class GameUi {
 
   /** Shows a document from the content page by page, with its translation underneath. */
   readDocument(id: DocumentId): Promise<void> {
+    this.hearNames(documents[id].pages.join(' '));
     return this.read(documents[id], documentLook(id));
+  }
+
+  /** Remembers each name the player has now read or heard, so the dialogue box can use it. */
+  private hearNames(text: string): void {
+    namesHeardIn(text).forEach((flag) => this.state.setFlag(flag));
   }
 
   /** The quest log, opened at the first page, where the next step sits above the notes. */
