@@ -86,8 +86,8 @@ export const cemeteryScene = defineScene({
     everyFrame(kit, windmill);
 
     exits(kit, ctx, phase, gate);
-    // The village lies below the front gate.
-    hillAmbience(kit, ctx, { x: 0, z: 1 });
+    // The village lies below the front gate. On night 1 the silence before the dog has no bell in it.
+    hillAmbience(kit, ctx, { x: 0, z: 1 }, !(phase === 'night1' && !state.hasFlag('met_raymond')));
     if (!night) crows(kit, ctx, [
       { x: -6, z: FRONT_Z, y: WALL_HEIGHT + 0.06, yaw: 160 },
       { x: 12.5, z: BACK_Z, y: WALL_HEIGHT + 0.06, yaw: 20 },
