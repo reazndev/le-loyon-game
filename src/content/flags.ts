@@ -106,7 +106,7 @@ const twoOf = (a: StoryFlag, b: StoryFlag, c: StoryFlag): Condition => ({
 
 /** Flags that follow from other state. The game never stores them; read them with `holds` or `checkStory`. */
 export const derivedFlags = {
-  pro_knows_village: { flag: ['pro_read_thread_bus', 'pro_read_homepage', 'pro_read_guestbook'] },
+  pro_knows_village: { flag: ['pro_read_thread_bus', 'pro_read_homepage'] },
   suspects_empty_coffin: twoOf('read_register', 'bernard_light_coffin', 'odile_talked'),
   has_evidence: { any: [{ item: 'gremaud_letter' }, ...strongEvidence.map((item) => ({ item }))] },
   has_shovel: { item: 'shovel' },

@@ -33,7 +33,7 @@ const cds: [string, string, number][] = [
 const photos = [
   ['stef-1', 'loyon1.jpg', 'the path behind the cemetery (he is on the right, between trees)'],
   ['stef-2', 'loyon2.jpg', 'zoom (sorry blurry)'],
-  ['stef-3', 'loyon3.jpg', 'looking back to the village. you see the church of L...urs'],
+  ['stef-3', 'loyon3.jpg', 'looking back to the village. the church of LEURS'],
 ];
 
 const encounter = `=== MY ENCOUNTER WITH "LE LOYON" ===
@@ -45,9 +45,8 @@ drugs (ask my mother!).
 I was doing a long tour, from the Broye up to the hills,
 small roads and forest paths. Around 16h30 the fog came
 down very thick. I took a forest path to cut back to the
-road, near a village I won't name (I named it before and
-people from there emailed me, they were not happy, so
-sorry).
+road, near LEURS, a small village in the hills above the
+Broye.
 
 The path goes along the back of a cemetery on a hill and
 then into a dark forest. I stopped to drink. Then I heard

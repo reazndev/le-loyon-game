@@ -31,11 +31,11 @@ describe('derived flags', () => {
     expect(holds('has_shovel', state)).toBe(false);
   });
 
-  it('pro_knows_village needs all three prologue clues', () => {
+  it('pro_knows_village needs both prologue clues', () => {
     const state = new GameState();
-    ['pro_read_thread_bus', 'pro_read_homepage'].forEach((f) => state.setFlag(f));
+    state.setFlag('pro_read_thread_bus');
     expect(derived.pro_knows_village(state)).toBe(false);
-    state.setFlag('pro_read_guestbook');
+    state.setFlag('pro_read_homepage');
     expect(derived.pro_knows_village(state)).toBe(true);
   });
 

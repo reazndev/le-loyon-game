@@ -32,7 +32,7 @@ const title = {
 
 const prologue = {
   name: 'prologue',
-  flags: ['pro_read_thread_bus', 'pro_read_homepage', 'pro_read_guestbook', 'pro_done'],
+  flags: ['pro_read_thread_bus', 'pro_read_homepage', 'pro_done'],
   items: ['notebook', 'polaroid_camera'],
   async play(s) {
     // "New game" is the first entry of the title menu.
@@ -75,13 +75,11 @@ const prologue = {
       if (flag) await s.until((f) => window.__game.state().flags.includes(f), flag, { timeout: 60_000, arg: flag });
     };
     await openFocused();
-    // P1: Cloudy's reply links to Stef's Le Loyon page, which links to yann in the guestbook;
-    // pivex's reply further down the thread gives the bus times.
+    // P1: Cloudy's reply links to Stef's Le Loyon page, which names the village; pivex's reply
+    // further down the thread gives the bus times.
     await open('GAS MASK MAN');
     await open('MY ENCOUNTER', 'pro_read_homepage');
-    await open('WRITE IN MY GUESTBOOK', 'pro_read_guestbook');
-    await s.shot('03-guestbook');
-    await toPage('Backspace');
+    await s.shot('03-stef-loyon');
     await toPage('Backspace');
     await downUntil(() => window.__game.state().flags.includes('pro_read_thread_bus'), 'the reply about the bus');
     // The third clue: the reporter knows where to go, over the desktop.

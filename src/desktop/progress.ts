@@ -1,7 +1,7 @@
 import type { StateMutator, StateView } from '../game/conditions';
 
-/** Puzzle P1: the three pages that together name the village. */
-export const villageClues = ['pro_read_thread_bus', 'pro_read_homepage', 'pro_read_guestbook'] as const;
+/** Puzzle P1: the two pages that tell the reporter where to go and how. */
+export const villageClues = ['pro_read_thread_bus', 'pro_read_homepage'] as const;
 type VillageClue = (typeof villageClues)[number];
 
 export function knowsVillage(state: StateView): boolean {
@@ -9,7 +9,7 @@ export function knowsVillage(state: StateView): boolean {
 }
 
 /**
- * Sets a reading flag. When it completes the three clues, also sets `pro_knows_village` and
+ * Sets a reading flag. When it completes the clues, also sets `pro_knows_village` and
  * returns true, once.
  */
 export function recordRead(state: StateMutator, flag: string): boolean {
@@ -29,8 +29,7 @@ const notesStart = [
 
 const notesByClue: Record<VillageClue, string> = {
   pro_read_thread_bus: '- PostBus. 4 a day. last one 18:52.',
-  pro_read_homepage: '- Stef\'s photos. bunker? chapel? village name ends "-urs"',
-  pro_read_guestbook: '- someone who lives there: "yann". says LEURS.',
+  pro_read_homepage: '- Stef\'s photos. the church in photo 3: LEURS.',
 };
 
 const notesSolved = ['', 'LEURS (FR). PostBus from the station. Inn: Croix-Blanche.', 'They call him "Le Loyon".', 'Three days. Go.'];
@@ -47,8 +46,7 @@ export function notesText(state: StateView): string {
 /** What the reporter still has to find, ticked off under the desktop as each clue is read. */
 const checklist: Record<VillageClue, string> = {
   pro_read_thread_bus: 'how to get there',
-  pro_read_homepage: "Stef's photos",
-  pro_read_guestbook: 'the village name',
+  pro_read_homepage: 'the village name',
 };
 
 /** The steps toward P1 in the order a player meets them, each with the note that points to it. Each fits the strip's one line. */
@@ -57,7 +55,6 @@ const hints: [flag: string, hint: string][] = [
   ['pro_read_board', 'That gas mask story was on the board. Navigator.'],
   ['pro_read_thread_bus', 'The GAS MASK MAN thread. Someone there knows the way.'],
   ['pro_read_homepage', "Cloudy's reply links to Stef's photos."],
-  ['pro_read_guestbook', "Stef's guestbook. Did someone from there sign it?"],
 ];
 
 /** How many of the steps toward P1 are done. A change counts as progress. */

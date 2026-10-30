@@ -189,11 +189,11 @@ Target times are real play time for a first run. Total about 2 hours.
 
 Area: `home`. Full text in [01-prologue.md](01-prologue.md).
 
-The reporter sits at their home PC. An email from the editor gives them three days for a "strange Switzerland" piece. They dial up, read the Alpine Anomalies message board, Stéphane's homepage with blurry photos, and its guestbook.
+The reporter sits at their home PC. An email from the editor gives them three days for a "strange Switzerland" piece. They dial up, read the Alpine Anomalies message board and Stéphane's homepage with blurry photos. His guestbook is optional reading.
 
-**Puzzle P1: find the village.** No single page names the village. Stéphane hides it ("a village I won't name, they were not happy"). One forum post gives the PostBus line and "4 buses a day, the last at 18:52". A photo caption on the homepage shows "...urs" under a smudge. The guestbook entry by "yann" names Leurs outright. When the player has read the three, the reporter's notes file `notes.txt` fills in: "Leurs (FR). PostBus. Inn: Croix-Blanche." The Shut Down option then becomes "Pack and go".
+**Puzzle P1: find the village.** Kept short on purpose after playtesting: everything is in one thread. In the GAS MASK MAN thread, Cloudy's reply links straight to Stéphane's Le Loyon page, which names Leurs in the text and in a photo caption. pivex's reply in the same thread gives the PostBus line and "4 buses a day, the last at 18:52". When the player has read both, the reporter's notes file `notes.txt` fills in: "Leurs (FR). PostBus. Inn: Croix-Blanche." The Shut Down option then becomes "Pack and go".
 
-Flags set: `pro_read_mail`, `pro_read_board`, `pro_read_thread_bus`, `pro_read_homepage`, `pro_read_guestbook`, `pro_knows_village`, `pro_done`.
+Flags set: `pro_read_mail`, `pro_read_board`, `pro_read_thread_bus`, `pro_read_homepage`, `pro_knows_village`, `pro_done`, and `pro_read_guestbook` if the player opens the guestbook.
 
 Items gained at the end of the prologue: `notebook`, `polaroid_camera` with 10 shots (`film_shots` counter), `pocket_money` (flavor only).
 
@@ -309,7 +309,7 @@ Full ending text is in [05-forest-bunker.md](05-forest-bunker.md).
 
 | Id | Where | Goal | Solution | Gives |
 |---|---|---|---|---|
-| P1 | Home PC | Find the village | Read the bus post, the homepage caption, and the guestbook | `pro_knows_village` |
+| P1 | Home PC | Find the village | Read the bus post and Stef's Le Loyon page | `pro_knows_village` |
 | P2 | Church sacristy | Find the odd entry | Read the 1995 burial entry, note who handed over the coffin | `read_register` |
 | P3 | Yerly farm, forest edge | Get a shovel | Find the heifer at the forest edge and lead her home | `shovel` |
 | P4 | Bunker dormitory | Find the hidden door | Look at the swept dust, then push the cupboard | `found_hidden_door` |
@@ -361,7 +361,7 @@ All flags are booleans unless a type is given. Set once, never cleared, unless n
 | `pro_read_thread_bus` | Read the reply with the bus times |
 | `pro_read_homepage` | Opened Stéphane's homepage |
 | `pro_read_guestbook` | Read the guestbook |
-| `pro_knows_village` | All of `pro_read_thread_bus`, `pro_read_homepage`, `pro_read_guestbook` |
+| `pro_knows_village` | Both `pro_read_thread_bus` and `pro_read_homepage` |
 | `pro_done` | Chose "Pack and go" |
 
 ### Story progress

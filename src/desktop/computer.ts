@@ -159,7 +159,7 @@ export class Computer {
     this.browser.stopAll();
   }
 
-  /** Records that a page was read. A clue adds a line to notes.txt; the third solves P1. */
+  /** Records that a page was read. A clue adds a line to notes.txt; the last one solves P1. */
   read(flag: string): void {
     const clue = (villageClues as readonly string[]).includes(flag) && !this.state.hasFlag(flag);
     const solved = recordRead(this.state, flag);

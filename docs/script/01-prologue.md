@@ -94,13 +94,7 @@ After `pro_read_thread_bus`, add:
 After `pro_read_homepage`, add:
 
 ```
-- Stef's photos. bunker? chapel? village name ends "-urs"
-```
-
-After `pro_read_guestbook`, add:
-
-```
-- someone who lives there: "yann". says LEURS.
+- Stef's photos. the church in photo 3: LEURS.
 ```
 
 When `pro_knows_village` is set, add a blank line and:
@@ -354,10 +348,8 @@ chemical factory or what.
 Posted by pivex on November 04, 1998 at 19:30:02:
 
 ```
-I think I know which village it is from Stef's photos, I
-recognise the church tower. I won't post the name because
-Stef asked people not to (the locals emailed him, not
-happy). But if you want to go: train to the main station,
+It's Leurs, the village on Stef's photos, I recognise
+the church tower. If you want to go: train to the main station,
 then the yellow PostBus. 4 buses a day, last one back at
 18:52 so DON'T miss it, there is nothing there. Not even a
 taxi. One inn.
@@ -547,9 +539,8 @@ drugs (ask my mother!).
 I was doing a long tour, from the Broye up to the hills,
 small roads and forest paths. Around 16h30 the fog came
 down very thick. I took a forest path to cut back to the
-road, near a village I won't name (I named it before and
-people from there emailed me, they were not happy, so
-sorry).
+road, near LEURS, a small village in the hills above the
+Broye.
 
 The path goes along the back of a cemetery on a hill and
 then into a dark forest. I stopped to drink. Then I heard
@@ -585,7 +576,7 @@ Under the images:
 
 - Photo 1 caption: "the path behind the cemetery (he is on the right, between trees)"
 - Photo 2 caption: "zoom (sorry blurry)"
-- Photo 3 caption: "looking back to the village. you see the church of L...urs" with the middle of the word under a thumb smudge that is part of the scan.
+- Photo 3 caption: "looking back to the village. the church of LEURS"
 
 Under that, in blinking red:
 
@@ -615,7 +606,7 @@ Hosted by a free guestbook service, so it has a different look: white background
 | Sandra | Wed, Nov 26, 1997 21:15:00 | I saw something like this near Romont in the summer. A man in a cape on the edge of a field. I thought it was a scarecrow until it turned. I didn't sleep that night. |
 | Stef (admin) | Mon, Nov 3, 1997 20:30:30 | First entry in my own guestbook! Please sign!! |
 
-The entry by yann has no email and no homepage. Reading the guestbook sets `pro_read_guestbook`.
+The entry by yann has no email and no homepage. Reading the guestbook sets `pro_read_guestbook`. It is optional; the village is already named on the Le Loyon page.
 
 "Sign the Guestbook" opens a form that rejects input: "Error 500: guestbook temporarily full. Upgrade to Guestbook PRO for only $4.95/month!"
 

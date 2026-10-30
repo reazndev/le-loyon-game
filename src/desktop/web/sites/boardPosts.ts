@@ -150,10 +150,8 @@ chemical factory or what.
     short: '11/04/98',
     stage: 0,
     reads: 'pro_read_thread_bus',
-    body: `I think I know which village it is from Stef's photos, I
-recognise the church tower. I won't post the name because
-Stef asked people not to (the locals emailed him, not
-happy). But if you want to go: train to the main station,
+    body: `It's Leurs, the village on Stef's photos, I recognise
+the church tower. If you want to go: train to the main station,
 then the yellow PostBus. 4 buses a day, last one back at
 18:52 so DON'T miss it, there is nothing there. Not even a
 taxi. One inn.
