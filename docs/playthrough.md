@@ -28,16 +28,18 @@ Each stage in `tools/playthrough/runs.mjs` plays one step of the flow in [script
 - every interaction on the path is enabled when the story needs it, and shows its prompt when the player faces it;
 - every dialogue offers the choices the run picks;
 - waking in room 3 and setting out on night 2 write the `sleep` save, and the caught screen loads it with `caught` cleared;
+- on night 1, `first_sighting` is set only once the reporter reacts at the back wall, not when the figure appears;
+- on day 2, looking at the cupboard leads to the swept dust, and `13-hidden-door` shows the K.P. 3 door once the cupboard has rolled clear;
 - Odile's kitchen opens at `odile_talk_2`;
 - each ending's pages, epilogue, and last screen play and return to the title.
 
-Night 2 plays puzzle P5 for real at four times speed. The run digs while Raymond is offstage; when his round comes within 28 m it climbs out, pulls the tarp over the hole, and waits in the ossuary shed with the torch off until he has gone. It takes three to four rounds.
+Night 2 plays puzzle P5 for real at four times speed. The run digs while Raymond is offstage; when his round comes within 28 m it climbs out, pulls the tarp over the hole, and waits in the ossuary shed with the torch off until he has gone. A dig stage takes 15 s of game time and a refill stage 12 s, so the dig takes about two rounds. On his second round Raymond stops at Marc's grave for 10 s while Bari growls, then moves on. The run waits that out in the shed like any other round.
 
 ## How it plays
 
 The runner in `tools/playthrough/index.mjs` starts the Vite dev server and Chromium with the same SwiftShader flags as `npm run shot` (`tools/browser.mjs`), and gives each run a fresh page, so saves and settings start empty.
 
-`tools/playthrough/session.mjs` holds the moves. Keys go in as real key presses through Playwright: E to interact and confirm, the arrows to walk and pick choices, F, C, and Q for the torch, crouching, and the camera. The 1998 desktop is driven with real mouse clicks. Everything else goes through `window.__game`:
+`tools/playthrough/session.mjs` holds the moves. Keys go in as real key presses through Playwright: E to interact and confirm, the arrows to walk and pick choices, F, C, and Q for the torch, crouching, and the camera. The 1998 desktop is driven with real key presses: up and down to move between links, E to open, Esc to go back, Tab for the Start menu. Everything else goes through `window.__game`:
 
 | Hook | Used for |
 |---|---|

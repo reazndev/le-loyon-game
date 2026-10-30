@@ -34,7 +34,7 @@ Sound: rain, the hum of the CRT, a fridge in the next room that switches on and 
 
 The screen fills the view when the player sits. It is a fictional mid-90s desktop. Do not use real trademarks: the OS has no name on screen, the browser is called **Navigator 4.0** (generic word), the mail program is **Courrier**. Teal background, gray windows with blue title bars, a taskbar with a "Start" button and a clock reading 23:10. The clock advances one minute per real minute.
 
-The mouse is driven by the d-pad or the arrow keys, with a slow cursor. Clicking makes a dry plastic click sound.
+The arrow keys or the d-pad jump between links, icons, and menu items; interact opens, back goes back, Tab or Y opens the Start menu. The mouse also works. Clicking makes a dry plastic click sound. The editor's mail ends with "Before you go, find out which village it is and how you get there." After it is read, a notes.txt strip above the taskbar lists the three unknowns and ticks them off; after 60 seconds without progress it types a hint toward the next clue page. The taskbar shows the controls.
 
 ### Desktop icons
 
