@@ -35,5 +35,8 @@ export function dressInn(state: GameState): InnDressing {
   };
 }
 
+/** Whether it's dark outside the windows: every night, and the third evening. */
+export const darkOutside = (dressing: InnDressing): boolean => dressing.night || dressing.eveningThree;
+
 /** Whether the café lamps burn. Off at night and on the third evening, when Monique has gone through. */
 export const cafeLit = (dressing: InnDressing): boolean => !dressing.night && !dressing.eveningThree;

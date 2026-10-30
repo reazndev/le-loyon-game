@@ -45,9 +45,9 @@ export const innScene = defineScene({
     },
     night: {
       fog: { color: 0x050506, near: 2.5, far: 14, density: 0.04, wisps: 0 },
-      ambient: 0x15151a,
+      ambient: 0x18181d,
       saturation: 0.55,
-      flashlight: false,
+      // The torch Monique lent is in the reporter's hand whenever it's night.
     },
   },
 

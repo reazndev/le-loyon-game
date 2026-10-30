@@ -120,7 +120,7 @@ function room3(kit: LevelKit, ctx: SceneContext, dressing: InnDressing, props: R
     kit.glow(0.5, 0x6a4a20).at(BED.x - 1.25, UPPER + 0.75, z0 + 0.25);
     kit.light({ color: 0xffb870, intensity: 1.7, range: 4.6 }).flicker(0.03).at(BED.x - 1.25, UPPER + 1.0, z0 + 0.5);
   } else {
-    pendantLamp(kit, { x: 7.6, y: UPPER + h, z: (z0 + z1) / 2 }, { on: false, drop: 0.3 });
+    pendantLamp(kit, { x: 7.6, y: UPPER + h, z: (z0 + z1) / 2 }, { intensity: 0.7, range: 4, drop: 0.3 });
   }
 
   door3(kit, ctx);

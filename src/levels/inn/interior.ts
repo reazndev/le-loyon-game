@@ -147,7 +147,7 @@ export function fogWindow(kit: LevelKit, spec: WindowSpec): void {
   const inward = { x: -Math.sin(rad), z: -Math.cos(rad) };
   // By day the fog's cold light; at night the street lamp's orange, faint.
   kit
-    .light(night ? { color: 0x8a5a30, intensity: 0.55, range: 4 } : { color: 0x8a949c, intensity: 0.9, range: 4.5 })
+    .light(night ? { color: 0x8a5a30, intensity: 0.8, range: 4.5 } : { color: 0x8a949c, intensity: 1.2, range: 5.5 })
     .at(spec.x + inward.x * 1.2, (spec.base ?? 0) + y + h * 0.5, spec.z + inward.z * 1.2);
 }
 

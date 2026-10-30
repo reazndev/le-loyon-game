@@ -1,7 +1,7 @@
 import type { LevelKit } from '../../game/kit/levelKit';
 import type { SceneContext } from '../../game/scene';
 import { playNode } from '../forest_path/play';
-import { cafeLit, type InnDressing } from './dressing';
+import { cafeLit, darkOutside, type InnDressing } from './dressing';
 import { bottles, cafeTable, chair, placeSetting } from './furniture';
 import { fogWindow, floorAndCeiling, pendantLamp, skirting, wall, type Finish } from './interior';
 import { CAFE, COUNTER, FRONT_DOOR, KITCHEN_DOOR, STAIRS, STUBLI_DOOR, SUPPER_TABLE, TABLES } from './layout';
@@ -38,7 +38,7 @@ export function buildCafe(kit: LevelKit, ctx: SceneContext, dressing: InnDressin
   ].forEach(([a, b]) => skirting(kit, a as [number, number], b as [number, number]));
 
   // The square lies south; the street lamp's smear shows in the front windows at night.
-  const nightOutside = dressing.night;
+  const nightOutside = darkOutside(dressing);
   [-3.3, -0.1].forEach((x) => fogWindow(kit, { x, z: z1, facing: 0, ...WINDOW, night: nightOutside, lamp: true }));
   fogWindow(kit, { x: x0, z: -2.2, facing: -90, w: 1.0, h: WINDOW.h, y: WINDOW.y, night: nightOutside });
   fogWindow(kit, { x: x1, z: 1.8, facing: 90, w: 1.0, h: WINDOW.h, y: WINDOW.y, night: nightOutside });

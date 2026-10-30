@@ -12,7 +12,7 @@ import { tvMurmur } from './sounds';
 export function placeCafeCast(kit: LevelKit, ctx: SceneContext, dressing: InnDressing): void {
   const { state } = ctx;
   if (!cafeLit(dressing)) return;
-  kit.npc('monique').at(2.5, 0, COUNTER.z - 0.55).faceYaw(180).watch(4).talk('monique');
+  kit.npc('monique').at(2.5, 0, COUNTER.z - 0.4).faceYaw(180).watch(4).talk('monique');
 
   if (dressing.day === 1 && !dressing.endingMorning) {
     // Gilles at the counter with a glass of white.

@@ -1,15 +1,20 @@
 import type { LevelKit } from '../../game/kit/levelKit';
-import type { InnDressing } from './dressing';
+import { darkOutside, type InnDressing } from './dressing';
 import { chair } from './furniture';
 import { fogWindow, floorAndCeiling, pendantLamp, wall, type Finish } from './interior';
-import { DESK, PHONE, SCREEN, STUBLI } from './layout';
+import { DESK, PHONE, SCREEN, STUBLI, STUBLI_DOOR } from './layout';
 
 /**
  * The stübli, the small back room: Yannick's computer on a desk against the west wall, the beige
  * phone on the north wall, folders on a shelf, a corner bench and table, a window onto the square.
  */
 
-const WOOD_PANELS: Finish = { texture: 'wood_planks', tile: 1.1, color: 0xb08c66 };
+const WOOD_PANELS: Finish = {
+  texture: 'plaster_wall',
+  tile: 1.6,
+  color: 0xb0a48a,
+  dado: { texture: 'wood_planks', color: 0x9a7656, h: 1.25, tile: 1 },
+};
 const CASE = 0xc8bc9a;
 
 export interface StubliProps {
@@ -19,8 +24,10 @@ export interface StubliProps {
 
 export function buildStubli(kit: LevelKit, dressing: InnDressing, props: StubliProps): void {
   const { x0, x1, z0, z1, h } = STUBLI;
-  const night = dressing.night;
+  const night = darkOutside(dressing);
   wall(kit, [x0, z0], [x1, z0], h, WOOD_PANELS);
+  // The stübli's own face on the wall it shares with the café.
+  wall(kit, [x1 - 0.1, z1], [x1 - 0.1, z0], h, WOOD_PANELS, [{ at: z1 - STUBLI_DOOR.z, w: STUBLI_DOOR.w, h: STUBLI_DOOR.h }]);
   wall(kit, [x0, z1], [x1, z1], h, WOOD_PANELS, [{ at: 2.0, w: 1.0, h: 1.0, y: 1.0 }]);
   wall(kit, [x0, z1], [x0, z0], h, WOOD_PANELS);
   floorAndCeiling(kit, STUBLI, { texture: 'wood_floor', tile: 1.2, color: 0x7a6a58 }, { texture: 'wood_planks', tile: 1.4, color: 0x5a4434 });
@@ -48,7 +55,7 @@ export function buildStubli(kit: LevelKit, dressing: InnDressing, props: StubliP
   kit.box({ w: 0.24, h: 0.32, d: 0.01 }).texture('tiles_white', { tile: 0.3 }).color(0xd0c8b0).at(PHONE.x + 0.32, PHONE.y - 0.3, z0 + 0.09);
 
   computerDesk(kit, dressing, props.useComputer);
-  pendantLamp(kit, { x: x0 + 2.2, y: h, z: z0 + 1.2 }, { on: !night && !dressing.eveningThree, intensity: 1.5, range: 5, drop: 0.45 });
+  pendantLamp(kit, { x: x0 + 2.2, y: h, z: z0 + 1.2 }, { on: !night, intensity: 1.5, range: 5, drop: 0.45 });
 }
 
 /** The desk, the yellowed 14-inch monitor, the tower, the keyboard, the cup, and the chair. */
