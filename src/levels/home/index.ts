@@ -5,6 +5,8 @@ import type { ScreenHandle } from '../../game/gameUi';
 import { defineScene, type Scene } from '../../game/scene';
 import { bed, desk, DESK, doorSide, rainStreaks, ROOM, SCREEN, walls, westWall, window } from './room';
 import { fridgeHum, rain } from '../../game/ambient/sounds';
+import { flatAmbience } from './ambience';
+import { clutter, curtains } from './clutter';
 import { computerHum } from './sounds';
 import { showTitleCard } from './titleCard';
 
@@ -76,6 +78,8 @@ export const homeScene: Scene = (() => {
       const screen = desk(kit, () => void sitDown(SIT_DOWN), () => !seated && !leaving);
       bed(kit);
       westWall(kit);
+      clutter(kit);
+      flatAmbience(kit, ctx, curtains(kit));
       const ready = () => holds('pro_knows_village', ctx.state);
       doorSide(kit, {
         onDoor: () => (ready() ? void packAndGo() : void ctx.dialogue(dialogues.home_bag)),
