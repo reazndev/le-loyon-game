@@ -42,6 +42,8 @@ Debug hooks: `?scene=<id>&time=<day|night>&flags=a,b` loads any scene directly, 
 - [ ] **4. Integration.** Known gaps from wave 1 to close here:
   - Done by the engine UI agent (`aad4ddc`): document view, italics, subtitles, Polaroid camera, notebook, title screen, engine.md.
   - Levels: switch dialogue-page documents to `ctx.readDocument(id)` (helper in `src/levels/forest_path/play.ts`), and add `photo:` targets from the item table.
+  - Declare scene flags `lai_bell_draft`, `kit_clock_stop`, `gar_yannick_left`, `sat_in_confessional`, `dig_confirmed` in `src/content/flags.ts`.
+  - Laiterie and garage are open at night; lock their doors from the square at night.
   - `src/content/paginate.ts` collapses repeated spaces, which breaks the column layout of Gremaud's diary.
   - Levels must use `checkStory()` or `holds()` for derived flags, and `doc_marc_notebook_restored` when `cupboard_restored` is set.
   - Replace any `// stand-in until src/content lands` code with real imports.
