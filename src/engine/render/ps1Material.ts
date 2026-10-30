@@ -180,10 +180,14 @@ vec3 spotLight() {
   float spotDist = length(toSpot);
   vec3 spotL = toSpot / max(spotDist, 1e-4);
   float cone = smoothstep(uSpotCos.x, uSpotCos.y, dot(-spotL, uSpotDir));
-  // Cubed, so it stays bright close by and drops away fast: a few meters out is already dim.
-  float falloff = clamp(1.0 - spotDist / uSpotRange, 0.0, 1.0);
+  // Full strength over the first third of its reach, so what is close shows its texture, then a
+  // steep drop to nothing.
+  float falloff = 1.0 - smoothstep(uSpotRange * 0.3, uSpotRange, spotDist);
   if (cone * falloff <= 0.0) return vec3(0.0);
-  return uSpotColor * cone * falloff * falloff * falloff * diffuse(normalize(vWorldNormal), spotL) * spotVisible(spotDist);
+  // Plain N.L, without the lamps' wrap: the side of a trunk or a stone turned away from the torch
+  // goes dark, which is what makes it read as solid.
+  float facing = clamp(dot(normalize(vWorldNormal), spotL), 0.0, 1.0);
+  return uSpotColor * cone * falloff * falloff * facing * spotVisible(spotDist);
 }
 
 // Snapping moves vertices on screen but not in depth, so close surfaces such as a rug on a floor

@@ -28,7 +28,7 @@ export const ps1Uniforms = {
   uSpotColor: { value: new Color(0, 0, 0) },
   uSpotRange: { value: 10 },
   uSpotCos: { value: new Vector2(0.9, 0.97) },
-  uSpotFogGlow: { value: 0.36 },
+  uSpotFogGlow: { value: 0.18 },
   /** What the torch can see, as distance from it over its range; see `GameRenderer`. */
   uShadowMap: { value: null as Texture | null },
   /** World to the torch's clip space. */

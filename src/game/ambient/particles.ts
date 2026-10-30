@@ -127,6 +127,10 @@ void main() {
   gl_PointSize = clamp(uSize * projectionMatrix[1][1] * ${(FRAME_HEIGHT / 2).toFixed(1)} / dist, 1.0, 96.0);
   // A point right at the lens would fill the frame, so it fades out first.
   vAlpha = edge * smoothstep(0.2, 0.7, dist);
+  #ifdef MIST
+    // Mist thins out close by, so it never hangs like a lit curtain over what the torch is on.
+    vAlpha *= smoothstep(1.5, 4.0, dist);
+  #endif
 
   vGlow = vec3(0.0);
   for (int i = 0; i < ${MAX_POINT_LIGHTS}; i++) {
