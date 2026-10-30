@@ -99,6 +99,7 @@ export class SceneManager {
     const result = applyAtmosphere(atmosphere);
     renderer.background = result.background;
     renderer.saturation = result.saturation;
+    renderer.night = state.time === 'night';
     player.camera.far = result.far;
     player.camera.updateProjectionMatrix();
     world.lights.flashlightOn = atmosphere.flashlight ?? state.time === 'night';

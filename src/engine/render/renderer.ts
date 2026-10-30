@@ -53,6 +53,10 @@ export class GameRenderer {
     this.post.saturation = value;
   }
 
+  set night(on: boolean) {
+    this.post.night = on;
+  }
+
   /** What the last frame cost the GPU, for performance checks. Includes the dither pass. */
   get stats(): { calls: number; triangles: number; programs: number; geometries: number; textures: number } {
     const { render, memory, programs } = this.renderer.info;
