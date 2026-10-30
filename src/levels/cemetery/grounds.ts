@@ -97,9 +97,12 @@ export function hill(kit: LevelKit, night: boolean): void {
   const nearWalls = (x: number, z: number) => Math.abs(x) < GROUNDS.w / 2 + 2.5 && Math.abs(z) < GROUNDS.d / 2 + 2.5;
   const backStrip = (x: number, z: number) => x > BACK_GATE.x - 7 && x < BACK_GATE.x + 6 && z > BACK_Z - 9;
   const spruce = scatter({ x: 0, z: BACK_Z - 22, w: 104, d: 42, count: 260, seed: 'cemetery-spruce', spacing: 2.2, scale: [0.95, 1.45], avoid: (x, z) => nearWalls(x, z) || backStrip(x, z) });
-  kit.trees('spruce', spruce).collider();
+  // Card spruce within sight of the walls, pictures of spruce past them in the fog.
+  const near = (x: number, z: number) => Math.abs(x) < GROUNDS.w / 2 + 14 && z > BACK_Z - 16;
+  kit.trees('spruce', spruce.filter((s) => near(s.x, s.z))).collider().shade(0.12);
+  billboards(kit, { texture: 'tree_spruce', w: 4.6, h: 9.6, color: 0x6c7468 }, spruce.filter((s) => !near(s.x, s.z)));
   // A few bare trees down the slopes, so the fog has shapes in it.
-  kit.trees('bare', scatter({ x: 0, z: 18, w: 104, d: 60, count: 14, seed: 'cemetery-bare', spacing: 9, avoid: (x, z) => nearWalls(x, z) || Math.abs(x - 2) < 6 })).collider();
+  kit.trees('bare', scatter({ x: 0, z: 18, w: 104, d: 60, count: 14, seed: 'cemetery-bare', spacing: 9, avoid: (x, z) => nearWalls(x, z) || Math.abs(x - 2) < 6 })).collider().shade(0.12);
   undergrowth(kit, { x: 0, z: BACK_Z - 9, w: 60, d: 14 }, { seed: 'cemetery', count: 90, avoid: (x, z) => nearWalls(x, z) || (Math.abs(x - BACK_GATE.x) < 1 && z > BACK_Z - 9) });
   [
     [-13, BACK_Z - 5, 0.55],

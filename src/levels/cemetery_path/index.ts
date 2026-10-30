@@ -1,6 +1,7 @@
 import type { Placed } from '../../game/kit/builders';
+import { ivyCover, thicket, VERGE_PLANTS, WILD_PLANTS, yew } from '../../game/kit/foliage';
 import type { LevelKit } from '../../game/kit/levelKit';
-import { scatter } from '../../game/kit/scatter';
+import { scatter, spotsAlong } from '../../game/kit/scatter';
 import { watchmanPatrol } from '../../game/patrol/patrol';
 import { scareDirector } from '../../game/scares/director';
 import { defineScene, type SceneContext } from '../../game/scene';
@@ -69,11 +70,9 @@ export const cemeteryPathScene = defineScene({
       .at(0, 0, 4)
       .walkable('grass');
     gravelPath(kit, path, 1.6, height);
-    barbedWire(
-      kit,
-      path.slice(1, -1).map((p, i) => [p, path[i + 2]!] as Trail).filter((_, i) => i % 2 === 0),
-      1.6,
-    );
+    const fenced = path.slice(1, -1).map((p, i) => [p, path[i + 2]!] as Trail).filter((_, i) => i % 2 === 0);
+    barbedWire(kit, fenced, 1.6);
+    fenceVerges(kit, fenced, 1.9);
 
     meadow(kit);
     church(kit, ctx, night);
@@ -106,8 +105,8 @@ function meadow(kit: LevelKit): void {
   scatter({ x: 0, z: 4, w: 56, d: 100, count: 700, seed: 'hill-tufts', spacing: 0.9, scale: [0.7, 1.4], avoid: offPath }).forEach((spot) =>
     kit.sprite('grass_tuft', { w: 1 * spot.scale!, h: 0.62 * spot.scale! }).color(0x80826a).at(spot.x, -0.04, spot.z).onGround(),
   );
-  kit.trees('bare', scatter({ x: 0, z: 4, w: 60, d: 96, count: 11, seed: 'hill-trees', spacing: 12, avoid: (x, z) => distanceToTrails([path], x, z) < 5 })).collider();
-  kit.trees('spruce', scatter({ x: 0, z: GATE_Z - 6, w: 70, d: 10, count: 26, seed: 'hill-spruce', spacing: 3, scale: [1, 1.4] })).collider();
+  kit.trees('bare', scatter({ x: 0, z: 4, w: 60, d: 96, count: 11, seed: 'hill-trees', spacing: 12, avoid: (x, z) => distanceToTrails([path], x, z) < 5 })).collider().shade(0.12);
+  kit.trees('spruce', scatter({ x: 0, z: GATE_Z - 6, w: 70, d: 10, count: 26, seed: 'hill-spruce', spacing: 3, scale: [1, 1.4] })).collider().shade(0.12);
 }
 
 /** The back of the church at the foot of the path, with the side door the abbé uses. */
@@ -176,8 +175,29 @@ function wayside(kit: LevelKit, ctx: SceneContext, phase: StoryPhase): void {
   });
 }
 
-/** The cemetery wall and gate at the top, seen from below. */
+/**
+ * The strip under the barbed wire the mower never reaches: dead grass and bramble the length of
+ * each fence, and here and there a wild bush grown up round a post.
+ */
+function fenceVerges(kit: LevelKit, legs: Trail[], offset: number): void {
+  const lines = legs.map((leg) => {
+    const [a, b] = [leg[0]!, leg[leg.length - 1]!];
+    const length = Math.hypot(b[0] - a[0], b[1] - a[1]);
+    const [ox, oz] = [(-(b[1] - a[1]) / length) * offset, ((b[0] - a[0]) / length) * offset];
+    return [[a[0] + ox, a[1] + oz], [b[0] + ox, b[1] + oz]] as [number, number][];
+  });
+  const verge = ['a', 'b', 'c'].map((seed) => thicket(`hill-verge-${seed}`, { length: 2.2, depth: 0.8, count: 9, plants: VERGE_PLANTS }));
+  kit.trees(verge, lines.flatMap((line, i) => spotsAlong(line, { step: 1.7, seed: `hill-verge-${i}`, jitter: 0.3, scale: [0.8, 1.25] })));
+  const bushes = ['a', 'b'].map((seed) => thicket(`hill-bush-${seed}`, { length: 1.8, depth: 1.4, count: 5, plants: WILD_PLANTS }));
+  kit.trees(bushes, lines.flatMap((line, i) => spotsAlong(line, { step: 9, seed: `hill-bush-${i}`, jitter: 0.4 })));
+}
+
+/** The cemetery wall and gate at the top, seen from below, ivy on it and a yew each side of the gate. */
 function cemeteryWall(kit: LevelKit): void {
+  const ivy = ['a', 'b'].map((seed) => ivyCover(`hill-wall-${seed}`, { w: 2.6, h: 0.9 }));
+  kit.trees(ivy, [-17, -12.5, -6, 5.5, 9, 14.5].map((x) => ({ x, z: GATE_Z + 0.26, yaw: 0 })));
+  // The same yews the cemetery shows from its own side of the gate.
+  kit.trees([yew('gate-west', { height: 5.4 }), yew('gate-east', { height: 5 })], [{ x: -3.9, z: GATE_Z + 1.8 }, { x: 3.9, z: GATE_Z + 1.8, yaw: 120 }]).collider();
   [-1, 1].forEach((side) => {
     kit.box({ w: 18, h: 1.1, d: 0.5 }).texture('stone_wall', { tile: 1.6 }).color(0x8c8a82).at(side * 10.6, -0.1, GATE_Z).onGround().collider();
     kit.box({ w: 0.55, h: 1.65, d: 0.6 }).texture('stone_wall', { tile: 1 }).color(0x96938a).at(side * 1.6, -0.1, GATE_Z).onGround().collider();

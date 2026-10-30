@@ -1,3 +1,4 @@
+import { greenery } from './greenery';
 import type { LevelKit } from '../../game/kit/levelKit';
 import { playSound } from '../../game/scares/sounds';
 import { defineScene, type SceneContext } from '../../game/scene';
@@ -42,6 +43,7 @@ export const cemeteryScene = defineScene({
       hill(still, night);
       floor(still);
       walls(still);
+      greenery(still);
       tapAndBin(still);
       oldStones(still, ctx);
       ossuary(still);
