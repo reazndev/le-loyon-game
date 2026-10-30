@@ -34,11 +34,18 @@ const marquise = kit.npc('marquise').at(30, 0, -12).faceYaw(90);
 | `.watch(radius = 4)` | The head follows the player while they are within `radius` meters. |
 | `.walk(points, { loop?, speed? })` | Walks the waypoints. A point with `wait` stands there for that many seconds. |
 | `.followPlayer(distance = 2.5)` | Follows the player, as Marquise does on the way home. |
+| `.sit(height = 0)` | Already seated when the scene opens, on a seat `height` meters above the ground under the character. Use about 0.48 for a kitchen chair, or 0 when the character stands on the seat itself, such as Marc on his walkable bed. |
 | `.character` | The live `Character`, for scripted moves in triggers and `update`. |
 
 Place NPCs at the top level of the kit, not inside `kit.group`, because they walk in world coordinates.
 
-`.character` has `walk(points)` and `walkTo(x, z)`, which return a promise that resolves at the end, plus `follow(target, distance)`, `stop()`, `face(yawOrPoint)`, `lookAt` (a `Vector3` the head turns to, or `null`), `position`, `yaw`, and `events.on('step' | 'arrive', ...)`.
+`.character` has `walk(points)` and `walkTo(x, z)`, which return a promise that resolves at the end, plus `follow(target, distance)`, `stop()`, `face(yawOrPoint)`, `lookAt` (a `Vector3` the head turns to, or `null`), `position`, `yaw`, and `events.on('step' | 'arrive', ...)`. `sit(height, { instantly? })` sits down where the character is over about a second, `stand()` gets up, and `sitting` tells which. Walking stands a seated character up first, as Yannick does when he leaves the garage bench on day 3. A seated character turns only the head toward the player during a talk, never the body.
+
+```ts
+// Marc after the monologue: he walks to the bed and sits on its edge.
+await marc.character.walk([{ x: 2.8, z: 0.15 }, { x: 4, z: 1.35 }]);
+marc.character.sit(0);
+```
 
 ```ts
 kit.trigger({ r: 2 }).at(0, 0, -6).once().onEnter(async () => {
@@ -52,8 +59,8 @@ Bari's collar bell rings on his steps and Marquise's cowbell on hers. Both stay 
 
 ### How they look and move
 
-- Humans are about 300 triangles: tapered boxes for limbs, a box head with the face texture's middle on the front, and per-person clothes from `humanLooks` in `src/engine/characters/cast.ts`. The options are a coat, a skirt, overalls, an apron, a clerical collar, and a flat cap, peaked cap, PostBus cap, headscarf, or hood. Standing, they breathe and shift their weight. Walking, their legs swing about 25 degrees and their arms swing against the legs.
-- Le Loyon is a hooded camo cape from shoulders to ankles with the gas mask in the hood. He has no visible arms and never takes the mask off. Standing, he doesn't breathe, and every 13 seconds or so his head tilts and stays tilted. Before turning he stands still for 0.7 s, then turns all at once. He walks at 0.62 m/s, half a normal pace, and limps on his left leg.
+- Humans are about 300 triangles: tapered boxes for limbs, a box head with the face texture's middle on the front, and per-person clothes from `humanLooks` in `src/engine/characters/cast.ts`. The options are a coat, a skirt, overalls, an apron, a clerical collar, and a flat cap, peaked cap, PostBus cap, headscarf, or hood. Standing, they breathe and shift their weight. Walking, their legs swing about 25 degrees and their arms swing against the legs. Seated, the thighs are level, the shins hang, the back slumps a little, and the hands rest on the knees. A `stoop` in `humanLooks` bends the back forward and keeps the head level.
+- Le Loyon is a hooded camo cape from shoulders to ankles with the gas mask in the hood. He has no visible arms and never takes the mask off. Standing, he doesn't breathe, and every 13 seconds or so his head tilts and stays tilted. Before turning he stands still for 0.7 s, then turns all at once. He walks at 0.62 m/s, half a normal pace, and limps on his left leg. Seated, he folds forward over his knees with his boots out in front, and the hem of the cape sinks through the seat.
 - Bari trots with diagonal legs together. Marquise walks one leg at a time. Both lower their heads now and then while standing.
 
 | Character | Face texture |
@@ -115,11 +122,11 @@ Every action takes `after: seconds` to delay it from the moment the beat fires.
 
 | Action | What happens |
 |---|---|
-| `{ figure: { at, who?, face?, walk?, vanish?, hold?, near?, leave?, timeout? } }` | A figure, Le Loyon unless `who` names someone else. It appears only while its spot is out of view, so it is there when the player turns. With `vanish: 'seen'` (default) it is gone after being looked at directly for `hold` seconds (0.8). With `'unseen'` it is gone the first time it leaves the view after being seen. With `'never'` it stays. If the player comes within `near` meters (8), it walks off along `leave`, or is gone at once without one. With `walk` it walks those points at its own slow pace and is gone at the end, which makes a figure that crosses the path ahead and isn't there when you look back. |
+| `{ figure: { at, who?, face?, walk?, vanish?, hold?, near?, leave?, timeout? } }` | A figure, Le Loyon unless `who` names someone else. It appears only while its spot is out of view, so it is there when the player turns. A spot past the edge of the fog counts as out of view too, so a figure on the path ahead is there already and comes out of the fog as the player walks on (`fogSight` in `src/game/scares/fogSight.ts` works out where the fog hides everything, from the live fog uniforms). It stands on the ground at its spot. With `vanish: 'seen'` (default) it is gone after being looked at directly for `hold` seconds (0.8). With `'unseen'` it is gone the first time it leaves the view after being seen. With `'never'` it stays. If the player comes within `near` meters (8), it walks off along `leave`, or is gone at once without one. With `walk` it walks those points at its own slow pace and is gone at the end, which makes a figure that crosses the path ahead and isn't there when you look back. |
 | `{ sound: id, at?, distance?, volume? }` | One sound from a point `{ x, z }`, or `distance` meters (default 12) `'behind'`, `'ahead'`, `'left'`, or `'right'` of the player. |
 | `{ stalk: { surface?, steps?, distance? } }` | Footsteps 7 m behind the player that answer each of their steps 0.3 s late, with a dragged foot every second step. When the player stops, one more step comes, then nothing. |
 | `{ silence: seconds }` | Every ambient bed fades out over 1.5 s, stays out, then returns over 3 s. |
-| `{ fog: { far?, density?, seconds, fade? } }` | The fog closes in to these values (default 60% of `far`, 1.8 times the density), holds, and eases back. |
+| `{ fog: { far?, density?, seconds, fade? } }` | The fog eases to these values (default: closes in to 60% of `far` and 1.8 times the density), holds, and eases back. When the values thin the fog, the camera's far plane moves out with it for as long as it lasts, so what the thinner fog uncovers is drawn. The barn roof at the forest fork uses this to show 26 m up the branch. |
 | `{ stinger: id \| true, at? }` | The loud hit of a real jumpscare. `true` plays `sfx_hit`; the three jumpscares use `sfx_bark`, `sfx_floorboard`, and `sfx_breath_mask`. |
 | `{ run: (ctx) => ... }` | Any code, such as a dialogue after a stinger. |
 

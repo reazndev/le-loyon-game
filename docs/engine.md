@@ -31,7 +31,7 @@ Options: `--time day|night`, `--pos x,y,z`, `--yaw deg`, `--flags a,b`, `--frame
 
 ### Debug URL parameters
 
-`?scene=<id>&time=<day|night>&flags=a,b&pos=x,y,z&yaw=deg` loads any scene directly. Without `pos`, the player starts at the scene's `default` spawn. Without `scene`, the game opens on the [title screen](#title-screen-and-settings).
+`?scene=<id>&time=<day|night>&day=n&night=n&flags=a,b&pos=x,y,z&yaw=deg` loads any scene directly. `day` and `night` set the story counts of the same names, so `?scene=cemetery&time=night&night=2` opens the night of the dig. Without `pos`, the player starts at the scene's `default` spawn. With `pos`, `y` is the height the player starts from, and the player drops onto the highest ground below it, so pass a high `y` on slopes. Without `scene`, the game opens on the [title screen](#title-screen-and-settings).
 
 ### `window.__game`
 
@@ -50,9 +50,14 @@ For automated tests. Defined in `src/game/debug.ts`.
 | `waitFrames(n)` | Resolves after `n` rendered frames. |
 | `prompt()` | The visible interaction prompt text, or `null`. |
 | `dialogue()` | The dialogue step on screen, or `null`. |
+| `modal()` | What holds the input: `'dialogue'`, `'document'`, `'screen'` for any other screen or menu, or `null`. |
+| `hotspots()` | The interactions enabled now, as `{ prompt, x, z }`. |
+| `approach(prompt, near?)` | Stands the player on free ground in reach of the enabled interaction with that prompt, facing it. With several, takes the one closest to `near`, or to the player. Returns `false` when there is none or no spot works. |
+| `characters()` | The cast on stage, as `{ id, x, z, visible }`. |
+| `setSpeed(factor)` | Multiplies the game clock, to get through held actions and long waits. 1 is normal. |
 | `game` | The `Game` object, for anything else. `game.input.simulate(action, down)` holds an action until released. |
 
-`tools/smoke.mjs` shows how to drive the game with these hooks.
+`tools/smoke.mjs` shows how to drive the game with these hooks, and the [playthrough test](playthrough.md) plays every ending with them.
 
 ## Layout
 
@@ -142,6 +147,7 @@ atmosphere: {
 | `ctx.audio` | The `AudioManager`. See [audio](#audio). |
 | `ctx.goTo(sceneId, spawn?)` | Fades out and loads another scene. |
 | `ctx.dialogue(script)` | Plays a dialogue; the promise resolves when it ends. Player input pauses meanwhile. |
+| `ctx.ask(script)` | Plays a dialogue like `ctx.dialogue` and resolves with the text of the last choice the player picked, or `null`. Use it to act on a choice without storing a flag, as the cemetery dig does with "Dig." and the fort's field telephone with "Turn the crank.". |
 | `ctx.say(lines, speaker?)` | Shortcut for a one-node dialogue: `ctx.say('It is locked.')`. |
 | `ctx.readDocument(id)` | Shows `documents[id]` from `src/content` full-frame, page by page. Resolves when the player closes it. See [documents](#documents). |
 | `ctx.notify(text)` | A short line in the top-right corner, such as "Saved." Receiving an item shows "Got: <name>" by itself. |
@@ -194,6 +200,7 @@ These work on everything above except `glow`.
 | `.collider()` | Blocks the player. Boxes and other meshes use their footprint, turned with the object. Cylinders use a circle. |
 | `.walkable(surface = 'stone')` | The player can walk on top. Surfaces: `grass`, `gravel`, `wood`, `stone`, `snow`. The surface picks the footstep sound. |
 | `.interact({ prompt, onInteract, radius?, enabled?, photo? })` | Shows "[E] prompt" when the player faces the object within reach and runs `onInteract` on the button. `prompt` can be a function. `enabled` can hide the interaction. `photo` marks it as a [camera target](#the-polaroid-camera). |
+| `.dynamic()` | Keeps the object and its children out of [`kit.batch`](#batching-still-meshes) merging. Works on groups too. |
 | `.mesh` and `.object` | The Three.js mesh, for animating it in `update`. |
 
 ### Other builders
@@ -209,12 +216,28 @@ These work on everything above except `glow`.
 | `kit.door({ to, spawn?, w?, h?, texture?, prompt?, locked?, lockedText? })` | A door slab (default 1 x 2.1 m, texture `door_wood`) with a collider. Using it loads scene `to` at spawn `spawn`. When `locked()` returns `true`, it shows `lockedText` instead. |
 | `kit.exit({ w, d, to, spawn? })` | An area that loads another scene when the player walks in. |
 | `kit.group(build)` | Builds children relative to a group; place the group with `.at()` and `.rotY()`. Use it for props made of several parts, such as a house. |
+| `kit.batch(build)` | Builds children in a group, then merges their meshes that share a material into one draw call each, and returns what `build` returns. See [batching](#batching-still-meshes). |
 | `kit.sound(src, { volume?, loop?, refDistance? })` | A sound file playing from a point, `.at(...)`. Loops by default. |
 | `kit.ambience('wind' \| 'drone' \| 'crackle', { volume?, interval?, distance? })` | Procedural background sound for the scene. `crackle` places random twig snaps and clicks around the player; `interval` is the average gap in seconds. |
 | `kit.ground(surface, height = 0)` | The ground where no walkable object covers it. Call it first in every outdoor scene. |
 | `kit.texture(name)` | The `Texture` object, for custom materials. |
 
 Ground height comes from walkable objects: the player stands on the highest one under them that is at most 0.45 m above their feet. Without any, the fallback from `kit.ground` applies.
+
+### Batching still meshes
+
+Three.js walks and culls every mesh each frame, so a village of hundreds of small parts costs CPU time even when nothing moves. `kit.batch` builds a part of the level as usual and, once colliders and ground patches have registered, merges the meshes that would draw with the same texture, emissive, cutout, side, and flags. Each part's color and texture tiling go into its vertices, so the result looks the same. The village square went from 1,694 meshes to 110 this way, the cemetery from 761 to 137.
+
+```ts
+const { church, street } = kit.batch((still) => ({
+  church: churchFront(still, ctx, night),
+  street: streetFurniture(still, ctx, night),
+}));
+```
+
+Sprites, glows, instanced trees, and hidden meshes stay as they are. Anything the level later moves, hides, or recolors must not be merged: build it outside the batch, or chain `.dynamic()` on it or on its group, as the village does for the curtain, the lit panes, and the phone box lamp. Hotspots, colliders, and lights inside a batch work as anywhere else. The merged meshes are culled as one, so batch an area the player sees most of at once, not a whole map behind walls.
+
+For many copies of one picture standing on the ground, such as grass tufts, use `billboards(kit, picture, spots)` from `src/levels/forest_path/woods.ts`, which draws them as one instanced mesh.
 
 ### Custom geometry
 
@@ -317,8 +340,6 @@ kit.hotspot({ prompt: 'Read the letter', onInteract: async () => {
 
 French documents show the original on the sheet and the English in smaller type underneath. When the two paginate to different lengths, the view has as many pages as the longer one and spreads the shorter one across them. Gravestones (`grave_*`, `oldstone_*`, `doc_forest_cross`) are carved into a stone shape; everything else is paper. Items with a `document` in `src/content/items.ts` open the same view from the inventory.
 
-Some levels still show documents as dialogue pages through their own `readDocument` helper in `src/levels/forest_path/play.ts`. Both work; the full-frame view is the one to use from now on.
-
 ![A document with its translation](screenshots/ui-document.png) ![An inscription](screenshots/ui-stone.png)
 
 ### The Polaroid camera
@@ -338,7 +359,7 @@ kit.hotspot({ prompt: 'Look at the lantern', photo: 'photo_lantern', onInteract:
 kit.hotspot({ prompt: 'Look at the garden', photo: 'chassot_garden', onInteract: ... }).at(8, 0, -2);
 ```
 
-Pass `photo` only when the shot should count, for example `photo: night ? 'photo_lantern' : undefined`. Photos a dialogue gives through `give`, such as `photo_marc_masked`, fire the camera on the frame behind the dialogue and use a shot too.
+`photo` can also be a function, which the camera calls at the moment of the shot, for objects that change: the dig site passes `photo: () => (coffinOpen ? 'photo_empty_coffin' : undefined)`. Pass `photo`, or return an id, only when the shot should count, for example `photo: night ? 'photo_lantern' : undefined`. Photos a dialogue gives through `give`, such as `photo_marc_masked`, fire the camera on the frame behind the dialogue and use a shot too.
 
 Each photo keeps a 240 x 240 JPEG cut from the viewfinder square of the 640x480 frame, graded like instant film, with the caption from the item's description. It lives in the save. In the inventory, "Look" holds the print up in a Polaroid border. It develops from gray over the first minute after the shot. Photo 7 makes the reporter look twice once it has developed (`photo_treeline_look`, or `photo_treeline_look_after` after `read_marc_notebook`).
 
