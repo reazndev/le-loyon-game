@@ -94,6 +94,16 @@ export class Overlay {
     });
   }
 
+  /** A camera flash and half a second of the whole frame shaking. */
+  jolt(): void {
+    void this.flash();
+    const frame = this.root.parentElement!;
+    frame.classList.remove('ui-jolt');
+    void frame.offsetWidth;
+    frame.classList.add('ui-jolt');
+    setTimeout(() => frame.classList.remove('ui-jolt'), 500);
+  }
+
   /** A face from the textures fills the frame, shaking, for under a second. A different one each time. */
   screamer(seconds = 0.8): Promise<void> {
     const face = SCREAMER_FACES[Math.floor(Math.random() * SCREAMER_FACES.length)]!;

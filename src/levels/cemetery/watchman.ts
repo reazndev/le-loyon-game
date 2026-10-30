@@ -62,8 +62,10 @@ export class FirstMeeting {
     this.bari.character.face(player.position);
     this.raymond.character.face(player.position);
     this.show(true);
-    playSound(audio, 'sfx_bark', { at: { x: dog.x, y: 0.5, z: dog.z }, volume: 2 });
-    playSound(audio, 'sfx_hit', { at: { x: dog.x, y: 0.8, z: dog.z }, volume: 0.9 });
+    // Jumpscare 1: the bark right behind, loud, and the frame jolts.
+    playSound(audio, 'sfx_bark', { at: { x: dog.x, y: 0.5, z: dog.z }, volume: 3.2 });
+    playSound(audio, 'sfx_hit', { at: { x: dog.x, y: 0.8, z: dog.z }, volume: 2 });
+    this.ctx.jolt();
     this.onPlayer = true;
     await wait(1.6);
     this.raymond.character.lookAt = player.camera.position;

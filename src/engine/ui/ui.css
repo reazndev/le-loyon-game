@@ -219,6 +219,10 @@ body {
   }
 }
 
+.ui-jolt {
+  animation: ui-screamer-shake 0.05s steps(2) 10;
+}
+
 .ui-goal {
   position: absolute;
   right: 16px;

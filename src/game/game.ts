@@ -189,6 +189,7 @@ export class Game {
     this.input.update();
     if (this.input.lastDevice === 'gamepad') this.audio.resume();
 
+    if (this.ui.onlyDialogue && !this.scenes.busy) this.lookAround(dt);
     if (this.ui.open) this.ui.update(dt, this.input);
     else if (!this.scenes.busy) this.updatePlay(dt);
     if (this.ui.open || this.scenes.busy) this.overlay.prompt.hide();
@@ -203,6 +204,12 @@ export class Game {
     this.frames++;
     this.resolveFrameWaiters();
   };
+
+  /** Turns the head without walking, for while someone is talking. */
+  private lookAround(dt: number): void {
+    const { turn, tilt, look } = this.movement();
+    this.player.update(dt, { forward: 0, strafe: 0, turn, tilt, look }, false, this.world);
+  }
 
   private updatePlay(dt: number): void {
     const { input, player, world } = this;
@@ -270,6 +277,7 @@ export class Game {
       ask: (script) => this.ui.dialogue(script),
       say: (lines, speaker) => this.ui.say(lines, speaker),
       notify: (text) => this.overlay.notify(text),
+      jolt: () => this.overlay.jolt(),
       screamer: () => {
         playSound(this.audio, 'sfx_scream');
         return this.overlay.screamer();
