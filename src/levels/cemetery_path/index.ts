@@ -14,7 +14,8 @@ import { playNode } from '../forest_path/play';
 import { isNight, storyPhase, type StoryPhase } from '../forest_path/story';
 import { distanceToTrails, pointAlong, yawToward, type Trail } from '../forest_path/trail';
 import { barbedWire, gravelPath } from './hillside';
-import { bench, crossOfferings, fenceSign } from './props';
+import { bench } from '../cemetery/clutter';
+import { crossOfferings, fenceSign } from './props';
 import { billboards } from '../forest_path/woods';
 
 /**

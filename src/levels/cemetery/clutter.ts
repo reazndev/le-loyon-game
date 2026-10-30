@@ -2,6 +2,7 @@ import { TorusGeometry } from 'three';
 import { hashString, seededRandom } from '../../engine/random';
 import type { Placed } from '../../game/kit/builders';
 import type { LevelKit } from '../../game/kit/levelKit';
+import { yawToward } from '../forest_path/trail';
 import { BIN, chassotGrave, EAST_X, FRONT_Z, graves, SHED, TAP, WEST_X, type Grave } from './layout';
 
 /**
@@ -10,6 +11,11 @@ import { BIN, chassotGrave, EAST_X, FRONT_Z, graves, SHED, TAP, WEST_X, type Gra
  * the tap, a rake against the front wall, the heap of dead flowers behind the ossuary, and a bench
  * at the end of a row. All still, for the cemetery's batch.
  */
+
+type Spot = { x: number; z: number };
+
+/** Turns a prop so its -Z side faces `to`. */
+const facing = (from: Spot, to: Spot) => yawToward(to.x - from.x, to.z - from.z);
 
 const BROWN = [0x6a5440, 0x7a5e44, 0x5e4a3a, 0x8a7254, 0x9a8a6a];
 const POT = 0x7a4e38;
@@ -22,7 +28,7 @@ export function cemeteryClutter(kit: LevelKit): void {
   wateringCans(kit, TAP.x - 1, FRONT_Z - 0.48);
   rake(kit, BIN.x + 0.75, FRONT_Z - 0.58);
   flowerHeap(kit, (WEST_X + SHED.x - SHED.w / 2) / 2, SHED.z + 1.6);
-  bench(kit, EAST_X - 0.6, 2.46);
+  bench(kit, { x: EAST_X - 0.6, z: 2.46 }, { x: 0, z: 2.46 });
 }
 
 /** What is left on one grave, chosen by its own seed so every visit agrees. */
@@ -133,20 +139,22 @@ function flowerHeap(kit: LevelKit, x: number, z: number): void {
   kit.cylinder({ r: 0.11, h: 0.01, sides: 7 }).color(0x2a2a26).at(x + 0.95, 0.275, z - 0.2);
 }
 
-/** A plain bench against the east wall, at the end of a row, facing back toward the gate path. */
-function bench(kit: LevelKit, x: number, z: number): void {
-  const wood = 0x6a5e50;
+/** A slatted bench on iron legs, its front toward `toward`, the paint gone grey. */
+export function bench(kit: LevelKit, at: Spot, toward: Spot): void {
+  const wood = 0x6e6458;
+  const iron = 0x34322e;
   kit
     .group((g) => {
-      g.box({ w: 1.5, h: 0.05, d: 0.36 }).texture('wood_planks', { tile: 0.8 }).color(wood).at(0, 0.42, 0);
-      g.box({ w: 1.5, h: 0.12, d: 0.03 }).texture('wood_planks', { tile: 0.8 }).color(wood).at(0, 0.62, 0.17);
-      g.box({ w: 1.5, h: 0.12, d: 0.03 }).texture('wood_planks', { tile: 0.8 }).color(wood).at(0, 0.8, 0.17);
-      [-0.6, 0.6].forEach((dx) => {
-        g.box({ w: 0.06, h: 0.42, d: 0.3 }).color(0x3a3632).at(dx, 0, 0);
-        g.box({ w: 0.05, h: 0.5, d: 0.04 }).color(0x3a3632).at(dx, 0.42, 0.17);
+      [-0.07, 0.07].forEach((dz) => g.box({ w: 1.6, h: 0.04, d: 0.12 }).texture('wood_planks', { tile: 0.8 }).color(wood).at(0, 0.44, dz).collider());
+      [0.6, 0.78].forEach((y) => g.box({ w: 1.6, h: 0.1, d: 0.03 }).texture('wood_planks', { tile: 0.8 }).color(wood).at(0, y, 0.18));
+      [-0.65, 0.65].forEach((dx) => {
+        g.box({ w: 0.05, h: 0.44, d: 0.34 }).color(iron).at(dx, 0, 0).collider();
+        g.box({ w: 0.04, h: 0.48, d: 0.04 }).color(iron).at(dx, 0.44, 0.19);
       });
+      // Someone's bag of bread for the birds, left folded under the seat.
+      g.box({ w: 0.2, h: 0.02, d: 0.14 }).color(0xb4ab96).at(0.3, 0.01, -0.05).rotY(20);
     })
-    .at(x, 0, z)
-    .rotY(90);
-  kit.barrier({ w: 0.45, d: 1.5 }).at(x, 0, z);
+    .at(at.x, -0.05, at.z)
+    .rotY(facing(at, toward))
+    .onGround();
 }
