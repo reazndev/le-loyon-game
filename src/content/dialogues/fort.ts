@@ -118,7 +118,10 @@ export const nodes = {
   },
   fort_cupboard: {
     if: { notFlag: 'looked_at_dust' },
-    lines: ['A medical supplies cupboard. Empty except for a roll of yellowed bandages.'],
+    lines: [
+      'A medical supplies cupboard. Empty except for a roll of yellowed bandages.',
+      'Fresh scratches in the wall beside it, pale in the gray concrete. Something heavy rubbed along here. I look down.',
+    ],
   },
   fort_dust: {
     if: { notFlag: 'looked_at_dust' },

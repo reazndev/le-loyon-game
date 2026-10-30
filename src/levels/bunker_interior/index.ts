@@ -58,7 +58,8 @@ const openings: Opening[] = [
 const atmosphere: Record<TimeOfDay, Atmosphere> = {
   day: {
     fog: { color: 0x0a0b0b, near: 1, far: 14, density: 0.06, wisps: 0.15 },
-    ambient: 0x0c0d0d,
+    // Grey daylight from the entrance and the firing slit, so the day visit reads safer than night 3.
+    ambient: 0x242625,
     saturation: 0.6,
     flashlight: true,
   },
@@ -394,6 +395,17 @@ function dormitory(kit: LevelKit, ctx: SceneContext, phase: StoryPhase): Kp3Door
 
   // The dust is thick everywhere except a quarter circle in front of the cupboard.
   kit.mesh(new CircleGeometry(1, 8, Math.PI, Math.PI / 2).rotateX(-Math.PI / 2)).texture('concrete_floor', { tile: 1 }).color(0x5c5a54).at(11.5, 0.004, -31.5);
+  // Tank controls can't look down at the dust, so the clue is also at eye level: scrapes on the end
+  // wall where the cupboard rolls aside.
+  [
+    [0.52, 1.1, -32.05, 0.04],
+    [0.58, 0.7, -31.95, -0.03],
+    [0.93, 1.0, -32.1, 0.02],
+    [1.01, 0.45, -31.85, -0.05],
+    [1.86, 0.8, -32.0, 0.03],
+  ].forEach(([y, d, z, tilt]) => {
+    kit.box({ w: 0.01, h: 0.012, d: d! }).color(0x76736a).at(12 - 0.005, y!, z!).object.rotation.x = tilt!;
+  });
 
   const kp3 = kp3Door(kit, ctx, phase);
   const aside = ctx.state.hasFlag('found_hidden_door') && !ctx.state.hasFlag('cupboard_restored');
@@ -419,7 +431,11 @@ function dormitory(kit: LevelKit, ctx: SceneContext, phase: StoryPhase): Kp3Door
       radius: 0.6,
       enabled: resting(CUPBOARD.z),
       onInteract: async () => {
-        if (!ctx.state.hasFlag('looked_at_dust')) return playNode(ctx, 'fort_cupboard');
+        // Looking at the cupboard draws the eye down to the swept dust, which the camera can't see.
+        if (!ctx.state.hasFlag('looked_at_dust')) {
+          await playNode(ctx, 'fort_cupboard');
+          return playNode(ctx, 'fort_dust');
+        }
         target = CUPBOARD_ASIDE;
         if (ctx.state.hasFlag('found_hidden_door')) return;
         fire('bun2_cupboard_screech');
