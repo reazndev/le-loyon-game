@@ -28,7 +28,7 @@ All in `public/assets/textures/`. Tiling textures are 128x128 unless noted.
 | Single objects, not tiling, 96 px wide | `door_wood`, `window_dark`, `window_lit`, `bunker_door` |
 | Le Loyon | `camo_cape` (tiling), `gas_mask` (128 px cutout with alpha, front view) |
 | Sprites with alpha | `tree_spruce`, `tree_beech_bare`, `tree_birch` (96 px wide, tall), `fern_dead`, `bush`, `grass_tuft` (64 px wide) |
-| Foliage cards with alpha, for dense forest | `branch_spruce`, `branch_beech`, `bramble`, `undergrowth` (96 px wide; undergrowth has a flat bottom edge meant to sit in the ground), `ivy_clump`, `hanging_lichen`, `sapling_spruce` (64 px), `tree_dead_snag` (96 px, tall), `leaf_cluster`, `tree_larch` |
+| Foliage cards with alpha, for dense forest | `branch_spruce` (cut off at its top edge; hide that edge against the trunk), `branch_spruce_full` (whole horizontal spray with clean edges, 96x72, for cards that turn freely), `branch_beech`, `bramble`, `undergrowth` (96 px wide; undergrowth has a flat bottom edge meant to sit in the ground), `ivy_clump`, `hanging_lichen`, `sapling_spruce` (64 px), `tree_dead_snag` (96 px, tall), `leaf_cluster`, `tree_larch` |
 | Forest tiling | `spruce_wall` (a wall of dark spruce branches for far layers), `moss_floor` |
 | NPC faces, 64x64 | `face_priest`, `face_farmer`, `face_innkeeper`, `face_mechanic`, `face_old_woman`, `face_watchman`, `face_young_woman`, `face_young_man`, `face_driver`, `face_shopkeeper`, `face_widow` |
 | Forum photos | `photo_sighting_path`, `photo_sighting_field`, `photo_sighting_cemetery` (320 px JPEG, low quality on purpose) in `public/assets/photos/`, for the 90s web pages |
@@ -46,4 +46,5 @@ FLORA balance on 2026-10-30: $5.13. Budget for the build: $4.50.
 | 2026-10-30 | Forum sighting photos | GPT Image 2.5 | 3 | $0.165 |
 | 2026-10-30 | Faces: Yannick, driver, Christine, Odile | FLUX 3 Image Klein | 4 | $0.036 |
 | 2026-10-30 | Foliage for the dense forest | FLUX 3 Image Klein | 12 | $0.108 |
-| | **Total** | | 73 | **$0.80** |
+| 2026-10-30 | Monique's new portrait, a clean spruce branch | FLUX 3 Image Klein | 2 | $0.018 |
+| | **Total** | | 75 | **$0.82** |
