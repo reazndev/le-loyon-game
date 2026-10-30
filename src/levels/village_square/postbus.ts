@@ -1,3 +1,4 @@
+import { ExtrudeGeometry, Shape } from 'three';
 import { dialogues } from '../../content';
 import type { Placed } from '../../game/kit/builders';
 import type { LevelKit } from '../../game/kit/levelKit';
@@ -43,29 +44,62 @@ const ARRIVE: Trail = [
 /** Seconds of nothing after the engine is gone, before the village sounds come back. */
 const SILENCE = 8;
 
+const WIDTH = 2.4;
+const WHEEL = { r: 0.5, front: LENGTH / 2 - 1.9, rear: -LENGTH / 2 + 2.1 };
+/** The windscreen leans back from the dashboard to the roof. */
+const RAKE = { from: 1.2, to: 2.75, back: 0.35 };
+
+/** The body seen from the side, front to the right: wheel arches, a raked front, a rounded rear. */
+function sideProfile(): Shape {
+  const half = LENGTH / 2;
+  const sill = 0.35;
+  const arch = (z: number) => shape.lineTo(z - WHEEL.r - 0.08, sill).absarc(z, WHEEL.r, WHEEL.r + 0.08, Math.PI, 0, true);
+  const shape = new Shape().moveTo(-half, sill + 0.1);
+  arch(WHEEL.rear);
+  arch(WHEEL.front);
+  return shape
+    .lineTo(half - 0.1, sill)
+    .lineTo(half, sill + 0.1)
+    .lineTo(half, RAKE.from)
+    .lineTo(half - RAKE.back, RAKE.to)
+    .lineTo(-half + 0.2, RAKE.to)
+    .lineTo(-half, RAKE.to - 0.2)
+    .closePath();
+}
+
 function busModel(kit: LevelKit): Placed {
   const yellow = 0xc9a12e;
+  const glass = 0x24292b;
+  const rake = Math.atan2(RAKE.back, RAKE.to - RAKE.from);
   return kit.group((g) => {
-    g.box({ w: 2.4, h: 2.45, d: LENGTH }).color(yellow).at(0, 0.38, 0);
-    // The window band all round, and the windscreen.
-    [-1.21, 1.21].forEach((x) => g.box({ w: 0.02, h: 0.85, d: LENGTH - 1.4 }).color(0x24292b).at(x, 1.45, -0.3));
-    g.box({ w: 2.2, h: 1.0, d: 0.02 }).color(0x2a3033).at(0, 1.35, LENGTH / 2 + 0.01);
-    g.box({ w: 2.2, h: 0.7, d: 0.02 }).color(0x2a3033).at(0, 1.6, -LENGTH / 2 - 0.01);
-    g.box({ w: 2.42, h: 0.12, d: LENGTH + 0.02 }).color(0x8a2a24).at(0, 1.08, 0);
-    g.box({ w: 2.3, h: 0.1, d: LENGTH - 0.2 }).color(0xc8c4b8).at(0, 2.83, 0);
+    const body = new ExtrudeGeometry(sideProfile(), { depth: WIDTH, bevelEnabled: false, curveSegments: 4 }).rotateY(-Math.PI / 2).translate(WIDTH / 2, 0, 0);
+    g.mesh(body).color(yellow);
+    // A flat roof a little narrower than the body, so the top edge reads as bevelled.
+    g.box({ w: WIDTH - 0.3, h: 0.1, d: LENGTH - 1.2 }).color(0xb8b4a8).at(0, RAKE.to, -0.4);
+    // The window band down both sides, the stripe under it, and the back window.
+    [-1, 1].forEach((side) => g.box({ w: 0.02, h: 0.85, d: LENGTH - 1.6 }).color(glass).at(side * (WIDTH / 2 + 0.01), 1.45, -0.4));
+    g.box({ w: WIDTH + 0.02, h: 0.12, d: LENGTH - 0.3 }).color(0x8a2a24).at(0, 1.08, -0.1);
+    g.box({ w: 2.0, h: 0.7, d: 0.02 }).color(glass).at(0, 1.6, -LENGTH / 2 - 0.01);
+    // The windscreen and the destination board above it, on the raked front.
+    const front = g.group((f) => {
+      f.box({ w: WIDTH - 0.2, h: 1.1, d: 0.02 }).color(0x2a3033).at(0, 0.08, 0.01);
+      f.box({ w: 1.5, h: 0.24, d: 0.03 }).color(0x1a1a14).at(0, 1.25, 0.02);
+      f.box({ w: 0.9, h: 0.08, d: 0.035 }).color(0xd8a840).unlit().at(0, 1.33, 0.02);
+    });
+    front.at(0, RAKE.from, LENGTH / 2);
+    front.object.rotation.x = -rake;
     // The front door on the right, folded shut.
-    g.box({ w: 0.03, h: 2.1, d: 1.1 }).color(0x3a3e40).at(1.22, 0.4, LENGTH / 2 - 1.2);
-    g.box({ w: 2.44, h: 0.32, d: 0.1 }).color(0x1c1c1c).at(0, 0.3, LENGTH / 2 + 0.03);
+    g.box({ w: 0.03, h: 2.1, d: 1.0 }).color(0x3a3e40).at(WIDTH / 2 + 0.02, 0.45, LENGTH / 2 - 0.75);
+    g.box({ w: WIDTH + 0.04, h: 0.32, d: 0.1 }).color(0x1c1c1c).at(0, 0.3, LENGTH / 2 + 0.03);
     [-0.85, 0.85].forEach((x) => g.box({ w: 0.26, h: 0.18, d: 0.03 }).color(0xe8e2c8).unlit().at(x, 0.72, LENGTH / 2 + 0.03));
     [-0.85, 0.85].forEach((x) => g.box({ w: 0.2, h: 0.14, d: 0.03 }).color(0x7a1a14).unlit().at(x, 0.72, -LENGTH / 2 - 0.03));
     g.glow(1.6, 0xfff0c8).at(0, 0.8, LENGTH / 2 + 0.6);
-    // The destination board over the windscreen.
-    g.box({ w: 1.5, h: 0.24, d: 0.03 }).color(0x1a1a14).at(0, 2.3, LENGTH / 2 + 0.02);
-    g.box({ w: 0.9, h: 0.08, d: 0.035 }).color(0xd8a840).unlit().at(0, 2.38, LENGTH / 2 + 0.02);
-    [-1, 1].forEach((side) => {
-      wheel(g, 0.5, 0.3).at(side * 1.05, 0.5, LENGTH / 2 - 1.9);
-      wheel(g, 0.5, 0.3).at(side * 1.05, 0.5, -LENGTH / 2 + 2.1);
-    });
+    [-1, 1].forEach((side) =>
+      [WHEEL.front, WHEEL.rear].forEach((z) => {
+        wheel(g, WHEEL.r, 0.3).at(side * (WIDTH / 2 - 0.12), WHEEL.r, z);
+        wheel(g, 0.22, 0.04, 0x6a6a64).at(side * (WIDTH / 2 + 0.02), WHEEL.r, z);
+      }),
+    );
   });
 }
 
