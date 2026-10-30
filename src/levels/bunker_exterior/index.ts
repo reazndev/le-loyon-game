@@ -1,4 +1,4 @@
-import { CylinderGeometry } from 'three';
+import { BoxGeometry, CylinderGeometry, TorusGeometry, type BufferGeometry } from 'three';
 import type { LevelKit } from '../../game/kit/levelKit';
 import { scareDirector, type ScareDirector } from '../../game/scares/director';
 import { playSound } from '../../game/scares/sounds';
@@ -140,58 +140,80 @@ export const bunkerExteriorScene = defineScene({
   update: lostInTheFog(trails),
 });
 
-const PLANKS = 0x7a7368;
+const PLANKS = 0x7a6852;
+const TRIM = 0x9c8c72;
+const SHINGLES = 0x6e665e;
 
-/** The concrete fort under its barn costume: plinth, painted plank walls, a board roof. */
+/**
+ * The concrete fort under its barn costume: a concrete plinth, plank walls painted on the
+ * concrete, a big false barn door, a shingle roof, and the steel door deep in a plank opening.
+ */
 function fort(kit: LevelKit, ctx: SceneContext, phase: StoryPhase, scares: ScareDirector): void {
   const { w, d } = FORT;
+  const front = d / 2;
+  const floor = 0.5;
   const wallH = 3.1;
-  const base = 0.9;
+  const eaves = floor + wallH;
+  const door = { w: 1.4, h: 2.3, depth: 0.9 };
   kit.group((g) => {
-    g.box({ w: w + 0.4, h: base, d: d + 0.4 }).texture('stone_wall', { tile: 1.6 }).color(0x8e8b84).at(0, -0.4, 0).collider();
-    // Back and side walls are solid; the front is built round the door recess.
-    g.box({ w, h: wallH, d: 0.3 }).texture('wood_planks', { tile: [1.8, 2.4] }).color(PLANKS).at(0, base - 0.4, -d / 2 + 0.15);
-    g.box({ w: 0.3, h: wallH, d }).texture('wood_planks', { tile: [1.8, 2.4] }).color(PLANKS).at(-w / 2 + 0.15, base - 0.4, 0);
-    g.box({ w: 0.3, h: wallH, d }).texture('wood_planks', { tile: [1.8, 2.4] }).color(PLANKS).at(w / 2 - 0.15, base - 0.4, 0);
-    const side = (w - 1.4) / 2;
-    g.box({ w: side, h: wallH, d: 0.3 }).texture('wood_planks', { tile: [1.8, 2.4] }).color(PLANKS).at(-(side + 1.4) / 2, base - 0.4, d / 2 - 0.15);
-    g.box({ w: side, h: wallH, d: 0.3 }).texture('wood_planks', { tile: [1.8, 2.4] }).color(PLANKS).at((side + 1.4) / 2, base - 0.4, d / 2 - 0.15);
-    g.box({ w: 1.4, h: wallH - 2.3, d: 0.3 }).texture('wood_planks', { tile: [1.8, 2.4] }).color(PLANKS).at(0, base - 0.4 + 2.3, d / 2 - 0.15);
-    g.gable({ w: w + 0.8, d: d + 0.9, h: 3.4 }).texture('wood_planks', { tile: [1.4, 2.2] }).color(0x5f5d58).at(0, base - 0.4 + wallH, 0);
-    // Boards under the eaves, so the overhang doesn't show sky.
-    g.box({ w: w + 0.8, h: 0.08, d: d + 0.9 }).texture('wood_planks', { tile: 1.4 }).color(0x3e3c38).at(0, base - 0.48 + wallH, 0);
+    const planks = (size: { w: number; h: number; d: number }) => g.box(size).texture('wood_planks', { tile: [1.2, 2.4] }).color(PLANKS);
+    g.box({ w: w + 0.4, h: 0.9, d: d + 0.4 }).texture('concrete_bunker', { tile: 1.4 }).color(0x8a8a82).at(0, floor - 0.9, 0).collider();
+    // Back and side walls are solid; the front is built round the door opening.
+    planks({ w, h: wallH, d: 0.3 }).at(0, floor, -front + 0.15);
+    planks({ w: 0.3, h: wallH, d }).at(-w / 2 + 0.15, floor, 0);
+    planks({ w: 0.3, h: wallH, d }).at(w / 2 - 0.15, floor, 0);
+    const side = (w - door.w) / 2;
+    planks({ w: side, h: wallH, d: 0.3 }).at(-(side + door.w) / 2, floor, front - 0.15);
+    planks({ w: side, h: wallH, d: 0.3 }).at((side + door.w) / 2, floor, front - 0.15);
+    planks({ w: door.w, h: wallH - door.h, d: 0.3 }).at(0, floor + door.h, front - 0.15);
+    // Corner posts and the beam under the eaves, lighter, so the barn's frame reads in fog.
+    [-1, 1].forEach((sx) =>
+      [-1, 1].forEach((sz) => g.box({ w: 0.2, h: wallH, d: 0.2 }).texture('wood_planks', { tile: 0.8 }).color(TRIM).at((sx * (w - 0.1)) / 2, floor, (sz * (d - 0.1)) / 2)),
+    );
+    g.box({ w: w + 0.1, h: 0.18, d: 0.08 }).texture('wood_planks', { tile: 0.8 }).color(TRIM).at(0, eaves - 0.2, front + 0.02);
+    roof(g, w, d, eaves);
 
-    // The recess: concrete reveals, the green steel door, its wheel, and the enamel plate.
-    g.box({ w: 0.15, h: 2.3, d: 0.9 }).texture('concrete_bunker', { tile: 1 }).at(-0.78, base - 0.4, d / 2 - 0.45);
-    g.box({ w: 0.15, h: 2.3, d: 0.9 }).texture('concrete_bunker', { tile: 1 }).at(0.78, base - 0.4, d / 2 - 0.45);
-    g.box({ w: 1.4, h: 2.3, d: 0.1 }).texture('bunker_door', { tile: [1.4, 2.3] }).color(0x74866a).at(0, base - 0.4, d / 2 - 0.9);
-    g.mesh(new CylinderGeometry(0.17, 0.17, 0.05, 8).rotateX(Math.PI / 2)).texture('rust_metal', { tile: 0.3 }).color(0x56604e).at(0.25, base + 0.75, d / 2 - 0.82);
-    g.box({ w: 0.28, h: 0.13, d: 0.02 }).color(0xc8c2ae).at(-0.25, base + 1.35, d / 2 - 0.84);
+    falseBarnDoor(g, -3, floor, front);
+
+    // The opening: a plank surround, concrete reveals and soffit in shadow, the steel door at the back.
+    const trim = (tw: number, th: number, tx: number, ty: number) =>
+      g.box({ w: tw, h: th, d: 0.06 }).texture('wood_planks', { tile: 0.8 }).color(TRIM).at(tx, ty, front + 0.03);
+    trim(0.16, door.h + 0.16, -(door.w / 2 + 0.08), floor);
+    trim(0.16, door.h + 0.16, door.w / 2 + 0.08, floor);
+    trim(door.w + 0.48, 0.18, 0, floor + door.h);
+    [-1, 1].forEach((sx) =>
+      g.box({ w: 0.12, h: door.h, d: door.depth }).texture('concrete_bunker', { tile: 1 }).color(0x4a4a45).at((sx * (door.w - 0.12)) / 2, floor, front - door.depth / 2),
+    );
+    g.box({ w: door.w, h: 0.12, d: door.depth }).texture('concrete_bunker', { tile: 1 }).color(0x46463f).at(0, floor + door.h - 0.12, front - door.depth / 2);
+    const steelZ = front - door.depth;
+    g.box({ w: door.w - 0.24, h: door.h - 0.12, d: 0.1 }).texture('bunker_door', { tile: [door.w - 0.24, door.h - 0.12] }).color(0x46503f).at(0, floor, steelZ);
+    doorWheel(g, 0.25, floor + 1.15, steelZ + 0.1);
+    g.box({ w: 0.26, h: 0.12, d: 0.02 }).texture('concrete_bunker', { tile: 0.3 }).color(0xa8a490).at(-0.25, floor + 1.75, steelZ + 0.06);
 
     // The real wooden door, hanging half off its top hinge.
-    const leaf = g.box({ w: 1.15, h: 2.05, d: 0.06 }).texture('door_wood', { tile: [1.15, 2.05] }).color(0x8a8278).at(-1.05, base - 0.38, d / 2 + 0.32).rotY(-38);
+    const leaf = g.box({ w: 1.15, h: 2.05, d: 0.06 }).texture('wood_planks', { tile: [0.9, 2.4] }).color(0x6a5c4a).at(-1.05, floor + 0.02, front + 0.32).rotY(-38);
     leaf.object.rotation.z = 0.09;
 
-    // The "hay door" up front is a steel shutter over a firing slit, open a crack.
-    g.box({ w: 1.5, h: 1.05, d: 0.06 }).texture('rust_metal', { tile: 0.8 }).color(0x5e5a52).at(-3, base + 1.55, d / 2 + 0.02);
-    g.box({ w: 1.2, h: 0.08, d: 0.04 }).color(0x060606).unlit().at(-3, base + 1.15, d / 2 + 0.06);
+    // The "hay hatch" is a steel shutter over a firing slit, open a crack.
+    g.box({ w: 1.2, h: 1.0, d: 0.06 }).texture('rust_metal', { tile: 0.8 }).color(0x5e5a52).at(3.9, floor + 1.95, front + 0.02);
+    g.box({ w: 1.0, h: 0.08, d: 0.04 }).color(0x060606).unlit().at(3.9, floor + 1.6, front + 0.06);
 
     // Where the paint has flaked, concrete shows; on the bare patch by the door, graffiti.
     [
-      [3.6, base + 0.2, 0.9, 0.7],
-      [-4.2, base + 1.9, 0.6, 0.5],
-      [1.5, base + 2.4, 0.5, 0.4],
+      [3.6, floor + 0.6, 0.9, 0.7],
+      [-4.6, floor + 1.2, 0.5, 0.6],
+      [1.5, floor + 2.5, 0.5, 0.4],
     ].forEach(([x, y, pw, ph]) =>
-      g.box({ w: pw!, h: ph!, d: 0.02 }).texture('concrete_bunker', { tile: 0.8 }).color(0x9a9890).at(x!, y!, d / 2 + 0.01),
+      g.box({ w: pw!, h: ph!, d: 0.02 }).texture('concrete_bunker', { tile: 0.8 }).color(0x9a9890).at(x!, y!, front + 0.01),
     );
-    g.box({ w: 1.9, h: 1.5, d: 0.02 }).texture('concrete_bunker', { tile: 1 }).color(0x8e8c86).at(2.2, base - 0.1, d / 2 + 0.01);
+    g.box({ w: 1.9, h: 1.5, d: 0.02 }).texture('concrete_bunker', { tile: 1 }).color(0x8e8c86).at(2.2, floor + 0.3, front + 0.01);
     scrawl(g, { w: 1.8, h: 1.4 }, [96, 72], (c) => {
       handText(c, 'KEVIN + SANDRA', 6, 14, { size: 13, color: '#9c2c26', angle: -6 });
       handText(c, 'Nirvana', 20, 34, { size: 15, color: '#20201c', angle: 3 });
       maskedSmiley(c, 74, 48);
       handText(c, 'il nous regarde', 8, 62, { size: 7, color: '#3a3832', font: 'serif' });
     })
-      .at(2.2, base - 0.05, d / 2 + 0.035);
+      .at(2.2, floor + 0.35, front + 0.035);
   })
     .at(FORT.x, FLOOR, FORT.z);
 
@@ -229,6 +251,70 @@ function maskedSmiley(g: CanvasRenderingContext2D, x: number, y: number): void {
   });
   g.fillStyle = '#20201c';
   g.fillRect(x - 2, y + 3, 5, 6);
+}
+
+/** A broad shingle roof with deep eaves over plank gable ends, as on the farms round Leurs. */
+function roof(g: LevelKit, w: number, d: number, eaves: number): void {
+  const rise = 2.6;
+  const out = { x: 0.9, z: 1.0 };
+  const pitch = Math.atan2(rise, d / 2);
+  const run = d / 2 + out.z;
+  const length = run / Math.cos(pitch);
+  g.gable({ w, d, h: rise }).texture('wood_planks', { tile: [1.2, 2.4] }).color(PLANKS).at(0, eaves, 0);
+  [-1, 1].forEach((sz) =>
+    g
+      .mesh(
+        new BoxGeometry(w + 2 * out.x, 0.14, length)
+          .rotateX(sz * pitch)
+          .translate(0, eaves + rise - (run / 2) * Math.tan(pitch) + 0.08, (sz * run) / 2),
+      )
+      .texture('roof_shingles', { tile: [1 / 6, 1 / 3] })
+      .color(SHINGLES),
+  );
+  g.box({ w: w + 2 * out.x, h: 0.12, d: 0.3 }).texture('rust_metal', { tile: 0.6 }).color(0x4a4640).at(0, eaves + rise + 0.06, 0);
+}
+
+/** Two tall plank leaves with Z braces, nailed to the concrete. There is nothing behind them. */
+function falseBarnDoor(g: LevelKit, x: number, floor: number, front: number): void {
+  const leaf = { w: 1.2, h: 2.7 };
+  const z = front + 0.03;
+  g.box({ w: 2 * leaf.w + 0.3, h: 0.2, d: 0.1 }).texture('wood_planks', { tile: 0.8 }).color(TRIM).at(x, floor + leaf.h, z);
+  [-1, 1].forEach((side) => {
+    const cx = x + (side * (leaf.w + 0.02)) / 2;
+    g.box({ w: leaf.w, h: leaf.h, d: 0.05 }).texture('wood_planks', { tile: [0.9, 2.4] }).color(0x6c5c48).at(cx, floor, z);
+    [0.15, leaf.h / 2, leaf.h - 0.3].forEach((y) =>
+      g.box({ w: leaf.w - 0.06, h: 0.14, d: 0.04 }).texture('wood_planks', { tile: 0.8 }).color(TRIM).at(cx, floor + y, z + 0.04),
+    );
+    // A brace in each half, rising toward the hinge side.
+    const run = leaf.w - 0.14;
+    const rise = leaf.h / 2 - 0.3;
+    [0.22, leaf.h / 2 + 0.07].forEach((y0) =>
+      g
+        .mesh(new BoxGeometry(0.12, Math.hypot(run, rise), 0.04).rotateZ(side * Math.atan2(run, rise)))
+        .texture('wood_planks', { tile: 0.8 })
+        .color(TRIM)
+        .at(cx, floor + y0 + rise / 2, z + 0.04),
+    );
+    [0.4, leaf.h - 0.5].forEach((y) =>
+      g.box({ w: 0.5, h: 0.05, d: 0.02 }).texture('rust_metal', { tile: 0.3 }).color(0x3e3a34).at(cx + (side * leaf.w) / 2 - side * 0.25, floor + y, z + 0.07),
+    );
+  });
+  g.box({ w: 0.05, h: leaf.h - 0.1, d: 0.06 }).color(0x0c0b0a).unlit().at(x, floor + 0.05, z + 0.01);
+}
+
+/** The hand wheel that throws the steel door's bolts: a rim, a hub, and five spokes. */
+function doorWheel(g: LevelKit, x: number, y: number, z: number): void {
+  const r = 0.2;
+  const wheel = g.group((h) => {
+    const rust = (geometry: BufferGeometry) => h.mesh(geometry).texture('rust_metal', { tile: 0.25 }).color(0x6a5c4c);
+    rust(new TorusGeometry(r, 0.018, 4, 12));
+    rust(new CylinderGeometry(0.04, 0.04, 0.07, 6).rotateX(Math.PI / 2));
+    rust(new CylinderGeometry(0.018, 0.018, 0.12, 4).rotateX(Math.PI / 2).translate(0, 0, -0.06));
+    [0, 1, 2, 3, 4].forEach((i) => rust(new BoxGeometry(0.022, r, 0.016).translate(0, r / 2, 0).rotateZ((i * 2 * Math.PI) / 5)));
+    rust(new CylinderGeometry(0.016, 0.016, 0.09, 4).rotateX(Math.PI / 2).translate(0, -r, 0.05));
+  });
+  wheel.at(x, y, z + 0.06);
+  wheel.object.rotation.z = 0.3;
 }
 
 /**
