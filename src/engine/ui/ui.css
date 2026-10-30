@@ -223,27 +223,57 @@ body {
   animation: ui-screamer-shake 0.05s steps(2) 10;
 }
 
-.ui-compass {
+.ui-nav {
   position: absolute;
-  right: 14px;
-  bottom: 14px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
+  right: 12px;
+  bottom: 12px;
+  width: 96px;
+  height: 96px;
+}
+
+.ui-nav-map {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  border: 2px solid rgba(150, 140, 120, 0.7);
+  pointer-events: auto;
+  cursor: pointer;
+  transition: transform 0.25s ease-out;
+}
+
+.ui-nav-canvas {
+  display: block;
+  width: 96px;
+  height: 96px;
+  image-rendering: pixelated;
+}
+
+/* The compass rests on the map's top edge, half of it out of the corner. */
+.ui-nav-compass {
+  position: absolute;
+  right: 26px;
+  bottom: 78px;
+  pointer-events: auto;
+  cursor: pointer;
+  transition: transform 0.25s ease-out;
+}
+
+.ui-nav-key {
+  position: absolute;
+  left: -8px;
+  top: -8px;
   font-size: 12px;
-  color: rgba(214, 206, 190, 0.7);
+  line-height: 14px;
 }
 
 .ui-compass-dial {
   position: relative;
   width: 40px;
   height: 40px;
-  border: 2px solid rgba(170, 160, 140, 0.6);
+  border: 3px solid #8a7240;
   border-radius: 50%;
-  background: rgba(10, 10, 8, 0.45);
-  pointer-events: auto;
-  cursor: pointer;
+  background: radial-gradient(#e6dcc0, #b8a880);
+  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.6);
 }
 
 .ui-compass-needle {
@@ -251,7 +281,7 @@ body {
   inset: 0;
 }
 
-/* A red tip that points the way, and a pale tail. */
+/* A red tip that points the way, and a dark tail. */
 .ui-compass-needle::before,
 .ui-compass-needle::after {
   content: '';
@@ -271,38 +301,63 @@ body {
 
 .ui-compass-needle::after {
   bottom: 3px;
-  border-top: 15px solid #cfc7b5;
+  border-top: 15px solid #3a3426;
 }
 
-.ui-compass.open {
+.ui-nav-compass.lost .ui-compass-needle {
+  animation: ui-compass-wander 3s ease-in-out infinite alternate;
+}
+
+@keyframes ui-compass-wander {
+  from {
+    transform: rotate(-40deg);
+  }
+  to {
+    transform: rotate(50deg);
+  }
+}
+
+/* In hand: the item rises from the bottom of the frame, large and tilted toward the player. */
+.ui-nav[data-held] {
+  inset: 0;
+  width: auto;
+  height: auto;
+}
+
+.ui-nav[data-held=''] {
+  inset: auto 12px 12px auto;
+  width: 96px;
+  height: 96px;
+}
+
+.ui-nav:not([data-held='']) .ui-nav-key {
+  display: none;
+}
+
+.ui-nav[data-held='compass'] .ui-nav-compass {
   right: 50%;
-  bottom: 50%;
-  transform: translate(50%, 50%);
-  gap: 10px;
+  bottom: -40px;
+  transform: translateX(50%) perspective(400px) rotateX(28deg) scale(4.4);
+  transform-origin: 50% 100%;
+}
+
+.ui-nav[data-held='compass'] .ui-nav-map,
+.ui-nav[data-held='map'] .ui-nav-compass {
+  display: none;
+}
+
+.ui-nav[data-held='map'] .ui-nav-map {
+  right: 50%;
+  bottom: 24px;
+  border: 6px solid #6b5432;
+  transform: translateX(50%) perspective(700px) rotateX(16deg);
+  transform-origin: 50% 100%;
+  box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.6);
+}
+
+.ui-nav[data-held='map'] .ui-nav-canvas {
   width: 300px;
-  text-align: center;
-  color: #d6d1c6;
-}
-
-.ui-compass.open .ui-compass-dial {
-  width: 160px;
-  height: 160px;
-  border-width: 4px;
-  background: rgba(10, 10, 8, 0.7);
-}
-
-.ui-compass.open .ui-compass-needle::before {
-  top: 10px;
-  border-left-width: 12px;
-  border-right-width: 12px;
-  border-bottom-width: 62px;
-}
-
-.ui-compass.open .ui-compass-needle::after {
-  bottom: 10px;
-  border-left-width: 12px;
-  border-right-width: 12px;
-  border-top-width: 62px;
+  height: 300px;
 }
 
 .ui-goal {
@@ -331,7 +386,7 @@ body {
 }
 
 /* Hard text edges at fractional scales. Only on text, since the filter would harden translucent backgrounds too. */
-.ui-crisp :is(.ui-prompt, .ui-speaker, .ui-text, .ui-translation, .ui-list, .ui-title, .ui-detail, .ui-empty, .ui-notice, .ui-goal, .ui-hud, .ui-compass,
+.ui-crisp :is(.ui-prompt, .ui-speaker, .ui-text, .ui-translation, .ui-list, .ui-title, .ui-detail, .ui-empty, .ui-notice, .ui-goal, .ui-hud,
     .ui-sheet-title, .ui-sheet-text, .ui-sheet-page, .ui-sheet-translation, .ui-polaroid-caption, .ui-vf-counter, .ui-vf-hint) {
   filter: url(#ui-crisp);
 }

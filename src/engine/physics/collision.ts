@@ -98,6 +98,11 @@ export class CollisionWorld {
     this.shapes.clear();
   }
 
+  /** Every obstacle, for drawing the map. */
+  get all(): Iterable<Shape> {
+    return this.shapes;
+  }
+
   /** Moves a circle by `delta` and returns where it ends up after sliding along obstacles. */
   move(from: Vec2, delta: Vec2, radius: number): Vec2 {
     const length = Math.hypot(delta.x, delta.z);

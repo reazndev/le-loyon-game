@@ -2,7 +2,7 @@ import { Vector3 } from 'three';
 import { AudioManager } from '../engine/audio/audioManager';
 import { playFootstep } from '../engine/audio/footsteps';
 import { click } from '../engine/audio/generators';
-import { compassLabel, hintsLabel, interactLabel, notebookLabel } from '../engine/input/bindings';
+import { compassLabel, hintsLabel, interactLabel, mapLabel, notebookLabel } from '../engine/input/bindings';
 import { Input, type Movement } from '../engine/input/input';
 import { promptText } from '../engine/interactions';
 import { Player } from '../engine/player';
@@ -233,17 +233,30 @@ export class Game {
     else if (input.pressed('inventory')) this.ui.openInventory();
     else if (input.pressed('notebook') && this.state.hasItem('notebook')) void this.ui.openNotebook();
     else if (input.pressed('hints')) void this.ui.openHints();
-    else if (input.pressed('compass')) this.overlay.compassOpen = !this.overlay.compassOpen;
+    else if (input.pressed('compass')) this.overlay.navigation.toggle('compass');
+    else if (input.pressed('map')) this.overlay.navigation.toggle('map');
     else if (input.pressed('pause')) this.ui.openPause(this.pauseActions());
   }
 
-  /** Points the compass at the next step: the person to talk to, or the way out toward them. */
+  /** The minimap and the compass, pointing at the next step: the person to talk to, or the way out toward them. */
   private updateCompass(playing: boolean): void {
-    const step = playing ? nextStep(this.state) : undefined;
+    if (!playing) return this.overlay.navigation.show(null);
+    const step = nextStep(this.state);
     const from = this.player.position;
     const target = compassTarget(this.world, this.state.scene, step, from);
-    const turn = target && from.distanceTo(target) > 2 ? bearing(from, this.player.forward(), target) : null;
-    this.overlay.showCompass(turn, compassLabel[this.input.lastDevice], step?.text ?? null);
+    const device = this.input.lastDevice;
+    this.overlay.navigation.show({
+      player: { x: from.x, z: from.z },
+      yaw: this.player.yaw,
+      bearing: target && from.distanceTo(target) > 2 ? bearing(from, this.player.forward(), target) : null,
+      target: target && { x: target.x, z: target.z },
+      walls: this.world.collision.all,
+      exits: this.world.exits.map((exit) => {
+        const at = exit.object.getWorldPosition(new Vector3());
+        return { x: at.x, z: at.z };
+      }),
+      keys: { compass: compassLabel[device], map: mapLabel[device] },
+    });
   }
 
   private hudButtons(): HudButton[] {

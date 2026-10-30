@@ -17,6 +17,7 @@ export type Action =
   | 'notebook'
   | 'hints'
   | 'compass'
+  | 'map'
   | 'pause';
 
 /** Keyboard bindings by `KeyboardEvent.code`, so they follow key position on any layout. */
@@ -42,7 +43,8 @@ export const keyBindings: Record<string, Action[]> = {
   KeyQ: ['camera'],
   KeyN: ['notebook'],
   KeyH: ['hints'],
-  KeyM: ['compass'],
+  KeyK: ['compass'],
+  KeyM: ['map'],
   Escape: ['pause', 'cancel'],
   Backspace: ['cancel'],
 };
@@ -60,7 +62,7 @@ export const gamepadBindings: Record<number, Action[]> = {
   8: ['notebook'],
   9: ['pause'],
   10: ['hints'],
-  11: ['compass'],
+  11: ['map'],
   12: ['up'],
   13: ['down'],
   14: ['left', 'turnLeft'],
@@ -78,7 +80,8 @@ export const interactLabel = { keyboard: 'E', gamepad: 'A' } as const;
 /** Labels for the notebook and hints buttons in the top-left corner. */
 export const notebookLabel = { keyboard: 'N', gamepad: 'Back' } as const;
 export const hintsLabel = { keyboard: 'H', gamepad: 'L3' } as const;
-export const compassLabel = { keyboard: 'M', gamepad: 'R3' } as const;
+export const compassLabel = { keyboard: 'K', gamepad: '' } as const;
+export const mapLabel = { keyboard: 'M', gamepad: 'R3' } as const;
 
 /** Prompt labels for the cancel button on each device. */
 export const cancelLabel = { keyboard: 'Esc', gamepad: 'B' } as const;
