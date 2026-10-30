@@ -5,7 +5,7 @@ The plan Claude follows to build the game without the user. If a session restart
 ## Rules for the unattended run
 
 - The user left on 2026-10-30 and expects no questions. Claude makes every decision, records it in `docs/`, and moves on.
-- **Usage.** Before each phase, run `python3 .orchestration/usage.py`. If the 5-hour window is at 85% or more, start `.orchestration/wait-for-usage.sh 60` as a background command and wait for it to finish (rerun it if it prints `STILL-BLOCKED`). If weekly usage reaches 97%, wait the same way until the weekly reset. Never let usage reach 100%.
+- **Usage.** Before each phase, run `python3 .orchestration/usage.py`. If the 5-hour window is at 85% or more, start `.orchestration/wait-for-usage.sh 60` as a background command and wait for it to finish (rerun it if it prints `STILL-BLOCKED`). If weekly usage reaches 97%, wait the same way until the weekly reset. Never let usage reach 100%. While agents run, keep `.orchestration/guard.sh 88` running in the background; it exits with `ALERT` when the window passes 88%, and then the orchestrator cancels the least important running agent and waits for the reset. Start a new agent only when the window is under about 55%, or under 70% when the reset is less than an hour away.
 - **Watchdog.** A T3 scheduled task (`scheduled-task:23232738-d5fa-498b-9c18-e6f574cd2d1c`) posts into this thread every 90 minutes. If a turn is already running, ignore the message. If the run had stopped, for example because of a rate limit, the message restarts it.
 - **Models.** Claude Opus for every subagent. GPT is unavailable.
 - **Images.** FLORA. Budget: about $4.50 of the $5.13 balance. Use FLUX 3 Image Klein (`t2i-flux-3-image-klein-t2i`, about $0.01 per image) for most textures, and GPT Image 2.5 (about $0.055) only for key images. Log every spend in `docs/assets.md`.
@@ -36,7 +36,8 @@ Debug hooks: `?scene=<id>&time=<day|night>&flags=a,b` loads any scene directly, 
 - [x] **1c. Texture pipeline.** Filter script, texture list, first FLORA batch. See `docs/textures.md`.
 - [ ] **2. Areas.** Built in parallel by subagents, following `docs/agent-brief.md`.
   - Wave 1, started 2026-10-30 01:05 UTC: content data (`src/content`), desktop and prologue (`src/desktop`, `home`), characters, scares and patrol, forest and bunker.
-  - Wave 2, after wave 1: village outdoors (square, farms, road), village interiors (inn, laiterie, garage, Gremaud house), church and cemetery (with the dig and the patrol).
+  - Wave 1 done 01:50 local: content, characters/scares/patrol, forest/bunker. Desktop still running.
+  - Wave 2: church and cemetery started 00:50 UTC. Still to start after the 02:50 UTC reset: village outdoors (square, Chassot and Yerly farms, road, Gremaud house outside), village interiors (inn, laiterie, garage, Gremaud kitchen).
 - [ ] **3. Systems.** Le Loyon sightings and scare director, procedural sound and ambience, night watchman and grave digging, the dial-up forum during the game.
 - [ ] **4. Integration.** Known gaps from wave 1 to close here:
   - Engine UI: italic narration, French lines with the `{{subtitle}}` translation on its own line (`splitTranslation()` in content), and a document view (pages of up to 10 lines of 64 characters).
