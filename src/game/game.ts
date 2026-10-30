@@ -264,12 +264,15 @@ export class Game {
     const from = this.player.position;
     const target = compassTarget(this.world, this.state.scene, step, hint, from);
     const device = this.input.lastDevice;
+    this.state.explore(from.x, from.z);
     this.overlay.navigation.show({
       player: { x: from.x, z: from.z },
       yaw: this.player.yaw,
       bearing: target && from.distanceTo(target) > 2 ? bearing(from, this.player.forward(), target) : null,
       target: target && { x: target.x, z: target.z },
       sketch: (this.world.mapSketch ??= sketchWorld(this.world)),
+      explored: (x, z) => this.state.isExplored(x, z),
+      marks: this.world.interactions.enabled().map((item) => item.position),
       keys: { compass: compassLabel[device], map: mapLabel[device] },
     });
   }

@@ -29,8 +29,16 @@ export interface StateSnapshot {
   counts?: Record<string, number>;
   /** Polaroids by item id. Missing in saves made before the camera existed. */
   photos?: Record<string, Photo>;
+  /** The map squares walked near, by scene. Missing in saves made before the map fog. */
+  explored?: Record<string, string[]>;
   player: PlayerPose;
 }
+
+/** Meters per side of a square of ground the map remembers. */
+const EXPLORE_CELL = 3;
+/** How far around the reporter the map fills in: about as far as the fog lets them see. */
+const EXPLORE_RADIUS = 10;
+const cellKey = (i: number, j: number) => `${i},${j}`;
 
 /** Flags, counts, inventory, photos, current scene, and time of day. Inventory holds each item once, in pickup order. */
 export class GameState implements StateMutator {
@@ -41,6 +49,8 @@ export class GameState implements StateMutator {
   private readonly counts = new Map<string, number>();
   private readonly items: string[] = [];
   private readonly pictures = new Map<string, Photo>();
+  private readonly explored = new Map<string, Set<string>>();
+  private exploredFrom = '';
   private timeOfDay: TimeOfDay = 'day';
 
   get time(): TimeOfDay {
@@ -109,6 +119,28 @@ export class GameState implements StateMutator {
     this.pictures.set(item, photo);
   }
 
+  /** Marks the ground around a point in the current scene as seen, for the map. */
+  explore(x: number, z: number): void {
+    const ci = Math.floor(x / EXPLORE_CELL);
+    const cj = Math.floor(z / EXPLORE_CELL);
+    const from = `${this.scene}:${cellKey(ci, cj)}`;
+    if (from === this.exploredFrom) return;
+    this.exploredFrom = from;
+    const cells = this.explored.get(this.scene) ?? new Set<string>();
+    this.explored.set(this.scene, cells);
+    const reach = Math.ceil(EXPLORE_RADIUS / EXPLORE_CELL);
+    for (let i = ci - reach; i <= ci + reach; i++) {
+      for (let j = cj - reach; j <= cj + reach; j++) {
+        if (Math.hypot(i - ci, j - cj) * EXPLORE_CELL <= EXPLORE_RADIUS) cells.add(cellKey(i, j));
+      }
+    }
+  }
+
+  /** Whether the reporter has been near a point in the current scene. */
+  isExplored(x: number, z: number): boolean {
+    return this.explored.get(this.scene)?.has(cellKey(Math.floor(x / EXPLORE_CELL), Math.floor(z / EXPLORE_CELL))) ?? false;
+  }
+
   snapshot(): StateSnapshot {
     return {
       scene: this.scene,
@@ -117,6 +149,7 @@ export class GameState implements StateMutator {
       inventory: [...this.items],
       counts: Object.fromEntries(this.counts),
       photos: Object.fromEntries(this.pictures),
+      explored: Object.fromEntries([...this.explored].map(([scene, cells]) => [scene, [...cells]])),
       player: { ...this.player },
     };
   }
@@ -133,5 +166,8 @@ export class GameState implements StateMutator {
     this.items.splice(0, this.items.length, ...snapshot.inventory);
     this.pictures.clear();
     Object.entries(snapshot.photos ?? {}).forEach(([item, photo]) => this.pictures.set(item, photo));
+    this.explored.clear();
+    this.exploredFrom = '';
+    Object.entries(snapshot.explored ?? {}).forEach(([scene, cells]) => this.explored.set(scene, new Set(cells)));
   }
 }

@@ -27,6 +27,10 @@ export interface MapView {
   yaw: number;
   target: Vec2 | null;
   sketch: MapSketch;
+  /** Whether the reporter has been near a point. Ground they haven't stays fogged on the sheet. */
+  explored: (x: number, z: number) => boolean;
+  /** Things to look at. Those in the fog show as question marks, to draw the reporter there. */
+  marks: readonly Vec2[];
 }
 
 /** Map pixels across, and meters from the player to the edge. */
@@ -45,6 +49,13 @@ const RED_INK = '#7e2016';
 const TREE_INK = '#323726';
 const WATER_INK = '#2f3b3b';
 const LABEL_PAPER = '#a39878';
+/** Unexplored ground: blank, smudged paper. */
+const FOG = '#77715f';
+const FOG_SMUDGE = '#6e6857';
+/** How far the fog's edge wanders, in meters, so it reads as a smudge rather than squares. */
+const FOG_RAGGED = 1.6;
+/** Meters between question marks, so a cluttered room shows one rather than a pile. */
+const MARK_SPACING = 12;
 
 const FILL: Record<Cover, string> = {
   open: PAPER,
@@ -78,7 +89,7 @@ const GLYPHS: Record<string, string> = {
   K: '101101110101101', L: '100100100100111', M: '101111111101101', N: '110101101101101', O: '010101101101010',
   P: '110101110100100', Q: '010101101110011', R: '110101110101101', S: '011100010001110', T: '111010010010010',
   U: '101101101101111', V: '101101101101010', W: '101101111111101', X: '101101010101101', Y: '101101010010010',
-  Z: '111001010100111', '-': '000000111000000', ' ': '000000000000000',
+  Z: '111001010100111', '-': '000000111000000', ' ': '000000000000000', '?': '111001010000010',
 };
 
 /** The same grain every frame, from the pixel's place on the sheet. */
@@ -110,9 +121,10 @@ export function drawMap(g: CanvasRenderingContext2D, view: MapView, { size, rang
     round ? mid - 0.5 - Math.hypot(x + 0.5 - mid, y + 0.5 - mid) : Math.min(x, y, size - 1 - x, size - 1 - y) - (grain(x, y) % 3);
   const block = (x: number, y: number, w = 1) => g.fillRect(Math.round(x), Math.round(y), w * unit, unit);
 
-  paintGround(g, view.sketch, size, unit, toWorld, fromEdge);
+  paintGround(g, view, size, unit, toWorld, fromEdge);
   drawTrees(g, view, size, scale, unit, toMap, fromEdge, round);
   drawExits(g, view, size, unit, toMap, forward, right, round);
+  drawUnexploredMarks(g, view, unit, toMap, fromEdge);
 
   // The target: a red X, held to the edge of the sheet when it is further away.
   if (view.target) {
@@ -134,7 +146,7 @@ export function drawMap(g: CanvasRenderingContext2D, view: MapView, { size, rang
 /** Fills the paper pixel by pixel: the cover under each, with its border inked where it meets lesser ground. */
 function paintGround(
   g: CanvasRenderingContext2D,
-  sketch: MapSketch,
+  { sketch, explored }: MapView,
   size: number,
   unit: number,
   toWorld: (x: number, y: number) => Vec2,
@@ -142,11 +154,15 @@ function paintGround(
 ): void {
   const covers: Cover[] = [];
   const wooded: boolean[] = [];
+  const fogged: boolean[] = [];
   for (let y = 0; y < size; y++) {
     for (let x = 0; x < size; x++) {
       const at = toWorld(x, y);
       covers.push(sketch.cover(at.x, at.z));
       wooded.push(sketch.wooded(at.x, at.z));
+      const n = grain(Math.round(at.x * 2), Math.round(at.z * 2));
+      const jitter = (bits: number) => (((n >> bits) & 255) / 255 - 0.5) * 2 * FOG_RAGGED;
+      fogged.push(!explored(at.x + jitter(0), at.z + jitter(8)));
     }
   }
   const at = (x: number, y: number) => covers[Math.min(size - 1, Math.max(0, y)) * size + Math.min(size - 1, Math.max(0, x))]!;
@@ -161,6 +177,7 @@ function paintGround(
     if (edge < 0) return null;
     // Stains creep in from the edge, and a few specks of dirt sit on the sheet.
     if (edge < 2 + (grain(x, y) % 3) || grain(x, y) % 97 === 0) return STAIN;
+    if (fogged[y * size + x]) return grain(x, y) % 7 === 0 ? FOG_SMUDGE : FOG;
     if (marked(x, y)) return INK;
     const cover = at(x, y);
     if (OUTLINED.has(cover) && lower(cover, x, y)) return cover === 'water' ? WATER_INK : INK;
@@ -206,7 +223,7 @@ function drawTrees(
     if (Math.abs(mx - size / 2) > reach || Math.abs(my - size / 2) > reach) return;
     const x = Math.round(mx);
     const y = Math.round(my);
-    if (fromEdge(x, y) < 3 + unit || !PLANTABLE.has(view.sketch.cover(tree.x, tree.z))) return;
+    if (fromEdge(x, y) < 3 + unit || !PLANTABLE.has(view.sketch.cover(tree.x, tree.z)) || !view.explored(tree.x, tree.z)) return;
     const half = (glyph[0]!.length - 1) / 2;
     glyph.forEach((row, dy) => [...row].forEach((bit, dx) => bit === '#' && g.fillRect(x - half + dx, y - glyph.length + 1 + dy, 1, 1)));
   });
@@ -240,7 +257,8 @@ function drawExits(
       const s = Math.sin(Math.PI + turn);
       inkLine(g, tip.x, tip.y, tip.x + (dx * c - dy * s) * 2.5 * unit, tip.y + (dx * s + dy * c) * 2.5 * unit, unit);
     });
-    if (round) return;
+    // A way out still in the fog shows only its arrow; the name comes once the reporter has been there.
+    if (round || !view.explored(exit.x, exit.z)) return;
     const text = exit.label.toUpperCase();
     const w = text.length * 4 - 1;
     const left = Math.round(Math.min(size - 6 - w, Math.max(6, x - dx * 7 * unit - w / 2)));
@@ -252,10 +270,42 @@ function drawExits(
     g.fillStyle = LABEL_PAPER;
     g.fillRect(left - 1, top - 1, w + 2, 7);
     g.fillStyle = INK;
-    [...text].forEach((char, i) =>
-      [...(GLYPHS[char] ?? GLYPHS[' ']!)].forEach((bit, j) => bit === '1' && g.fillRect(left + i * 4 + (j % 3), top + Math.floor(j / 3), 1, 1)),
-    );
+    inkText(g, text, left, top, 1);
   });
+}
+
+/** A question mark over each thing to look at that still lies in the fog, one per patch of ground. */
+function drawUnexploredMarks(
+  g: CanvasRenderingContext2D,
+  view: MapView,
+  unit: number,
+  toMap: (x: number, z: number) => [number, number],
+  fromEdge: (x: number, y: number) => number,
+): void {
+  const patches = new Set<string>();
+  g.fillStyle = INK;
+  view.marks
+    .filter((mark) => !view.explored(mark.x, mark.z))
+    .filter((mark) => {
+      const patch = `${Math.floor(mark.x / MARK_SPACING)},${Math.floor(mark.z / MARK_SPACING)}`;
+      return !patches.has(patch) && patches.add(patch);
+    })
+    .forEach((mark) => {
+      const [mx, my] = toMap(mark.x, mark.z);
+      const left = Math.round(mx - 1.5 * unit);
+      const top = Math.round(my - 2.5 * unit);
+      if (fromEdge(left, top) < 3 || fromEdge(left + 3 * unit, top + 5 * unit) < 3) return;
+      inkText(g, '?', left, top, unit);
+    });
+}
+
+/** Hand lettering in blocks of `px` pixels, in the current fill style. */
+function inkText(g: CanvasRenderingContext2D, text: string, left: number, top: number, px: number): void {
+  [...text].forEach((char, i) =>
+    [...(GLYPHS[char] ?? GLYPHS[' ']!)].forEach(
+      (bit, j) => bit === '1' && g.fillRect(left + (i * 4 + (j % 3)) * px, top + Math.floor(j / 3) * px, px, px),
+    ),
+  );
 }
 
 /** Pulls a point toward the middle of the sheet until it is within `radius`. */
