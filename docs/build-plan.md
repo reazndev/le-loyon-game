@@ -39,7 +39,7 @@ Debug hooks: `?scene=<id>&time=<day|night>&flags=a,b` loads any scene directly, 
   - Wave 1 done 01:50 local: content, characters/scares/patrol, forest/bunker. Desktop still running.
   - Wave 2: church and cemetery done 01:52 UTC. Started 02:52 UTC after the reset: village outdoors (square, Chassot and Yerly farms, Gremaud house outside), village interiors (inn, laiterie, garage, Gremaud kitchen), and an engine UI agent (document view, italics, subtitles, Polaroid camera, notebook, title screen, engine.md update).
 - [x] **3. Systems.** Done inside wave 1 and 2 (characters, scares, patrol, desktop forum, camera). Leftovers are listed under step 4. Le Loyon sightings and scare director, procedural sound and ambience, night watchman and grave digging, the dial-up forum during the game.
-- [ ] **4. Integration.** Known gaps from wave 1 to close here:
+- [x] **4. Integration.** Known gaps from wave 1 to close here:
   - Done by the engine UI agent (`aad4ddc`): document view, italics, subtitles, Polaroid camera, notebook, title screen, engine.md.
   - Levels: switch dialogue-page documents to `ctx.readDocument(id)` (helper in `src/levels/forest_path/play.ts`), and add `photo:` targets from the item table.
   - Declare scene flags `lai_bell_draft`, `kit_clock_stop`, `gar_yannick_left`, `sat_in_confessional`, `dig_confirmed` in `src/content/flags.ts`.
