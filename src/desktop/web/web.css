@@ -1,0 +1,149 @@
+/* Default styles of a 1998 browser, with the game's pixel font in place of Times. */
+
+.web {
+  box-sizing: border-box;
+  padding: 8px;
+  color: var(--text, #000);
+  font-family: 'DotGothic16', monospace;
+  font-size: 16px;
+  line-height: 18px;
+  overflow-wrap: break-word;
+}
+
+.web a {
+  color: var(--link, #0000ee);
+  text-decoration: underline;
+}
+
+.web a.visited {
+  color: var(--vlink, #551a8b);
+}
+
+.web p {
+  margin: 0 0 18px;
+}
+
+.web h1,
+.web h2,
+.web h3 {
+  font-weight: normal;
+  margin: 0 0 12px;
+}
+
+.web .big,
+.web h1 {
+  font-size: 32px;
+  line-height: 34px;
+}
+
+.web pre {
+  font: inherit;
+  margin: 0 0 16px;
+  white-space: pre-wrap;
+}
+
+.web ul {
+  margin: 0;
+  padding-left: 24px;
+}
+
+.web hr {
+  border: 0;
+  height: 2px;
+  margin: 10px 0;
+  box-shadow: inset 1px 1px #707070, inset -1px -1px #f0f0f0;
+}
+
+.web td,
+.web th {
+  padding: 2px 4px;
+  vertical-align: top;
+  text-align: left;
+}
+
+.web b {
+  font-weight: normal;
+  text-decoration: underline;
+}
+
+.web .w-field {
+  display: inline-block;
+  min-width: 120px;
+  min-height: 18px;
+  padding: 1px 3px;
+  color: #000;
+  background: #fff;
+  box-shadow: inset 1px 1px #707070, inset 2px 2px #222, inset -1px -1px #f0f0f0;
+  vertical-align: middle;
+  white-space: pre;
+}
+
+.web .w-area {
+  display: block;
+  height: 72px;
+  width: 360px;
+}
+
+.web .w-button {
+  display: inline-block;
+  padding: 2px 8px;
+  color: #000;
+  background: #c0c0c0;
+  box-shadow: inset -1px -1px #222, inset 1px 1px #f0f0f0, inset -2px -2px #808080;
+  text-decoration: none;
+}
+
+.web-ph {
+  display: inline-block;
+  box-sizing: border-box;
+  padding: 2px;
+  overflow: hidden;
+  color: #555;
+  vertical-align: bottom;
+  box-shadow: inset 1px 1px #707070, inset -1px -1px #f0f0f0;
+}
+
+.web-img {
+  display: inline-block;
+  vertical-align: bottom;
+}
+
+.web a .web-img {
+  outline: 2px solid currentColor;
+}
+
+.web-broken {
+  display: inline-flex;
+  gap: 2px;
+  align-items: flex-start;
+}
+
+.web-marquee {
+  position: relative;
+  overflow: hidden;
+  height: 18px;
+}
+
+/* The free guestbook keeps its ad in a top frame that doesn't scroll. */
+.web .w-topframe {
+  position: sticky;
+  top: -8px;
+  margin: -8px -8px 8px;
+  padding: 6px 0;
+  background: #fff;
+  border-bottom: 6px solid #c0c0c0;
+  box-shadow: 0 1px #f0f0f0, inset 0 -1px #707070;
+  z-index: 1;
+}
+
+.web .w-blinkborder {
+  display: inline-block;
+  outline: 3px solid #ffe020;
+  animation: w-border 0.6s steps(1) infinite;
+}
+
+@keyframes w-border {
+  50% {
+    outline-color: #ff2080;
+  }
+}

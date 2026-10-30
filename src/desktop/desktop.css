@@ -1,0 +1,506 @@
+/* The 1998 home computer, drawn full-frame at 640x480. */
+
+.pc {
+  --face: #c3bfb3;
+  --light: #f2eee2;
+  --mid: #dcd8cc;
+  --shadow: #807b6f;
+  --dark: #26241f;
+  --title: #22356f;
+  --title-text: #f0ede4;
+  --idle-title: #8a867b;
+  --idle-text: #d0ccc0;
+  --select: #22356f;
+  --desk: #1f7a76;
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: #000;
+  color: #111;
+  text-shadow: none;
+  font-family: 'DotGothic16', monospace;
+  font-size: 16px;
+  line-height: 18px;
+  pointer-events: auto;
+  cursor: none;
+}
+
+.pc * {
+  cursor: none;
+}
+
+.px {
+  image-rendering: pixelated;
+}
+
+.icon-16 {
+  width: 16px;
+  height: 16px;
+}
+
+.icon-32 {
+  width: 32px;
+  height: 32px;
+}
+
+/* Everything that collapses into the white dot at shutdown. */
+.pc-tube {
+  position: absolute;
+  inset: 0;
+  transform-origin: 50% 50%;
+}
+
+.pc-desktop {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 640px;
+  height: 452px;
+  background: var(--desk) center no-repeat;
+}
+
+.pc-icons {
+  position: absolute;
+  left: 6px;
+  top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.pc-icon {
+  width: 84px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  color: #fff;
+  text-align: center;
+}
+
+.pc-icon span {
+  max-width: 80px;
+  padding: 0 2px;
+}
+
+.pc-icon.hover span {
+  background: var(--select);
+  outline: 1px dotted #fff;
+}
+
+.pc-icon.hover canvas {
+  filter: brightness(0.7) sepia(1) hue-rotate(190deg) saturate(3);
+}
+
+/* Bevels, as box shadows so they never change layout. */
+.raised {
+  background: var(--face);
+  box-shadow:
+    inset -1px -1px var(--dark),
+    inset 1px 1px var(--light),
+    inset -2px -2px var(--shadow),
+    inset 2px 2px var(--mid);
+}
+
+.sunken {
+  box-shadow:
+    inset -1px -1px var(--light),
+    inset 1px 1px var(--shadow),
+    inset -2px -2px var(--mid),
+    inset 2px 2px var(--dark);
+}
+
+.field {
+  background: #fff;
+  padding: 2px 4px;
+  box-shadow:
+    inset -1px -1px var(--light),
+    inset 1px 1px var(--shadow),
+    inset -2px -2px var(--mid),
+    inset 2px 2px var(--dark);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-width: 72px;
+  height: 24px;
+  padding: 0 8px;
+  background: var(--face);
+  box-shadow:
+    inset -1px -1px var(--dark),
+    inset 1px 1px var(--light),
+    inset -2px -2px var(--shadow),
+    inset 2px 2px var(--mid);
+  white-space: nowrap;
+}
+
+.btn.hover {
+  outline: 1px dotted var(--dark);
+  outline-offset: -5px;
+}
+
+.btn.down {
+  box-shadow:
+    inset -1px -1px var(--light),
+    inset 1px 1px var(--dark),
+    inset -2px -2px var(--mid),
+    inset 2px 2px var(--shadow);
+  padding-top: 2px;
+  padding-left: 10px;
+}
+
+.btn.off {
+  color: var(--shadow);
+  text-shadow: 1px 1px var(--light);
+}
+
+/* Windows */
+.win {
+  box-sizing: border-box;
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  padding: 4px;
+}
+
+.win-title {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 20px;
+  padding: 0 2px 0 3px;
+  background: var(--idle-title);
+  color: var(--idle-text);
+  flex: none;
+}
+
+.win.active .win-title {
+  background: var(--title);
+  color: var(--title-text);
+}
+
+.win-title-text {
+  flex: 1;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.win-ctrl {
+  width: 18px;
+  height: 16px;
+  min-width: 0;
+  padding: 0;
+  color: #111;
+  font-size: 16px;
+  line-height: 14px;
+}
+
+.win-menu {
+  display: flex;
+  gap: 14px;
+  padding: 2px 6px 1px;
+  flex: none;
+}
+
+.win-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.win.hidden {
+  display: none;
+}
+
+/* Scroll panes with their own bar, so the virtual cursor can click the arrows. */
+.scroll {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  background: #fff;
+}
+
+.scroll-view {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  position: relative;
+}
+
+.scroll-bar {
+  width: 16px;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  background:
+    repeating-conic-gradient(var(--face) 0 25%, var(--light) 0 50%) 0 0 / 2px 2px;
+}
+
+.scroll-arrow {
+  width: 16px;
+  height: 16px;
+  min-width: 0;
+  padding: 0;
+  flex: none;
+}
+
+.scroll-arrow canvas {
+  width: 7px;
+  height: 4px;
+}
+
+.scroll-track {
+  flex: 1;
+  position: relative;
+}
+
+.scroll-thumb {
+  position: absolute;
+  left: 0;
+  width: 16px;
+}
+
+.scroll-bar.idle .scroll-thumb {
+  display: none;
+}
+
+/* Taskbar */
+.pc-taskbar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 2px 0;
+  background: var(--face);
+  box-shadow: inset 0 1px var(--mid), inset 0 2px var(--light);
+}
+
+.pc-start {
+  min-width: 0;
+  font-weight: normal;
+  padding: 0 6px 0 4px;
+}
+
+.pc-tasks {
+  flex: 1;
+  display: flex;
+  gap: 3px;
+  min-width: 0;
+}
+
+.pc-task {
+  justify-content: flex-start;
+  width: 132px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.pc-task span {
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.pc-task.active {
+  background:
+    repeating-conic-gradient(var(--face) 0 25%, var(--light) 0 50%) 0 0 / 2px 2px;
+}
+
+.pc-tray {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 22px;
+  padding: 0 8px 0 6px;
+  box-shadow: inset -1px -1px var(--light), inset 1px 1px var(--shadow);
+}
+
+/* Start menu */
+.pc-menu {
+  position: absolute;
+  display: flex;
+  padding: 3px;
+}
+
+.pc-menu-band {
+  width: 22px;
+  background: linear-gradient(to top, #22356f, #6a7aa0);
+}
+
+.pc-menu-items {
+  display: flex;
+  flex-direction: column;
+  padding: 2px 0;
+  min-width: 170px;
+}
+
+.pc-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 26px;
+  padding: 0 14px 0 8px;
+  white-space: nowrap;
+}
+
+.pc-menu-item.hover {
+  background: var(--select);
+  color: #fff;
+}
+
+.pc-menu-item.off {
+  color: var(--shadow);
+  text-shadow: 1px 1px var(--light);
+}
+
+.pc-menu-item.off.hover {
+  background: transparent;
+  color: var(--shadow);
+}
+
+.pc-menu-sep {
+  height: 2px;
+  margin: 3px 2px;
+  border-top: 1px solid var(--shadow);
+  border-bottom: 1px solid var(--light);
+}
+
+.pc-menu-item .gap {
+  width: 16px;
+}
+
+/* Message boxes */
+.pc-modal {
+  position: absolute;
+  inset: 0 0 28px;
+}
+
+.pc-msg-body {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  padding: 14px 16px 10px;
+  max-width: 380px;
+}
+
+.pc-msg-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  padding: 2px 0 10px;
+}
+
+/* Cursor and the glass of the tube, above everything */
+.pc-cursor {
+  position: absolute;
+  left: 0;
+  top: 0;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.pc-crt {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 11;
+  background:
+    radial-gradient(ellipse 78% 80% at 50% 50%, transparent 62%, rgba(0, 0, 0, 0.32) 100%),
+    repeating-linear-gradient(to bottom, rgba(0, 0, 0, 0.07) 0 1px, transparent 1px 2px);
+  animation: pc-flicker 0.11s steps(2) infinite;
+}
+
+.pc-inn .pc-crt {
+  background:
+    radial-gradient(ellipse 74% 76% at 50% 50%, transparent 55%, rgba(0, 0, 0, 0.45) 100%),
+    linear-gradient(rgba(70, 60, 20, 0.08), rgba(70, 60, 20, 0.08)),
+    repeating-linear-gradient(to bottom, rgba(0, 0, 0, 0.09) 0 1px, transparent 1px 2px);
+}
+
+@keyframes pc-flicker {
+  to {
+    opacity: 0.94;
+  }
+}
+
+/* Power on and off */
+.pc.off .pc-tube {
+  animation: pc-collapse 0.7s forwards;
+}
+
+.pc-dot {
+  position: absolute;
+  left: 316px;
+  top: 236px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 6px 3px rgba(255, 255, 255, 0.6);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 12;
+}
+
+.pc.off .pc-dot {
+  animation: pc-dot 1.8s 0.55s forwards;
+}
+
+@keyframes pc-collapse {
+  0% {
+    transform: scale(1, 1);
+    filter: brightness(1);
+  }
+  45% {
+    transform: scale(1, 0.006);
+    filter: brightness(3);
+  }
+  80% {
+    transform: scale(0.01, 0.006);
+    filter: brightness(4);
+  }
+  100% {
+    transform: scale(0, 0);
+  }
+}
+
+@keyframes pc-dot {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+}
+
+.pc.on .pc-tube {
+  animation: pc-warm 0.5s;
+}
+
+@keyframes pc-warm {
+  from {
+    filter: brightness(0.2);
+  }
+}
+
+.blink {
+  animation: pc-blink 1s steps(1) infinite;
+}
+
+@keyframes pc-blink {
+  50% {
+    visibility: hidden;
+  }
+}
+
+.btn.off canvas {
+  filter: grayscale(1) opacity(0.45);
+}
