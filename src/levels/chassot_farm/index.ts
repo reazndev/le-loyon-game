@@ -48,29 +48,31 @@ export const chassotFarmScene = defineScene({
     road(kit, [[36, 6], [12, 6], [4, 3.5]], { width: 4, texture: 'gravel_path', tile: 2, color: 0x8c887e, surface: 'gravel' });
 
     const gaps: Gap[] = [];
-    house(kit, {
-      ...HOUSE,
-      floors: 2,
-      front: FRONT_WINDOWS,
-      sides: [-2.4, 2.4],
-      back: [-2.4, 2.4],
-      doors: [0],
-      gableFront: true,
-      gable: 'boards',
-      wall: 0x86827a,
-      shutter: palette.shutterBrown,
-      roof: palette.roofDark,
-      window: ({ face, floor }) => (face === 'front' && floor === 0 ? 'boarded' : 'shut'),
-      capture: ({ face, floor, col }, part) => face === 'front' && floor === 0 && gaps.push({ x: FRONT_WINDOWS[col]!, part }),
-    }).at(HOUSE.x, 0, HOUSE.z);
-    barn(kit);
-    overgrowth(kit);
-    garden(kit, ctx);
-    tractor(kit).at(15, 0, -3.5).rotY(130);
-
-    // The front door, its sign in the nettles.
-    kit.box({ w: 0.9, h: 0.6, d: 0.03 }).color(0xc8c4b4).at(2.2, 0.08, HOUSE.z + HOUSE.d / 2 + 1.6).rotY(18).object.rotation.x = -1.35;
-    kit.box({ w: 0.6, h: 0.08, d: 0.032 }).color(0x8a2a24).at(2.2, 0.12, HOUSE.z + HOUSE.d / 2 + 1.5).rotY(18).object.rotation.x = -1.35;
+    // The still farm in one batch; `capture` keeps the window gaps the candle lights out of it.
+    kit.batch((still) => {
+      house(still, {
+        ...HOUSE,
+        floors: 2,
+        front: FRONT_WINDOWS,
+        sides: [-2.4, 2.4],
+        back: [-2.4, 2.4],
+        doors: [0],
+        gableFront: true,
+        gable: 'boards',
+        wall: 0x86827a,
+        shutter: palette.shutterBrown,
+        roof: palette.roofDark,
+        window: ({ face, floor }) => (face === 'front' && floor === 0 ? 'boarded' : 'shut'),
+        capture: ({ face, floor, col }, part) => face === 'front' && floor === 0 && gaps.push({ x: FRONT_WINDOWS[col]!, part }),
+      }).at(HOUSE.x, 0, HOUSE.z);
+      barn(still);
+      overgrowth(still);
+      garden(still, ctx);
+      tractor(still).at(15, 0, -3.5).rotY(130);
+      // The front door, its sign in the nettles.
+      still.box({ w: 0.9, h: 0.6, d: 0.03 }).color(0xc8c4b4).at(2.2, 0.08, HOUSE.z + HOUSE.d / 2 + 1.6).rotY(18).object.rotation.x = -1.35;
+      still.box({ w: 0.6, h: 0.08, d: 0.032 }).color(0x8a2a24).at(2.2, 0.12, HOUSE.z + HOUSE.d / 2 + 1.5).rotY(18).object.rotation.x = -1.35;
+    });
     kit.hotspot({ prompt: 'Look at the house', radius: 1, onInteract: () => ctx.dialogue(dialogues.door_chassot_farm) }).at(0, 0, HOUSE.z + HOUSE.d / 2 + 0.9);
 
     if (phase === 'night3') candleBehindTheBoards(kit, ctx, gaps);
