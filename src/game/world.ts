@@ -27,6 +27,8 @@ export class World {
   readonly hints: LiveHint[] = [];
   /** Cold enough outdoors to see the reporter's breath. `breathVapor` sets it. */
   cold = false;
+  /** Scene seconds when a scare beat last fired, for layers that get busier after one. */
+  lastScareAt = Number.NEGATIVE_INFINITY;
 
   clear(): void {
     this.scene.clear();
@@ -40,5 +42,6 @@ export class World {
     this.exits.length = 0;
     this.hints.length = 0;
     this.cold = false;
+    this.lastScareAt = Number.NEGATIVE_INFINITY;
   }
 }

@@ -14,6 +14,8 @@ Third-party files in the game, with their licenses. The end credits screen in `s
 | `public/assets/audio/wild/raven_1.ogg` | [Forest Raven Call](https://commons.wikimedia.org/wiki/File:Forest_Raven_Call.ogg), Wikimedia Commons | FelixWilson | [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/) |
 | `public/assets/audio/wild/buzzard_1.ogg` to `buzzard_3.ogg` | [Buteo buteo - Common Buzzard XC538277](https://commons.wikimedia.org/wiki/File:Buteo_buteo_-_Common_Buzzard_XC538277.mp3), xeno-canto via Wikimedia Commons | Benoît Van Hecke | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) |
 | `public/assets/audio/breath/*.ogg` | [Voice Pack: Universal Spurts](https://opengameart.org/content/voice-pack%E2%94%82universal-spurts), OpenGameArt | Alba MacKenna | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) |
+| `public/assets/audio/rustle/bush_1.ogg` to `bush_4.ogg` | [dry bushes](https://opengameart.org/content/dry-bushes), OpenGameArt | sinny | [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/) |
+| `public/assets/audio/rustle/leaves_1.ogg` to `leaves_8.ogg` | [20 Rustles of dry leaves](https://opengameart.org/content/20-rustles-dry-leaves), OpenGameArt | qubodup | [CC0](https://creativecommons.org/publicdomain/zero/1.0/) |
 
 `bark.ogg` is the one bark from the original, trimmed to 0.73 s, faded at both ends, and loudness-normalized. The original is in `assets-src/audio/bark-piecesofuk.ogg`.
 

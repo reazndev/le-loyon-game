@@ -56,8 +56,9 @@ Each preset takes overrides: `particles(kit, drizzle({ count: 800 }))`. The spec
 - Outside the village, something on four legs now and then crosses nearby through the undergrowth. Half the time it stops when it is closest, waits a few seconds, snaps a twig, and bolts.
 - In the forest and the cemetery, a bird or two takes off from a branch.
 - At night the whole place sometimes falls silent for half a minute or more. The silence ends with a twig snapping close behind.
+- The treeline moves (`treeline.ts`). Gusts run through, the leaves rushing from one side to the other while the foliage leans harder; something pushes through the bushes off to one side of where the player looks, sometimes moving on a few meters; and when it is tense, a dark four-legged shape darts between the trunks at the edge of the fog (not in the village). It is calm by day, busier at night, and busiest for a minute and a half after any scare beat fires (`world.lastScareAt`) and while the animals have gone quiet.
 
-`animalCall(audio, animal, { at, volume, bus })` plays one call: a random take at a slightly different pitch each time. The files are trimmed takes in `public/assets/audio/wild/`; the source recordings and their licenses are in `docs/credits.md`.
+`rustle(audio, 'bush' | 'leaves', { at, volume })` plays one rustle from the undergrowth. `animalCall(audio, animal, { at, volume, bus })` plays one call: a random take at a slightly different pitch each time. The files are trimmed takes in `public/assets/audio/wild/`; the source recordings and their licenses are in `docs/credits.md`.
 
 ## Startles
 

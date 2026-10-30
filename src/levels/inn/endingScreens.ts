@@ -93,7 +93,7 @@ function creditsScreen(): HTMLElement {
     el(
       'div',
       'opacity:0.45;font-size:12px;max-width:520px;text-align:center',
-      'Animal calls: Alvaro Ortiz Troncoso, Benoît Van Hecke, Marie-Lan Taÿ Pamart (xeno-canto), Livlandfahrer, 1bumer, FelixWilson. CC BY-SA, Wikimedia Commons. Breathing: Alba MacKenna, CC BY 4.0.',
+      'Animal calls: Alvaro Ortiz Troncoso, Benoît Van Hecke, Marie-Lan Taÿ Pamart (xeno-canto), Livlandfahrer, 1bumer, FelixWilson. CC BY-SA, Wikimedia Commons. Breathing: Alba MacKenna, CC BY 4.0. Bushes: sinny, CC BY-SA 3.0.',
     ),
   );
   return screen;

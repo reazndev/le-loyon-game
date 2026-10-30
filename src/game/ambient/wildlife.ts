@@ -3,8 +3,9 @@ import { playFootstep } from '../../engine/audio/footsteps';
 import type { LevelKit } from '../kit/levelKit';
 import { playSound } from '../scares/sounds';
 import type { SceneContext } from '../scene';
-import { animalCall, preloadAnimals, type Animal } from './recordings';
+import { animalCall, preloadRecordings, rustle, type Animal } from './recordings';
 import { around, everyFrame, nowAndThen } from './schedule';
+import { treeline } from './treeline';
 import { wingFlaps } from './sounds';
 
 /** What lives around a scene. The village has crows and owls; the forest has everything. */
@@ -70,9 +71,10 @@ const HUSH = [35, 70] as const;
 export function wildlife(kit: LevelKit, ctx: SceneContext, habitat: Habitat): void {
   const night = ctx.state.time === 'night';
   const callers = (night ? NIGHT : DAY)[habitat];
-  preloadAnimals(ctx.audio, [...new Set(callers.map((caller) => caller.animal))]);
+  preloadRecordings(ctx.audio, [...new Set(callers.map((caller) => caller.animal)), 'bush']);
   let hushedUntil = 0;
   const quiet = () => ctx.time < hushedUntil;
+  treeline(kit, ctx, { hushed: quiet, glimpses: habitat !== 'village' });
 
   callers.forEach((caller) =>
     nowAndThen(kit, ctx, caller.every, () => {
@@ -124,9 +126,10 @@ function passingAnimal(ctx: SceneContext): void {
     }
     const bolting = stops && i >= steps / 2;
     time += bolting ? 0.11 : 0.28 + Math.random() * 0.08;
-    // A front foot then a back foot, close together.
+    // A front foot then a back foot, close together, and now and then the bushes it pushes through.
     [0, bolting ? 0.05 : 0.09].forEach((offset) =>
       setTimeout(() => playFootstep(ctx.audio, 'grass', { at: at(k), level: bolting ? 0.9 : 0.5 }), (time + offset) * 1000),
     );
+    if (i % 4 === 2) setTimeout(() => rustle(ctx.audio, 'bush', { at: at(k), volume: bolting ? 0.7 : 0.4 }), time * 1000);
   }
 }

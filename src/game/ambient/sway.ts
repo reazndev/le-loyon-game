@@ -51,6 +51,13 @@ const RIGID_CUTOUTS = new Set(['iron_fence']);
 
 const swaying = new WeakSet<ShaderMaterial>();
 const wind = { value: 0 };
+/** The scene's own wind strength, which a gust adds to. */
+let calm = 0;
+
+/** Leans the foliage `extra` harder than the scene's wind, for a gust running through. 0 settles it. */
+export function gust(extra: number): void {
+  wind.value = calm + extra;
+}
 
 function addWind(material: ShaderMaterial): void {
   if (swaying.has(material) || !material.vertexShader.includes('vec4 viewPos = viewMatrix')) return;
@@ -72,6 +79,7 @@ function addWind(material: ShaderMaterial): void {
 export function windSway(kit: LevelKit, strength = 1): void {
   kit.use((ctx) =>
     ctx.later('merge', () => {
+      calm = strength;
       wind.value = strength;
       ctx.world.scene.traverse((object: Object3D) => {
         if (!(object instanceof Mesh)) return;

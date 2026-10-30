@@ -83,6 +83,7 @@ export class ScareDirector {
 
   private play(beat: Beat): void {
     if (beat.set) this.ctx.scene.state.setFlag(beat.set);
+    this.ctx.world.lastScareAt = this.ctx.scene.time;
     this.random?.block(AFTER_BEAT);
     beat.do.forEach((action) => this.after(action.after ?? 0, () => this.perform(action)));
   }
