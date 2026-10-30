@@ -11,6 +11,7 @@ The plan Claude follows to build the game without the user. If a session restart
 - **Images.** FLORA. Budget: about $4.50 of the $5.13 balance. Use FLUX 3 Image Klein (`t2i-flux-3-image-klein-t2i`, about $0.01 per image) for most textures, and GPT Image 2.5 (about $0.055) only for key images. Log every spend in `docs/assets.md`.
 - **Parallel agents** work in separate directories so they don't overwrite each other. Only the orchestrator edits shared registration files.
 - **Commits.** Commit after each finished step. No remote, no push. Stage only your own files; never `git commit -a` while agents run.
+- **Next after the forest density agent (medium effort):** the user likes the larch's card style and wants it for all trees and greenery. Change the shared tree builders in `src/game/kit/` so every scene's trees are foliage cards (crossed alpha planes and leaf/branch cards on branches) instead of solid blobs, and replace solid bushes and hedges in `village_square`, `cemetery`, `cemetery_path`, `chassot_farm`, `yerly_farm`, `church` surroundings with cards.
 - **Leftovers for later:** inn windows should switch to `fogWindow` from `src/game/kit/windows.ts` (room 3, café); add `for2_cup` to `docs/script/07-scares.md`.
 
 ## Architecture
