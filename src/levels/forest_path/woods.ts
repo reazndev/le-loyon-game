@@ -11,8 +11,8 @@ import type { LevelKit } from '../../game/kit/levelKit';
 import { scatter } from '../../game/kit/scatter';
 import type { SceneContext } from '../../game/scene';
 import type { TimeOfDay } from '../../game/state';
-import { caw } from '../cemetery/sounds';
-import { nowAndThen } from '../village_square/atmosphere';
+import { around, breathVapor, caw, distantDog, distantTraffic, drizzle, fallingLeaves, fogWisps, hourBells, loop, nowAndThen, particles, weather, windInTrees, windSway } from '../../game/ambient';
+import { rain, waterDrop } from '../../game/ambient/sounds';
 import { distanceToTrails, nearestOnTrails, resample, type Trail } from './trail';
 
 /** Building blocks shared by every Bois-Noir scene: ground, path, trees, undergrowth, sound. */
@@ -410,23 +410,40 @@ export function enclose(kit: LevelKit, area: Area): void {
 }
 
 /**
- * Drip from the branches and a very low wind in the tops. By day, now and then, a crow and the
- * bell of a cow from the fields far below. At night no birds, only small sounds close by.
+ * The forest's air: wind in the tops at the strength the weather gives, trunks creaking, mist
+ * along the ground, the church bell from the village below on the hour. By day leaves come down,
+ * a crow calls, and a cowbell carries up from the fields. At night no birds, only small sounds
+ * close by, the reporter's breath, and on wet nights drizzle and drops off the branches.
  */
 export function forestAmbience(kit: LevelKit, ctx: SceneContext): void {
   const night = ctx.state.time === 'night';
-  kit.ambience('wind', { volume: night ? 0.22 : 0.3 });
+  const sky = weather(ctx.state);
+  windInTrees(kit, ctx, sky.wind);
+  windSway(kit, 0.5 + sky.wind);
+  particles(kit, fogWisps(night ? { opacity: 0.3 } : {}));
+  // The village is downhill to the south of every Bois-Noir scene.
+  hourBells(kit, ctx, { x: 0, z: 1 }, night ? 0.45 : 0.35);
   kit.ambience('crackle', night ? { interval: 6, volume: 0.45, distance: [4, 16] } : { interval: 11, volume: 0.3 });
-  if (night) return;
-  const { audio, player } = ctx;
-  const around = (distance: number, y: number) => {
-    const angle = Math.random() * Math.PI * 2;
-    return { x: player.position.x + Math.cos(angle) * distance, y: player.position.y + y, z: player.position.z + Math.sin(angle) * distance };
-  };
-  nowAndThen(kit, ctx, 45, () => caw(audio, around(22 + Math.random() * 18, 12)), 15);
+  const { audio } = ctx;
+  if (night) {
+    if (sky.breath) breathVapor(kit, ctx);
+    if (sky.drizzle) {
+      particles(kit, drizzle());
+      loop(kit, () => rain(audio, { surface: 'leaves', volume: 0.3 }));
+      nowAndThen(kit, ctx, 3, () => waterDrop(audio, around(ctx, 1.5 + Math.random() * 5, 0), 0.25), 2);
+    }
+    distantDog(kit, ctx, 150);
+    return;
+  }
+  particles(kit, fallingLeaves());
+  nowAndThen(kit, ctx, 45, () => caw(ctx, around(ctx, 22 + Math.random() * 18, 12)), 15);
   nowAndThen(kit, ctx, 70, () => {
     // Downhill, south, where the fields are: a cow grazing moves her head two or three times.
-    const at = { x: player.position.x + (Math.random() - 0.5) * 60, y: player.position.y - 20, z: player.position.z + 60 };
+    const p = ctx.player.position;
+    const at = { x: p.x + (Math.random() - 0.5) * 60, y: p.y - 20, z: p.z + 60 };
     [0, 0.5, 1.3].slice(0, 2 + Math.floor(Math.random() * 2)).forEach((delay) => setTimeout(() => cowbell(audio, { at, volume: 0.22 }), delay * 1000));
   }, 30);
+  // The road along the valley floor, far below and out of sight.
+  const p = ctx.player.position;
+  distantTraffic(kit, ctx, [{ x: p.x - 150, y: p.y - 30, z: p.z + 110 }, { x: p.x + 150, y: p.y - 30, z: p.z + 110 }], 140);
 }
