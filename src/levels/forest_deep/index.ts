@@ -10,7 +10,25 @@ import { handText, paintedTexture } from '../forest_path/scrawl';
 import { unspent } from '../forest_path/spent';
 import { distanceToTrails, pointAlong, yawToward, type Trail } from '../forest_path/trail';
 import { larch } from './larch';
-import { enclose, fallenLog, forestAmbience, forestAtmosphere, forestFloor, rock, trailStrip, undergrowth, woodland, woodsHeight, type Area } from '../forest_path/woods';
+import { scatter } from '../../game/kit/scatter';
+import {
+  enclose,
+  fallenLog,
+  forestAmbience,
+  forestAtmosphere,
+  forestFloor,
+  leaningBeeches,
+  lowPlants,
+  mossPatches,
+  rock,
+  spruceWall,
+  tallPlants,
+  trailStrip,
+  undergrowth,
+  woodland,
+  woodsHeight,
+  type Area,
+} from '../forest_path/woods';
 
 /**
  * Bois-Noir, haut. The animal track above the fort winds up to a single larch, golden among
@@ -135,8 +153,17 @@ export const forestDeepScene = defineScene({
     const near = (x: number, z: number) => calm(x, z) < 10;
     const spruceClear = (x: number, z: number) => calm(x, z) < 4.2 || inSight(x, z, 3);
     const avoid = (x: number, z: number) => onTrack(x, z) || inClearing(x, z) < 1 || inSight(x, z, 1.2);
-    woodland(kit, { area, seed: 'larch', avoid, near, spruceClear, spruce: 360, beech: 30, distant: 900 });
-    undergrowth(kit, area, { seed: 'larch', count: 380, avoid: (x, z) => onTrack(x, z) || inClearing(x, z) < 0.2 || calm(x, z) > 13 || inSight(x, z, 1.5) });
+    woodland(kit, { area, seed: 'larch', avoid, near, spruceClear, spruce: 520, beech: 50, distant: 1100 });
+    const watchers = (x: number, z: number) => inSight(x, z, 3) || [markers.for3_watched_1, markers.for3_watched_2].some((m) => Math.hypot(x - m.x, z - m.z) < 3);
+    leaningBeeches(kit, { area, seed: 'larch', trails: [track], count: 14, from: 2, to: 3.6, avoid: (x, z) => inClearing(x, z) < 2 || inSight(x, z, 2) });
+    spruceWall(kit, { area, seed: 'larch', trails: [track], from: 10, to: 24, count: 200, avoid: (x, z) => watchers(x, z) || inClearing(x, z) < 6 });
+    const offTrack = (inner: number, outer: number) => (x: number, z: number) => {
+      const d = calm(x, z);
+      return distanceToTrails([track], x, z) < inner || inClearing(x, z) < 0.2 || d > outer || inSight(x, z, 1.5);
+    };
+    undergrowth(kit, area, { seed: 'larch-low', count: 700, mix: lowPlants, spacing: 0.75, avoid: offTrack(0.9, 9) });
+    undergrowth(kit, area, { seed: 'larch-tall', count: 800, mix: tallPlants, spacing: 1, avoid: offTrack(1.7, 14) });
+    mossPatches(kit, height, scatter({ ...area, count: 70, seed: 'larch-moss', spacing: 2.4, avoid: offTrack(1.2, 10) }));
     fallenLog(kit, 4.2, 19, 30, 4);
     fallenLog(kit, -4.5, 1, -60, 5);
     rock(kit, 3.5, 9, 0.6, 'larch-rock-1');

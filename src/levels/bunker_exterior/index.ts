@@ -10,7 +10,26 @@ import { handText, scrawl } from '../forest_path/scrawl';
 import { unspent } from '../forest_path/spent';
 import { isNight, storyPhase, type StoryPhase } from '../forest_path/story';
 import { distanceToTrails, type Trail } from '../forest_path/trail';
-import { enclose, fallenLog, forestAmbience, forestAtmosphere, forestFloor, rock, trailStrip, undergrowth, woodland, woodsHeight, type Area } from '../forest_path/woods';
+import { scatter } from '../../game/kit/scatter';
+import {
+  enclose,
+  fallenLog,
+  forestAmbience,
+  forestAtmosphere,
+  forestFloor,
+  leafyTrees,
+  leaningBeeches,
+  lowPlants,
+  mossPatches,
+  rock,
+  spruceWall,
+  tallPlants,
+  trailStrip,
+  undergrowth,
+  woodland,
+  woodsHeight,
+  type Area,
+} from '../forest_path/woods';
 
 /**
  * La grange du Bois-Noir. A clearing with the 1940s fort dressed as a hay barn. Behind it an
@@ -114,8 +133,14 @@ export const bunkerExteriorScene = defineScene({
     const clear = (x: number, z: number) => onTrail(x, z) || inClearing(x, z) < 1.5 || Math.hypot(x - HATCH.x, z - HATCH.z) < 2.5;
     const near = (x: number, z: number) => calm(x, z) < 10;
     const spruceClear = (x: number, z: number) => calm(x, z) < 4.2;
-    woodland(kit, { area, seed: 'fort', avoid: clear, near, spruceClear, spruce: 330, beech: 40, birch: 6, distant: 1000 });
-    undergrowth(kit, area, { seed: 'fort', count: 420, avoid: (x, z) => onTrail(x, z) || inClearing(x, z) < 0.5 || calm(x, z) > 14 });
+    woodland(kit, { area, seed: 'fort', avoid: clear, near, spruceClear, spruce: 480, beech: 60, birch: 6, distant: 1200 });
+    leaningBeeches(kit, { area, seed: 'fort', trails, count: 16, avoid: (x, z) => inClearing(x, z) < 2 || Math.hypot(x - HATCH.x, z - HATCH.z) < 3 || Math.hypot(x - THICKET.x, z - THICKET.z) < 4 });
+    spruceWall(kit, { area, seed: 'fort', trails, from: 10, to: 24, count: 220, avoid: (x, z) => inClearing(x, z) < 7 });
+    const offTrail = (inner: number, outer: number) => (x: number, z: number) =>
+      distanceToTrails(trails, x, z) < inner || inClearing(x, z) < 0.5 || calm(x, z) > outer || Math.hypot(x - HATCH.x, z - HATCH.z) < 2;
+    undergrowth(kit, area, { seed: 'fort-low', count: 800, mix: lowPlants, spacing: 0.75, avoid: offTrail(1.2, 9) });
+    undergrowth(kit, area, { seed: 'fort-tall', count: 900, mix: tallPlants, spacing: 1, avoid: offTrail(2, 14) });
+    mossPatches(kit, height, scatter({ ...area, count: 90, seed: 'fort-moss', spacing: 2.4, avoid: offTrail(1.4, 10) }));
     [
       [-7, 7, 0.6],
       [6.5, 6, 0.4],
@@ -335,7 +360,8 @@ function hatch(kit: LevelKit, ctx: SceneContext, phase: StoryPhase): void {
 
 /** Young spruce and bramble over the track. On day 3, with the letter read, the reporter pushes through. */
 function thicket(kit: LevelKit, ctx: SceneContext, phase: StoryPhase): void {
-  kit.trees(
+  leafyTrees(
+    kit,
     'spruce',
     [-2.2, -1, 0.3, 1.6, 2.8].map((dx, i) => ({ x: THICKET.x + dx, z: THICKET.z - 0.6 - (i % 2) * 0.9, scale: 0.42 + (i % 3) * 0.08, yaw: i * 70 })),
   );

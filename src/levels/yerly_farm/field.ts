@@ -1,7 +1,7 @@
 import type { LevelKit } from '../../game/kit/levelKit';
-import { scatter } from '../../game/kit/scatter';
 import { distanceToTrails } from '../forest_path/trail';
-import { rock, trailStrip, undergrowth, woodland } from '../forest_path/woods';
+import { scatter } from '../../game/kit/scatter';
+import { leaningBeeches, lowPlants, mossPatches, rock, spruceWall, tallPlants, trailStrip, undergrowth, woodland } from '../forest_path/woods';
 import { BOUNDS, FIELD, FOREST_EDGE, forestTrack, GATE, fieldHeight, SHAPE, STUMP } from './layout';
 
 /**
@@ -73,8 +73,15 @@ export function forestEdge(kit: LevelKit): void {
     distanceToTrails([forestTrack], x, z) < 2.4 ||
     Math.hypot(x - SHAPE.x, z - SHAPE.z) < 1.4 ||
     Math.hypot(x - STUMP.x, z - STUMP.z) < 1.2;
-  woodland(kit, { area, seed: 'yerly-edge', avoid: clear, spruce: 120, beech: 20, birch: 4 });
-  undergrowth(kit, area, { seed: 'yerly-edge', count: 70, avoid: (x, z) => clear(x, z) && x > FOREST_EDGE - 1 });
+  woodland(kit, { area, seed: 'yerly-edge', avoid: clear, spruceClear: (x, z) => distanceToTrails([forestTrack], x, z) < 3.6, spruce: 190, beech: 30, birch: 4 });
+  leaningBeeches(kit, { area, seed: 'yerly-edge', trails: [forestTrack], count: 4, avoid: (x) => x > FOREST_EDGE - 2 });
+  spruceWall(kit, { area, seed: 'yerly-edge', trails: [forestTrack], from: 9, to: 40, count: 60, avoid: (x) => x > FOREST_EDGE - 8 });
+  // The field's last metre goes to bramble and saplings before the trees, and under them it is thick.
+  const underTrees = (inner: number) => (x: number, z: number) =>
+    x > FOREST_EDGE + 1.5 || distanceToTrails([forestTrack], x, z) < inner || Math.hypot(x - SHAPE.x, z - SHAPE.z) < 1.4 || Math.hypot(x - STUMP.x, z - STUMP.z) < 1.2;
+  undergrowth(kit, area, { seed: 'yerly-edge-low', count: 260, mix: lowPlants, spacing: 0.8, avoid: underTrees(1.1) });
+  undergrowth(kit, area, { seed: 'yerly-edge-tall', count: 300, mix: tallPlants, spacing: 1.1, avoid: underTrees(1.9) });
+  mossPatches(kit, fieldHeight, scatter({ ...area, count: 30, seed: 'yerly-edge-moss', spacing: 2.4, avoid: (x, z) => x > FOREST_EDGE || underTrees(1.4)(x, z) }));
   [
     [-63, -15, 0.5],
     [-65, 2, 0.7],
