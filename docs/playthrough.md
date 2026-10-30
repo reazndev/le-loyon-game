@@ -9,7 +9,7 @@
 | `leave` | Prologue, day 1 to the abbé, then the bus stop | `ending_leave` |
 | `caught` | Night 2 set up through the debug URL, then digging with the torch on until Raymond comes | `caught`, then "Continue from the last sleep" |
 
-A full run of all four takes about 25 minutes: `publish` and `secret` about 11 each, `leave` 1.5, `caught` 1. It needs no GPU.
+A full run of all four takes about 30 minutes: `publish` and `secret` about 13 each, `leave` 3, `caught` 1. It needs no GPU.
 
 ```sh
 npm run playthrough                         # all four runs
