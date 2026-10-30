@@ -1,13 +1,14 @@
 import { Vector3 } from 'three';
-import { crows, everyFrame, fliesOver, loop, nowAndThen, sway, type Perch } from '../../game/ambient';
+import { crows, everyFrame, fliesOver, loop, nowAndThen, sway, weather, type Perch } from '../../game/ambient';
 import type { LevelKit } from '../../game/kit/levelKit';
 import type { NpcBuilder } from '../../game/kit/npc';
 import type { SceneContext } from '../../game/scene';
+import { chimneySmoke } from '../../game/village/houses';
 import { radio } from '../inn/sounds';
 import { tyres } from '../village_square/props';
 import { cowsLooking, nearFor } from './attention';
 import { chainedDog } from './dog';
-import { BARN, MANURE, STALL } from './layout';
+import { BARN, HOUSE, MANURE, STALL } from './layout';
 import { farmWeather } from './outdoors';
 import { bucket, chain, harrow, hayWagon, ironSheet, kennel, roundBale, squareBales, tool, wheelbarrow } from './props';
 import { chainRattle } from './sounds';
@@ -44,6 +45,8 @@ export function yerlyAmbient(kit: LevelKit, ctx: SceneContext, cows: NpcBuilder[
     return;
   }
   loop(kit, () => radio(ctx.audio, stable, 0.12));
+  // The kitchen stove, lit since the afternoon milking.
+  chimneySmoke(kit, { x: HOUSE.x - 1.5, z: HOUSE.z, top: 11.1 }, weather(ctx.state).wind, 'yerly-chimney');
   crows(kit, ctx, perches);
   fliesOver(kit, ctx, { x: MANURE.x + 0.6, y: 1.1, z: MANURE.z });
 }

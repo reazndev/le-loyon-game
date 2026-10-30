@@ -52,19 +52,38 @@ const mix = (a: number, b: number, k: number) => a + (b - a) * k;
 const unit = (k: number) => Math.max(0, Math.min(1, k));
 const mixLimb = (a: Limb, b: Limb, k: number): Limb => ({ swing: mix(a.swing, b.swing, k), bend: mix(a.bend, b.bend, k) });
 
-/** Breathing, slow weight shifts from one leg to the other, and a wandering gaze. */
+const smoothstep = (k: number) => unit(k) * unit(k) * (3 - 2 * unit(k));
+
+/** Seconds between glances, and how long one takes to turn, hold, and come back. */
+const GLANCE_EVERY = 14;
+const GLANCE = { turn: 0.9, hold: 2.2 };
+
+/**
+ * Now and then a look off to one side, held, then back, the sides taking turns: 0 ahead, 1 or
+ * -1 turned. It is 0 between glances, so the side can change without a jump.
+ */
+function glance(t: number, seed: number): number {
+  const time = t + seed * 11;
+  const at = time % GLANCE_EVERY;
+  const side = Math.floor(time / GLANCE_EVERY) % 2 ? 1 : -1;
+  const out = smoothstep(at / GLANCE.turn) - smoothstep((at - GLANCE.turn - GLANCE.hold) / GLANCE.turn);
+  return side * out;
+}
+
+/** Breathing, slow weight shifts from one leg to the other, a wandering gaze, and the odd glance aside. */
 function humanIdle(t: number, seed: number): HumanPose {
   const breath = Math.sin((TAU * t) / 4.2 + seed);
   const shift = Math.sin((TAU * t) / 9.5 + seed * 3.1);
+  const aside = glance(t, seed);
   return {
     bodyY: -0.006 * Math.abs(shift),
     bodyX: 0.02 * shift,
     torsoPitch: 0.01 * breath,
     torsoRoll: -0.025 * shift,
-    torsoYaw: 0,
+    torsoYaw: 0.06 * aside,
     chest: 1 + 0.018 * breath,
     headPitch: 0.04 * Math.sin(t / 7.1 + seed),
-    headYaw: 0.12 * Math.sin(t / 5.3 + seed * 2) * Math.sin(t / 2.9),
+    headYaw: 0.12 * Math.sin(t / 5.3 + seed * 2) * Math.sin(t / 2.9) + 0.42 * aside,
     armL: { swing: 0.02 * breath, bend: 0.12 },
     armR: { swing: 0.02 * breath, bend: 0.12 },
     legL: { swing: 0, bend: -0.1 * Math.max(0, -shift) },
@@ -151,11 +170,13 @@ export interface LoyonPose {
   footL: { z: number; lift: number };
   footR: { z: number; lift: number };
   headRoll: number;
+  /** -1 to 1 over one slow breath, standing or seated. */
+  breath: number;
 }
 
 /**
- * Le Loyon barely moves when he stands: no breathing to see, only, every so often, a slow tilt
- * of the head that stays. His walk limps on the left leg: the body sinks and leans onto it and
+ * Le Loyon barely moves when he stands: one slow breath every seven seconds and, every so
+ * often, a slow tilt of the head that stays. His walk limps on the left leg: the body sinks and leans onto it and
  * the step lingers there.
  */
 export function loyonPose({ t, phase, walk, sit, seat, seed }: PoseInput): LoyonPose {
@@ -175,6 +196,7 @@ export function loyonPose({ t, phase, walk, sit, seat, seed }: PoseInput): Loyon
     footL: { z: mix(-0.16 * stride * k, -0.42, s), lift: mix(0.05 * Math.max(0, Math.cos(a)) * k, seat - LOYON_SHIN, s) },
     footR: { z: mix(0.16 * stride * k, -0.42, s), lift: mix(0.07 * leftStance * k, seat - LOYON_SHIN, s) },
     headRoll: (1 - k) * (1 - s) * 0.16 * tilt,
+    breath: (1 - k) * Math.sin((TAU * t) / 7 + seed),
   };
 }
 

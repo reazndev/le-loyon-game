@@ -36,7 +36,7 @@ export const mainRoad: Trail = [
   [1.5, 10],
   [4.2, 14],
   [4.6, 24],
-  [4.6, 54],
+  [4.6, 42],
 ];
 export const ROAD_WIDTH = 6;
 /** The lane north past the church's west side to the path up the hill. */
@@ -54,7 +54,7 @@ export const gremaudLane: Trail = [
 ];
 
 /** The village's edges, hidden in fog. */
-export const BOUNDS = { x0: -50, x1: 32, z0: -46, z1: 56 };
+export const BOUNDS = { x0: -50, x1: 32, z0: -46, z1: 44 };
 
 export const spawns = {
   default: { x: -7.6, z: 12.6, yaw: 20 },

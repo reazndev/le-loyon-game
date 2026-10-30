@@ -4,7 +4,7 @@ Notes from planning conversations. Each file covers one topic and records what w
 
 - [Tech stack](tech-stack.md): engine, language, tools, and why we picked them.
 - [Style](style.md): the PS1 look, camera, controls, and other feel decisions.
-- [Story](story.md): premise, locations, flow, the three graves, endings, and open problems.
+- [Story](story.md): premise, the truth about Le Loyon, the three graves, characters, endings, and what changed from the draft.
 - [AI workflow](ai-workflow.md): which model does which job.
 - [Build plan](build-plan.md): the steps of the unattended build and the rules for it.
 - [Agent brief](agent-brief.md): shared rules for build subagents.
@@ -23,3 +23,4 @@ Notes from planning conversations. Each file covers one topic and records what w
 - **2026-10-30.** Settled the story frame. The legend is Le Loyon, the village is the invented Leurs, and the setting is the late 1990s. The player is an unnamed reporter who starts by browsing early web forums. Le Loyon is a real man of about 40 with PTSD from a war. All names become Swiss French. The game is co-op. Horror leans on anticipation and sudden movement with few reveals. Claude may generate textures with AI and filter them to the PS1 look.
 - **2026-10-30.** Dropped co-op; the game is single player. Set the year to November 1998 and Le Loyon's war to Bosnia. Kept grave digging as a crime that can end the game, and the inn computer with dial-up as the in-game forum. Set the AI workflow: Claude Opus orchestrates, GPT models write story and generate images.
 - **2026-10-30.** The user's GPT subscription is gone, so Claude Opus does all the work and FLORA makes images. The endings are decided: keep the secret, publish, or leave. The user handed over the build to run unattended; see the build plan.
+- **2026-10-30.** The script copied the user's draft too closely, so the user asked for a new plot on the same map. Le Loyon is now Lucien Bielmann, a former foster child dying of farmer's lung, searching for his sister Rose, who died on the Pittet farm in 1971 and was buried at the foot of another man's grave. The graves, the dig's find, the way into the bunker (a field telephone instead of a key), and the villagers' roles all changed. Rewrote [story.md](story.md) and [script/00-overview.md](script/00-overview.md); the other script files and `src/` still follow the old plot.

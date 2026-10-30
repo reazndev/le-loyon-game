@@ -29,28 +29,28 @@ export function hints(kit: LevelKit, ctx: SceneContext, phase: StoryPhase, { cup
   const atTheDoor = (test: () => boolean) => () => kp3.revealed && test();
 
   kit.hint("It's pitch dark in here. Turn your torch back on.", { when: () => !lights.flashlightOn });
-  kit.hint('Go through the K.P. 3 door. The tunnel out is at the back of the room.', { if: { flag: 'met_marc' } });
+  kit.hint('Go through the K.P. 3 door. The tunnel out is at the back of the room.', { if: { flag: 'met_marc' }, point: door });
 
   if (phase === 'day2' || phase === 'night3') {
-    kit.hint('Look at the tall cupboard, then at the dust at its feet.', { if: searching, near: atCupboard, when: () => stuck() > STUCK });
-    kit.hint('This end of the room is cleaner than the rest.', { if: searching, near: atCupboard });
-    kit.hint('Push the cupboard. It rolls aside.', { if: swept, near: atCupboard, when: () => stuck() > STUCK });
-    kit.hint('The dust is swept in an arc, as if the cupboard swung.', { if: swept, near: atCupboard });
-    kit.hint('This battery is new. Follow its wires along the wall.', { if: { notFlag: 'found_hidden_door' }, near: { ...battery, r: 2.5 } });
-    kit.hint('Search the rooms off the corridor. The bunk room is on the right.', { if: { notFlag: 'found_hidden_door' } });
+    kit.hint('Look at the tall cupboard, then at the dust at its feet.', { if: searching, near: atCupboard, when: () => stuck() > STUCK, point: cupboard });
+    kit.hint('This end of the room is cleaner than the rest.', { if: searching, near: atCupboard, point: cupboard });
+    kit.hint('Push the cupboard. It rolls aside.', { if: swept, near: atCupboard, when: () => stuck() > STUCK, point: cupboard });
+    kit.hint('The dust is swept in an arc, as if the cupboard swung.', { if: swept, near: atCupboard, point: cupboard });
+    kit.hint('This battery is new. Follow its wires along the wall.', { if: { notFlag: 'found_hidden_door' }, near: { ...battery, r: 2.5 }, point: cupboard });
+    kit.hint('Search the rooms off the corridor. The bunk room is on the right.', { if: { notFlag: 'found_hidden_door' }, point: cupboard });
   }
 
   if (phase === 'night3') {
-    kit.hint('Roll the cupboard aside again.', { if: { flag: ['found_hidden_door', 'cupboard_restored'], notFlag: 'met_marc' }, near: atDoor, when: () => !kp3.revealed });
-    kit.hint('The light under the door went out. You can still use the key.', { if: knocking, near: atDoor, when: atTheDoor(() => kp3.knock === 'wrong') });
+    kit.hint('Roll the cupboard aside again.', { if: { flag: ['found_hidden_door', 'cupboard_restored'], notFlag: 'met_marc' }, near: atDoor, when: () => !kp3.revealed, point: cupboard });
+    kit.hint('The light under the door went out. You can still use the key.', { if: knocking, near: atDoor, when: atTheDoor(() => kp3.knock === 'wrong'), point: door });
     kit.hint('Now wait, and listen.', { if: knocking, near: atDoor, when: atTheDoor(() => kp3.knock === 'none' && kp3.knocks >= 4) });
-    kit.hint('Three quick knocks, a slow count of three, then one.', { if: knocking, near: atDoor, when: atTheDoor(() => kp3.knock === 'none') });
-    kit.hint('K.P. 3 is behind the cupboard, at the far end of the bunk room.', { if: { flag: 'found_hidden_door', notFlag: 'met_marc' } });
+    kit.hint('Three quick knocks, a slow count of three, then one.', { if: knocking, near: atDoor, when: atTheDoor(() => kp3.knock === 'none'), point: door });
+    kit.hint('K.P. 3 is behind the cupboard, at the far end of the bunk room.', { if: { flag: 'found_hidden_door', notFlag: 'met_marc' }, point: door });
   }
 
   if (phase === 'day2') {
     const photo = { flag: 'found_hidden_door', item: 'polaroid_camera', notItem: 'photo_bunker_door' };
-    kit.hint('Take a photo of the door while you are here.', { if: photo, near: atDoor, when: () => kp3.revealed });
+    kit.hint('Take a photo of the door while you are here.', { if: photo, near: atDoor, when: () => kp3.revealed, point: door });
     kit.hint('Locked, and you have no key. Leave it for now.', { if: { flag: 'found_hidden_door', notItem: 'bunker_key' }, near: atDoor });
   }
   if (phase === 'day3') {

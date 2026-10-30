@@ -20,7 +20,7 @@ export const steps = {
   graves: step('Go up to the cemetery and read'),
   wait: step('Wait by the graves'),
   watchWall: step('Stay a while'),
-  follow: step('Follow the figure'),
+  follow: step('Follow him into the forest'),
   sleep1: step('Go back to the inn and sleep in room 3'),
   register: step('Go to the church after morning mass'),
   widow: step("Visit the syndic's widow"),

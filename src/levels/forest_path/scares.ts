@@ -38,7 +38,7 @@ export function stageForestPath(kit: LevelKit, ctx: SceneContext, phase: StoryPh
   const night1 = phase === 'night1';
   const beats: Beat[] = [...extra];
   // A roe deer bedded down beside the path bolts as the reporter comes level with it.
-  if (isNight(phase)) beats.push(startle('path_deer', 'deer', { x: -3, z: 38, r: 3 }, { x: 4, y: 0, z: 36 }));
+  if (isNight(phase)) beats.push(startle('path_deer', 'deer', { x: -1.2, z: 16, r: 3 }, { x: 4.3, y: 0, z: 16.4 }));
   if (night1) {
     beats.push(
       {

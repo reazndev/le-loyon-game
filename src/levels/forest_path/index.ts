@@ -28,10 +28,10 @@ const NEAR_TREES = 8.5;
 export const forestPathScene = defineScene({
   id: 'forest_path',
   spawns: {
-    default: { x: 0, z: 72.5, yaw: 0 },
-    from_cemetery: { x: 0, z: 72.5, yaw: 0 },
-    from_bunker: { x: 15.8, z: -44, yaw: 178 },
-    from_yerly: { x: -46, z: -13.2, yaw: -76 },
+    default: { x: 0, z: 29.5, yaw: 0 },
+    from_cemetery: { x: 0, z: 29.5, yaw: 0 },
+    from_bunker: { x: 10.9, z: -20.2, yaw: 163 },
+    from_yerly: { x: -26.2, z: -9.7, yaw: -84 },
   },
   atmosphere: forestAtmosphere,
 
@@ -49,49 +49,49 @@ export const forestPathScene = defineScene({
     const nearWater = (x: number, z: number) => distanceToTrails([stream], x, z) < 2.4;
     const fromTrail = (x: number, z: number) => distanceToTrails(trails, x, z);
     const onTrail = (x: number, z: number) => fromTrail(x, z) < 3;
-    const clear = (x: number, z: number) => onTrail(x, z) || nearWater(x, z) || Math.hypot(x - FORK.x, z - FORK.z) < 6 || z > 76;
+    const clear = (x: number, z: number) => onTrail(x, z) || nearWater(x, z) || Math.hypot(x - FORK.x, z - FORK.z) < 6 || z > 33;
     const near = (x: number, z: number) => fromTrail(x, z) < NEAR_TREES;
     const spruceClear = (x: number, z: number) => fromTrail(x, z) < 4.2;
-    woodland(kit, { area, seed: 'forest-path', avoid: clear, near, spruceClear, spruce: 900, beech: 170, birch: 26, distant: 2000 });
+    woodland(kit, { area, seed: 'forest-path', avoid: clear, near, spruceClear, spruce: 400, beech: 75, birch: 12, distant: 900 });
     // The big spruce Le Loyon steps behind on night 1.
     leafyTrees(kit, 'spruce', [{ x: markers.for1_ahead_exit.x + 0.6, z: markers.for1_ahead_exit.z - 0.5, scale: 1.4 }]);
-    leaningBeeches(kit, { area, seed: 'forest-path', trails, count: 60, avoid: (x, z) => nearWater(x, z) || Math.hypot(x - FORK.x, z - FORK.z) < 4 || z > 74 });
-    spruceWall(kit, { area, seed: 'forest-path', trails, from: 10, to: 26, count: 420, avoid: (_x, z) => z > 76 });
+    leaningBeeches(kit, { area, seed: 'forest-path', trails, count: 28, avoid: (x, z) => nearWater(x, z) || Math.hypot(x - FORK.x, z - FORK.z) < 4 || z > 31 });
+    spruceWall(kit, { area, seed: 'forest-path', trails, from: 10, to: 26, count: 200, avoid: (_x, z) => z > 33 });
 
     // Undergrowth only where the player can see it: low plants up to the trail's edge, tall ones a step back.
     const atShrine = (x: number, z: number) => Math.hypot(x - SHRINE.x, z - SHRINE.z) < 1.6;
     const offTrail = (inner: number, outer: number) => (x: number, z: number) => {
       const d = fromTrail(x, z);
-      return d < inner || d > outer || distanceToTrails([stream], x, z) < 1.2 || atShrine(x, z) || z > 76;
+      return d < inner || d > outer || distanceToTrails([stream], x, z) < 1.2 || atShrine(x, z) || z > 33;
     };
-    undergrowth(kit, area, { seed: 'forest-path-low', count: 1500, mix: lowPlants, spacing: 0.75, avoid: (x, z) => offTrail(1.3, 9)(x, z) || keepClear.low(x, z) });
-    undergrowth(kit, area, { seed: 'forest-path-tall', count: 1700, mix: tallPlants, spacing: 1, avoid: (x, z) => offTrail(2.1, 15)(x, z) || keepClear.tall(x, z) || keepClear.low(x, z) });
-    mossPatches(kit, height, scatter({ ...area, count: 170, seed: 'forest-path-moss', spacing: 2.4, avoid: offTrail(1.6, 11) }));
+    undergrowth(kit, area, { seed: 'forest-path-low', count: 700, mix: lowPlants, spacing: 0.75, avoid: (x, z) => offTrail(1.3, 9)(x, z) || keepClear.low(x, z) });
+    undergrowth(kit, area, { seed: 'forest-path-tall', count: 800, mix: tallPlants, spacing: 1, avoid: (x, z) => offTrail(2.1, 15)(x, z) || keepClear.tall(x, z) || keepClear.low(x, z) });
+    mossPatches(kit, height, scatter({ ...area, count: 80, seed: 'forest-path-moss', spacing: 2.4, avoid: offTrail(1.6, 11) }));
 
     [
-      [4.5, 60, 20, 5],
-      [-5, 41, 75, 4],
-      [3.8, 24, -30, 3.5],
-      [-4.2, 12, 110, 5.5],
+      [3.6, 25.7, 20, 5],
+      [-3.4, 18.4, 75, 4],
+      [2.9, 10.9, -30, 3.5],
+      [-3.5, 5.6, 110, 5.5],
       [9, -4, 60, 4],
       [7.5, -20, -15, 5],
       [-16, -1, 10, 4.5],
-      [-23, -12.5, 95, 3.5],
-      [19.5, -30, 80, 4],
+      [-13.3, -10.7, 95, 3.5],
+      [16, -22, 80, 4],
     ].forEach(([x, z, yaw, length]) => fallenLog(kit, x!, z!, yaw!, length));
     [
-      [-3.5, 64, 0.7],
-      [4, 50, 0.4],
-      [-4.5, 31, 0.9],
+      [-3.7, 27.1, 0.7],
+      [3.9, 20.8, 0.4],
+      [-4.4, 12.2, 0.9],
       [3.4, 4, 0.5],
       [-3, 2.5, 0.35],
       [6.5, -12, 0.8],
-      [13, -38, 1],
+      [15, -26, 1],
       [-10, -7.5, 0.6],
-      [-27.5, -12, 0.5],
-      [-32.5, -7, 0.7],
-      [-38, -15, 0.45],
-      [2.5, 36, 0.3],
+      [-17.8, -10.2, 0.5],
+      [-22.8, -5.2, 0.7],
+      [-28.3, -13.2, 0.45],
+      [2.9, 16.1, 0.3],
     ].forEach(([x, z, size], i) => rock(kit, x!, z!, size!, `forest-path-rock-${i}`));
 
     shrine(kit, ctx);
@@ -100,9 +100,9 @@ export const forestPathScene = defineScene({
     dressPath(kit, ctx);
 
     enclose(kit, area);
-    kit.exit({ w: 6, d: 1, to: 'cemetery', spawn: 'back_gate' }).at(0, 0, 75.6);
-    kit.exit({ w: 5, d: 1, to: 'bunker_exterior', spawn: 'from_forest' }).at(16, 0, -48.4);
-    kit.exit({ w: 1, d: 5, to: 'yerly_farm', spawn: 'from_forest' }).at(-50.4, 0, -14);
+    kit.exit({ w: 6, d: 1, to: 'cemetery', spawn: 'back_gate' }).at(0, 0, 32.6);
+    kit.exit({ w: 5, d: 1, to: 'bunker_exterior', spawn: 'from_forest' }).at(12, 0, -24.4);
+    kit.exit({ w: 1, d: 5, to: 'yerly_farm', spawn: 'from_forest' }).at(-30.4, 0, -11);
 
     forestAmbience(kit, ctx);
     const heifer = heiferInTheForest(kit, ctx, phase);
@@ -123,6 +123,7 @@ function streamBed(kit: LevelKit): void {
       .texture('mud', { tile: 1.5 })
       .color(0x1a1d1e)
       .emissive(0x040506)
+      .mapAs('water')
       .at((ax + bx) / 2, slope((ax + bx) / 2, (az + bz) / 2) + 0.22, (az + bz) / 2)
       .rotY(yawToward(bx - ax, bz - az));
   });
@@ -134,7 +135,7 @@ function bridge(kit: LevelKit, ctx: SceneContext): void {
     const p = nearestOnTrails([stream], BRIDGE.x, BRIDGE.z + dz);
     kit.use((k) => k.world.sounds.track(streamHiss(ctx.audio, { x: p.x, y: slope(p.x, p.z), z: p.z }, dz === 0 ? 0.5 : 0.35)));
   });
-  const yaw = yawToward(-6, -1);
+  const yaw = yawToward(-6, -1.5);
   const deck = Math.max(height(BRIDGE.x - 2.4, BRIDGE.z + 0.4), height(BRIDGE.x + 2.4, BRIDGE.z - 0.4)) + 0.08;
   kit.group((g) => {
     g.box({ w: 0.42, h: 0.07, d: 5.4 }).texture('wood_planks', { tile: 1.2 }).color(0x726a5e).at(-0.24, 0, 0).walkable('wood');
@@ -181,7 +182,7 @@ function shrine(kit: LevelKit, ctx: SceneContext): void {
 
 /** The cemetery's back wall and its gate, so the way home is there when the player turns round. */
 function backGate(kit: LevelKit): void {
-  const z = 77.2;
+  const z = 34.2;
   [-1, 1].forEach((side) =>
     kit
       .box({ w: 9, h: 1.9, d: 0.5 })

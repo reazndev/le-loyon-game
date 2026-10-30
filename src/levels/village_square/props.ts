@@ -201,13 +201,16 @@ export function bicycle(kit: LevelKit, { size = 1, frame = 0x8a2a2a }: { size?: 
 
 /**
  * A Fiat Panda, the first one: a box on wheels with flat glass all round, grey plastic bumpers
- * and side strips, square lamps, and road dirt up the sills. Its front faces +Z.
+ * and side strips, square lamps, and road dirt up the sills. Its front faces +Z. One that drives
+ * is not `parked`, so it has no collider.
  */
-export function smallCar(kit: LevelKit, color = 0x8e8a7a) {
+export function smallCar(kit: LevelKit, color = 0x8e8a7a, { parked = true } = {}) {
   const glass = 0x22272a;
   const plastic = 0x3a3a38;
   return kit.group((g) => {
-    g.box({ w: 1.5, h: 0.6, d: 3.4 }).color(color).at(0, 0.2, 0).collider();
+    // A car that drives can't leave its collider behind where it was built.
+    const body = g.box({ w: 1.5, h: 0.6, d: 3.4 }).color(color).at(0, 0.2, 0);
+    if (parked) body.collider();
     // The dark under the floor, so the body sits on its wheels instead of hovering.
     g.box({ w: 1.36, h: 0.16, d: 3.1 }).color(0x0e0e0e).at(0, 0.05, 0);
     // The glasshouse: pillars in the body color behind dark panes that stand a little proud of it.

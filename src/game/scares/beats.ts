@@ -28,6 +28,7 @@ export type Trigger =
  * - `vanish: 'unseen'`: gone the first time it leaves the view after being seen.
  * - `vanish: 'never'`: stays until approached.
  * - The player comes within `near` meters (default 8): it walks off along `leave`, or is gone.
+ * - With `stare`, it walks off the same way that many seconds after it was seen.
  * With `walk`, it walks those points slowly and is gone at the end.
  */
 export interface FigureSpec {
@@ -44,6 +45,16 @@ export interface FigureSpec {
   leave?: Waypoint[];
   /** Gone after this many seconds even if never seen. */
   timeout?: number;
+  /** Seconds it stands looking back once seen, then walks off along `leave`. */
+  stare?: number;
+  /** The eyes light up faintly for a moment once it has been seen, then go dark again. */
+  eyes?: boolean;
+  /** Meters per second for `walk` and `leave`. Defaults to the model's walking speed. */
+  speed?: number;
+  /** When it appears. */
+  onShow?: () => void;
+  /** When it starts to walk off along `leave`. */
+  onLeave?: () => void;
 }
 
 export type Place = Vec2 | 'behind' | 'ahead' | 'left' | 'right';

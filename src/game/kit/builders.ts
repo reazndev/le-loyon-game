@@ -21,6 +21,7 @@ import type { PointLight, PointLightOptions } from '../../engine/render/lighting
 import { createPs1Material, setDefine, type Ps1Material } from '../../engine/render/ps1Material';
 import { DYNAMIC } from '../../engine/render/staticBatch';
 import type { TreeKind, TreeModel } from '../../engine/render/trees';
+import type { Cover } from '../../engine/ui/mapSheet';
 import { stockTrees } from './foliage';
 import type { SceneContext } from '../scene';
 import type { World } from '../world';
@@ -175,6 +176,15 @@ export class MeshBuilder extends Placed {
   cutout(threshold = 0.5): this {
     this.mesh.material.uniforms.uAlphaTest.value = threshold;
     return this;
+  }
+
+  /**
+   * Tells the map what this is when its texture doesn't, such as dark water drawn with mud. Kept
+   * out of batching, which would merge it with other meshes of that texture and lose the mark.
+   */
+  mapAs(cover: Cover): this {
+    this.mesh.userData.mapAs = cover;
+    return this.dynamic();
   }
 
   /** Blocks the player with the object's footprint. */
@@ -457,7 +467,11 @@ export class TriggerBuilder extends Placed {
 export class BarrierBuilder extends Placed {
   constructor(ctx: KitContext, area: Area) {
     super(ctx, new Object3D());
-    ctx.later('register', () => ctx.world.collision.add(areaShape(area, this.object)));
+    ctx.later('register', () => {
+      const shape = areaShape(area, this.object);
+      ctx.world.barriers.add(shape);
+      ctx.world.collision.add(shape);
+    });
   }
 }
 

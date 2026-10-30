@@ -12,6 +12,7 @@ import { arrival, departure } from './postbus';
 import { fountainWater, televisionThroughWall } from './sounds';
 import { tvMurmur } from '../inn/sounds';
 import { squareAmbient } from './ambient';
+import { villageLife } from './people';
 import { streetClutter } from './clutter';
 import { greenery } from './greenery';
 import { hints } from './hints';
@@ -41,14 +42,14 @@ export const villageSquareScene = defineScene({
     kit.ground('grass');
     let lift = (): Promise<void> => Promise.resolve();
     // Everything that stands still goes into one batch; the parts beats move are marked dynamic.
-    const { church, abbe, home, houseTwo, street, innFront } = kit.batch((still) => {
+    const { church, abbe, home, houseTwo, street, innFront, windows } = kit.batch((still) => {
       ground(still);
       greenery(still);
       laiterie(still, night);
       garage(still, night);
-      outlyingHouses(still, night);
       streetClutter(still, night);
       return {
+        windows: outlyingHouses(still, night),
         innFront: inn(still, night),
         church: churchFront(still, ctx, night),
         abbe: presbytery(still, night),
@@ -60,6 +61,7 @@ export const villageSquareScene = defineScene({
     kit.exit({ w: 1, d: 1.8, to: 'house_gremaud', spawn: 'from_square' }).at(GREMAUD_GATE.x + 0.4, 0, GREMAUD_GATE.z);
     exits(kit);
     villagers(kit, ctx, phase);
+    villageLife(kit, ctx, phase, windows);
 
     lift = stageBeats(kit, ctx, phase, {
       curtain: home.curtain,
@@ -111,8 +113,8 @@ function timetable(kit: LevelKit, ctx: SceneContext): void {
 }
 
 /**
- * Who is out of doors. People in Leurs stay inside in November; the child's bicycle is the only
- * sign of the child, and on day 2 it lies in the road. Raymond stands by the fountain on the
+ * Who of the cast is out of doors; the background villagers are in `people.ts`. The child's
+ * bicycle is the only sign of the child of house 2, and on day 2 it lies in the road. Raymond stands by the fountain on the
  * morning of day 2 with Bari, after a night up at the cemetery.
  */
 function villagers(kit: LevelKit, ctx: SceneContext, phase: StoryPhase): void {

@@ -21,7 +21,7 @@ const { values } = parseArgs({
 // One view per scene that shows the most at once, by day and by night.
 const views = [
   { scene: 'village_square', pos: '0,0,9', yaw: 0 },
-  { scene: 'forest_path', pos: '0,0,72.5', yaw: 0 },
+  { scene: 'forest_path', pos: '0,0,29.5', yaw: 0 },
   { scene: 'cemetery' },
   { scene: 'bunker_interior', pos: '9.6,0,-25', yaw: 90, label: 'bunker_interior (mask heap)' },
   { scene: 'bunker_interior', pos: '0,0,-21', yaw: -120, label: 'bunker_interior (corridor, heap behind the wall)' },

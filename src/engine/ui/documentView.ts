@@ -1,5 +1,4 @@
 import { el, setVisible } from './dom';
-import { grainTexture } from './grain';
 
 /** How a document is drawn: a sheet of paper, a ruled notebook page, or a carved stone. */
 export type DocumentLook = 'paper' | 'notebook' | 'stone';
@@ -15,11 +14,14 @@ export interface DocumentPage {
   look: DocumentLook;
 }
 
-const tints: Record<DocumentLook, [number, number, number]> = {
-  paper: [196, 188, 166],
-  notebook: [236, 224, 188],
-  stone: [112, 114, 110],
+/** Each look's textures. Pages alternate between them, so turning a page shows a different sheet. */
+const sheets: Record<DocumentLook, string[]> = {
+  paper: ['paper_sheet_a', 'paper_sheet_b'],
+  notebook: ['notebook_page_a', 'notebook_page_b'],
+  stone: ['gravestone_granite'],
 };
+
+const texture = (name: string) => `url(assets/textures/${name}.png)`;
 
 /** A readable page over a dark backdrop, with its translation underneath. */
 export class DocumentView {
@@ -45,7 +47,10 @@ export class DocumentView {
 
   show(page: DocumentPage): void {
     this.sheet.className = `ui-sheet look-${page.look}`;
-    this.sheet.style.backgroundImage = `url(${grainTexture(...tints[page.look])})`;
+    const names = sheets[page.look];
+    const sheet = texture(names[page.page % names.length]!);
+    // The notebook's page sits in a leather cover drawn under its border.
+    this.sheet.style.backgroundImage = page.look === 'notebook' ? `${sheet}, ${texture('leather_cover')}` : sheet;
     this.title.textContent = page.title;
     this.text.textContent = page.text;
     const counter = page.look === 'notebook' ? `Page ${page.page + 1} of ${page.pages}` : `${page.page + 1} / ${page.pages}`;

@@ -55,18 +55,18 @@ Played if the player walks off the path for more than 20 m: the fog closes in an
 
 Conditions: night 1, all three graves read, `met_raymond`, and Raymond has gone back down. The player stands anywhere in the back half of the cemetery.
 
-A figure stands just outside the back wall, between two spruces, about 15 m from the player, behind the Chassot plot. It is visible only as a dark vertical shape with a paler oval where the face would be (the tan mask). It does not move. There is no sound cue at all; even the forest ambience drops very slightly. Some players will not notice it at first. It stays until the player walks toward it or shines the torch at it.
+A figure stands outside the walls, among the first spruces of the Bois-Noir, about 4.5 m past the back wall and a little right of the back gate. A few spruce trunks stand around the spot. It appears while the player is at least 13 m away, inside the fog, so it comes out of the fog as the player walks toward the back wall. It is visible only as a dark vertical shape with a paler oval where the face would be (the tan mask). A low drone swells in on the music bus as it appears, and the ambience has already dropped out.
 
-When the torch reaches it, it is already turning. The cape swings. It walks through the back gate, slowly, limping on the left leg, and the fog takes it at about 20 m. The back gate is left swinging. It creaks once.
+Once the player has looked straight at it, it stands still and faces them, turning with them if they move. After a second the two lenses of the mask glow a faint cold green, brighten and go dark again over about two seconds. Six seconds after it was seen, it turns stiffly and walks away into the forest, slower than its usual walk, and the fog takes it. Four seconds later the back gate creaks open on its own. The drone holds for 20 seconds after it turns, then fades out over 12, or stops when the player leaves the cemetery.
 
 ### sighting_1
 @speaker: narration
 ! set: first_sighting
 
-> Someone was standing there. Right there, by the wall.
-> The back gate is open. It wasn't open before.
+> Someone was standing out there in the trees. Looking at me.
+> The back gate is open. It wasn't open before. He's going into the forest.
 
-The forest path is now open. If the player goes back to the inn instead of following, the night still ends normally, but the reporter thinks: "I should have followed." (`skipped_follow`). The bunker is then first seen on day 2 by following the heifer's line of sight. Following is the intended path.
+The forest path is now open, and the notebook says to follow him into the forest. If the player goes back to the inn instead of following, the night still ends normally, but the reporter thinks: "I should have followed." (`skipped_follow`). The bunker is then first seen on day 2 by following the heifer's line of sight. Following is the intended path.
 
 ### Following
 

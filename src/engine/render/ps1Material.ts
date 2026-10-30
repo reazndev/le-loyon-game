@@ -23,18 +23,15 @@ uniform vec3 uPointPos[${MAX_POINT_LIGHTS}];
 uniform vec3 uPointColor[${MAX_POINT_LIGHTS}];
 uniform float uPointRange[${MAX_POINT_LIGHTS}];
 uniform int uPointCount;
-uniform vec3 uSpotPos;
-uniform vec3 uSpotDir;
-uniform vec3 uSpotColor;
-uniform float uSpotRange;
-uniform vec2 uSpotCos;
 
 varying vec2 vUv;
 varying vec3 vLight;
 varying vec3 vTint;
 varying vec3 vWorldPos;
+varying vec3 vWorldNormal;
+varying vec3 vViewPos;
+varying vec3 vSnappedViewPos;
 varying float vViewDist;
-varying float vSpotGlow;
 varying vec3 vFogLight;
 
 // Wrapped Lambert: PS1 games lit with plain N.L, but a small wrap keeps back faces from going
@@ -54,12 +51,6 @@ vec3 vertexLight(vec3 p, vec3 n) {
     light += uPointColor[i] * falloff * falloff * diffuse(n, toLight / max(dist, 1e-4));
     vFogLight += uPointColor[i] * falloff * falloff;
   }
-  vec3 toSpot = uSpotPos - p;
-  float spotDist = length(toSpot);
-  vec3 spotL = toSpot / max(spotDist, 1e-4);
-  float cone = smoothstep(uSpotCos.x, uSpotCos.y, dot(-spotL, uSpotDir));
-  float spotFalloff = clamp(1.0 - spotDist / uSpotRange, 0.0, 1.0);
-  light += uSpotColor * cone * spotFalloff * spotFalloff * diffuse(n, spotL);
   return light;
 }
 
@@ -95,11 +86,18 @@ void main() {
     clip.xy = floor(clip.xy / clip.w * grid + 0.5) / grid * clip.w;
   }
   gl_Position = clip;
+  vViewPos = viewPos.xyz;
+  // The snapped vertex back in view space. Interpolated, it gives each pixel's view ray.
+  vSnappedViewPos = vec3(
+    (clip.x - projectionMatrix[2][0] * viewPos.z) / projectionMatrix[0][0],
+    (clip.y - projectionMatrix[2][1] * viewPos.z) / projectionMatrix[1][1],
+    viewPos.z);
 
   // Perspective-correct, unlike the PS1: its affine warp bent textures badly up close.
   vUv = uv * uUvScale;
 
   vWorldPos = world;
+  vWorldNormal = worldNormal;
   vViewDist = length(viewPos.xyz);
 
   #ifdef UNLIT
@@ -116,13 +114,12 @@ void main() {
   #ifdef USE_INSTANCING_COLOR
     vTint *= instanceColor;
   #endif
-
-  float spotView = dot(normalize(world - uSpotPos), uSpotDir);
-  vSpotGlow = smoothstep(uSpotCos.x, uSpotCos.y, spotView) * clamp(1.0 - vViewDist / uSpotRange, 0.0, 1.0);
 }
 `;
 
 const fragmentShader = /* glsl */ `
+// three.js declares this one only in the vertex shader.
+uniform mat4 projectionMatrix;
 uniform sampler2D uMap;
 uniform vec3 uColor;
 uniform vec3 uEmissive;
@@ -133,7 +130,11 @@ uniform float uFogNear;
 uniform float uFogFar;
 uniform float uFogDensity;
 uniform float uFogWisps;
+uniform vec3 uSpotPos;
+uniform vec3 uSpotDir;
 uniform vec3 uSpotColor;
+uniform float uSpotRange;
+uniform vec2 uSpotCos;
 uniform float uSpotFogGlow;
 uniform float uLightFogGlow;
 
@@ -141,9 +142,37 @@ varying vec2 vUv;
 varying vec3 vLight;
 varying vec3 vTint;
 varying vec3 vWorldPos;
+varying vec3 vWorldNormal;
+varying vec3 vViewPos;
+varying vec3 vSnappedViewPos;
 varying float vViewDist;
-varying float vSpotGlow;
 varying vec3 vFogLight;
+
+float diffuse(vec3 n, vec3 l) {
+  return clamp((dot(n, l) + 0.25) / 1.25, 0.0, 1.0);
+}
+
+// The flashlight is lit per pixel, unlike the lamps: per vertex its spot hopped between vertices.
+vec3 spotLight() {
+  vec3 toSpot = uSpotPos - vWorldPos;
+  float spotDist = length(toSpot);
+  vec3 spotL = toSpot / max(spotDist, 1e-4);
+  float cone = smoothstep(uSpotCos.x, uSpotCos.y, dot(-spotL, uSpotDir));
+  float falloff = clamp(1.0 - spotDist / uSpotRange, 0.0, 1.0);
+  return uSpotColor * cone * falloff * falloff * diffuse(normalize(vWorldNormal), spotL);
+}
+
+// Snapping moves vertices on screen but not in depth, so close surfaces such as a rug on a floor
+// swap places. This puts back the depth of the true, unsnapped surface along this pixel's ray.
+float trueDepth() {
+  vec3 n = cross(dFdx(vViewPos), dFdy(vViewPos));
+  float facing = dot(vSnappedViewPos, n);
+  // Edge-on to the view, the ray barely meets the plane; keep the rasterized depth.
+  if (abs(facing) < 1e-3 * length(vSnappedViewPos) * length(n)) return gl_FragCoord.z;
+  vec3 hit = vSnappedViewPos * (dot(vViewPos, n) / facing);
+  vec4 clip = projectionMatrix * vec4(hit, 1.0);
+  return clamp(clip.z / clip.w * 0.5 + 0.5, 0.0, 1.0);
+}
 
 float hash3(vec3 p) {
   p = fract(p * 0.3183099 + 0.1);
@@ -181,10 +210,18 @@ void main() {
     gl_FragColor = vec4(texel.rgb * texel.a * uColor * (1.0 - fog * 0.6), 1.0);
   #else
     if (texel.a < uAlphaTest) discard;
+    gl_FragDepth = trueDepth();
+    #ifdef UNLIT
+      vec3 light = vLight;
+    #else
+      vec3 light = vLight + spotLight();
+    #endif
     // Light can reach 2x, like PS1 vertex colors where 128 meant full brightness.
-    vec3 lit = texel.rgb * uColor * vTint * min(vLight, vec3(2.0)) + uEmissive;
+    vec3 lit = texel.rgb * uColor * vTint * min(light, vec3(2.0)) + uEmissive;
     // Lamps and the flashlight brighten the fog near what they light.
-    vec3 fogColor = uFogColor + uSpotColor * vSpotGlow * uSpotFogGlow + vFogLight * uLightFogGlow;
+    float spotGlow = smoothstep(uSpotCos.x, uSpotCos.y, dot(normalize(vWorldPos - uSpotPos), uSpotDir))
+      * clamp(1.0 - vViewDist / uSpotRange, 0.0, 1.0);
+    vec3 fogColor = uFogColor + uSpotColor * spotGlow * uSpotFogGlow + vFogLight * uLightFogGlow;
     gl_FragColor = vec4(mix(lit, fogColor, fog), 1.0);
   #endif
 }

@@ -22,7 +22,7 @@ export function greenery(kit: LevelKit): void {
     .collider()
     .shade(0.12);
   const lime = (seed: string) => bareTree(seed, { height: 10, crownBase: 3, leaves: 0.15 });
-  kit.trees([lime('yerly-road-a'), lime('yerly-road-b')], [{ x: 30, z: 16, yaw: 40 }, { x: 40, z: 7.5, scale: 0.9 }]).collider();
+  kit.trees([lime('yerly-road-a'), lime('yerly-road-b')], [{ x: 30, z: 16, yaw: 40 }, { x: 34, z: 7.5, scale: 0.9 }]).collider();
 
   const verge = ['a', 'b', 'c'].map((seed) => thicket(`yerly-verge-${seed}`, { length: 2.2, depth: 0.8, count: 9, plants: VERGE_PLANTS }));
   const lines: [number, number][][] = [
@@ -31,8 +31,8 @@ export function greenery(kit: LevelKit): void {
     [[FIELD.x0, FIELD.z0 + 0.5], [FIELD.x1, FIELD.z0 + 0.5]],
     [[FIELD.x0, FIELD.z1 - 0.5], [FIELD.x1, FIELD.z1 - 0.5]],
     // Both sides of the road in from the village.
-    [[24, 9.6], [53, 9.6]],
-    [[24, 14.4], [53, 14.4]],
+    [[24, 9.6], [38, 9.6]],
+    [[24, 14.4], [38, 14.4]],
   ];
   kit.trees(verge, lines.flatMap((line, i) => spotsAlong(line, { step: 1.8, seed: `yerly-verge-${i}`, jitter: 0.25, scale: [0.8, 1.25] })));
   // Bramble got into the fences in places, and a hedge of sorts grows behind the henhouse.

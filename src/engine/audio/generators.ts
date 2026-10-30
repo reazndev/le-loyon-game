@@ -81,6 +81,53 @@ export function drone(audio: AudioManager, options: GeneratorOptions = {}): Soun
   };
 }
 
+export interface DreadOptions extends GeneratorOptions {
+  /** Seconds to swell in from silence. */
+  swell?: number;
+}
+
+/**
+ * A score bed for a sighting: a low beating drone on D with a dark fifth over it, and far above,
+ * a minor second that drifts in and out. On the music bus unless told otherwise.
+ */
+export function dread(audio: AudioManager, options: DreadOptions = {}): SoundHandle {
+  const volume = options.volume ?? 0.4;
+  const output = audio.output({ bus: options.bus ?? 'music', volume: 0 });
+  output.input.gain.setValueAtTime(0, audio.now);
+  output.input.gain.linearRampToValueAtTime(volume, audio.now + (options.swell ?? 6));
+  const ctx = audio.context;
+
+  const low = new BiquadFilterNode(ctx, { type: 'lowpass', frequency: 170, Q: 1.2 });
+  const lowLevel = new GainNode(ctx, { gain: 0.55 });
+  low.connect(lowLevel).connect(output.input);
+  const bed = [
+    new OscillatorNode(ctx, { type: 'sawtooth', frequency: 36.7 }),
+    new OscillatorNode(ctx, { type: 'sawtooth', frequency: 37.15 }),
+    new OscillatorNode(ctx, { type: 'triangle', frequency: 55.1 }),
+  ];
+  // The two notes a semitone apart beat against each other, the sound of something wrong far off.
+  const high = new GainNode(ctx, { gain: 0.03 });
+  high.connect(output.input);
+  const far = [new OscillatorNode(ctx, { frequency: 293.7 }), new OscillatorNode(ctx, { frequency: 311.1 })];
+  bed.forEach((tone) => tone.connect(low));
+  far.forEach((tone) => tone.connect(high));
+  [...bed, ...far].forEach((tone) => tone.start());
+
+  const sources = [
+    ...bed,
+    ...far,
+    lfo(audio, 0.043, 70, low.frequency),
+    lfo(audio, 0.027, 0.18, lowLevel.gain),
+    lfo(audio, 0.061, 0.03, high.gain),
+  ];
+  return {
+    stop: (fade = 6) => {
+      output.release(fade);
+      stopAll(sources, audio.now + fade + 0.1);
+    },
+  };
+}
+
 export interface CrackleOptions extends GeneratorOptions {
   /** Average seconds between bursts. */
   interval?: number;

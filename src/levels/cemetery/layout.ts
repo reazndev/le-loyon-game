@@ -23,6 +23,11 @@ export const EAST_X = GROUNDS.x + GROUNDS.w / 2;
 export const FRONT_GATE = { x: 0, z: FRONT_Z, w: 2.6 };
 export const BACK_GATE = { x: -8.5, z: BACK_Z, w: 1.3 };
 export const PATH_WIDTH = 2;
+/**
+ * Where Le Loyon stands on night 1: outside the walls, among the first spruces past the back gate.
+ * Close enough to the wall that the night fog still shows him to a reporter in the back rows.
+ */
+export const SIGHTING = { x: BACK_GATE.x + 2.5, z: BACK_Z - 4.5 };
 
 /** The z of each row's stones, front row first. Row 5 stands against the forest wall. */
 export const ROWS = [9, 4, -1, -6, -11] as const;

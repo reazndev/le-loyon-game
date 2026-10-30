@@ -11,15 +11,15 @@ describe('pickHint', () => {
   ];
 
   it('prefers a clue tied to the spot over one for the whole scene', () => {
-    expect(pickHint(hints, new GameState(), { x: 1, z: 1 })).toBe('by the gate');
-    expect(pickHint(hints, new GameState(), { x: 5, z: 0 })).toBe('whole scene');
+    expect(pickHint(hints, new GameState(), { x: 1, z: 1 })?.text).toBe('by the gate');
+    expect(pickHint(hints, new GameState(), { x: 5, z: 0 })?.text).toBe('whole scene');
   });
 
   it('skips clues whose story state or live check does not hold', () => {
     const state = new GameState();
-    expect(pickHint(hints, state, { x: 10, z: 0 })).toBe('whole scene');
+    expect(pickHint(hints, state, { x: 10, z: 0 })?.text).toBe('whole scene');
     state.setFlag('arrived');
-    expect(pickHint(hints, state, { x: 10, z: 0 })).toBe('after arriving');
+    expect(pickHint(hints, state, { x: 10, z: 0 })?.text).toBe('after arriving');
   });
 
   it('gives nothing when no clue applies', () => {

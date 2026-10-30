@@ -110,7 +110,7 @@ interface Joints {
   shins: [Object3D, Object3D];
 }
 
-/** Builds a villager from boxes: about 300 triangles, posed by turning joint pivots. */
+/** Builds a villager from boxes: about 700 triangles, posed by turning joint pivots. */
 export function buildHuman(look: HumanLook, textures: TextureLibrary): CharacterModel {
   const g = look.build ?? 1;
   const materials = new Map<string, ReturnType<typeof partMaterial>>();
@@ -146,22 +146,31 @@ export function buildHuman(look: HumanLook, textures: TextureLibrary): Character
     thigh.add(part(taperedBox({ w: 0.15 * g, d: 0.17 * g }, { w: 0.12, d: 0.13 }, 0, -0.42), legColor));
     const shin = joint(thigh, 0, -0.42);
     shin.add(part(taperedBox({ w: 0.12, d: 0.13 }, { w: 0.09, d: 0.1 }, 0, -0.34), look.skirt ? look.legs : legColor));
-    shin.add(part(block(0.11, 0.25, -0.34, -0.41, -0.05), look.shoes));
+    // A shoe that is low at the heel and long at the toe, on a darker sole.
+    shin.add(part(taperedBox({ w: 0.1, d: 0.13 }, { w: 0.112, d: 0.26, z: -0.055 }, -0.33, -0.395), look.shoes));
+    shin.add(part(block(0.118, 0.27, -0.395, -0.41, -0.055), multiply(look.shoes, 0x606060)));
     return shin;
   }) as [Group, Group];
 
   const arms = [-1, 1].map((side) => joint(chest, side * (0.2 * g + 0.04), TORSO - 0.05)) as [Group, Group];
-  const forearms = arms.map((arm) => {
+  const forearms = arms.map((arm, i) => {
+    const side = i ? 1 : -1;
     arm.add(part(taperedBox({ w: 0.1, d: 0.11 }, { w: 0.085, d: 0.09 }, 0.04, -0.3), topColor));
     const forearm = joint(arm, 0, -0.3);
     forearm.add(part(taperedBox({ w: 0.085, d: 0.09 }, { w: 0.07, d: 0.075 }, 0, -0.26), topColor));
-    forearm.add(part(block(0.065, 0.08, -0.26, -0.35), skin));
+    // A hand hanging flat to the thigh, the fingers curled in a little and the thumb forward.
+    forearm.add(part(taperedBox({ w: 0.04, d: 0.085 }, { w: 0.034, d: 0.078 }, -0.255, -0.33), skin));
+    forearm.add(part(taperedBox({ w: 0.032, d: 0.075, z: 0.004 }, { w: 0.024, d: 0.05, z: 0.014 }, -0.33, -0.375), skin));
+    forearm.add(part(block(0.02, 0.024, -0.265, -0.315, -0.046).translate(-side * 0.01, 0, 0), skin));
     return forearm;
   }) as [Group, Group];
 
   const head = joint(chest, 0, NECK);
   const [front, skull] = splitFront(lathe(HEAD_RINGS, HEAD_SIDES), 0.55);
-  head.add(part(projectFront(front, FACE_BOX), { color: look.faceTint ?? 0xffffff, map: textures.get(look.face), tile: 1 }));
+  const face = { color: look.faceTint ?? 0xffffff, map: textures.get(look.face), tile: 1 };
+  head.add(part(projectFront(front, FACE_BOX), face));
+  // The nose takes the face picture too, so it is colored where the photo has the nose and shows the face in profile.
+  head.add(part(projectFront(taperedBox({ w: 0.02, d: 0.012, z: -0.112 }, { w: 0.03, d: 0.03, z: -0.12 }, 0.17, 0.12), FACE_BOX), face));
   head.add(part(skull, headSkin));
 
   const covered = look.hat?.kind === 'headscarf' || look.hat?.kind === 'hood';
@@ -170,7 +179,7 @@ export function buildHuman(look: HumanLook, textures: TextureLibrary): Character
   const shell: PartFactory = (geometry, style) => part(geometry, { ...(typeof style === 'number' ? { color: style } : style), side: DoubleSide });
   addHair(head, look, shell);
   if (look.hat) addHat(head, chest, look.hat, shell);
-  addClothes({ body, chest }, look, g, part);
+  addClothes({ body, chest }, look, g, part, shell);
 
   root.scale.setScalar((look.height ?? 1.74) / BASE_HEIGHT);
   const scale = root.scale.x;
@@ -251,19 +260,47 @@ function addHat(head: Object3D, chest: Object3D, hat: NonNullable<HumanLook['hat
   }
 }
 
-function addClothes(joints: { body: Object3D; chest: Object3D }, look: HumanLook, g: number, part: PartFactory): void {
+function addClothes(joints: { body: Object3D; chest: Object3D }, look: HumanLook, g: number, part: PartFactory, shell: PartFactory): void {
   const { body, chest } = joints;
-  if (look.coat) {
-    body.add(part(taperedBox({ w: 0.36 * g, d: 0.25 * g }, { w: 0.46 * g, d: 0.36 * g }, WAIST + 0.02, -look.coat.length), look.coat.color));
+  // The chest is deeper at the top or the bottom depending on build; things worn on it sit on the deeper end.
+  const chestFront = -Math.max(0.11 * g, 0.1 * g * g) - 0.006;
+  if (look.hat?.kind !== 'hood') {
+    // A shirt collar, or the coat's, standing round the neck and open at the throat.
+    const collar: Ring[] = [
+      { y: TORSO - 0.03, rx: 0.085 * g, rz: 0.08 * g, z: 0.005 },
+      { y: TORSO + 0.03, rx: 0.068, rz: 0.066, z: 0.008 },
+    ];
+    chest.add(shell(lathe(collar, HEAD_SIDES, [0.08, 0.92]), look.coat?.color ?? look.top));
+  }
+  const coat = look.coat;
+  if (coat) {
+    body.add(part(taperedBox({ w: 0.36 * g, d: 0.25 * g }, { w: 0.46 * g, d: 0.36 * g }, WAIST + 0.02, -coat.length), coat.color));
+    // Lapels meeting in a V, and the buttons below them.
+    [-1, 1].forEach((side) => chest.add(part(block(0.05, 0.012, -0.1, 0.1).rotateZ(-side * 0.35).translate(side * 0.045, TORSO - 0.12, chestFront), multiply(coat.color, 0xb0b0b0))));
+    [0.04, 0.12, 0.2].forEach((y) => chest.add(part(block(0.018, 0.01, y, y + 0.018, chestFront - 0.004), 0x161412)));
+  } else if (!look.skirt && look.overalls === undefined) {
+    // A belt with a buckle where the shirt meets the trousers.
+    body.add(part(block(0.33 * g, 0.21 * g, WAIST - 0.015, WAIST + 0.02), 0x1e1a16));
+    body.add(part(block(0.04, 0.01, WAIST - 0.012, WAIST + 0.017, -0.105 * g - 0.004), 0x8a8270));
   }
   if (look.skirt) {
     body.add(part(taperedBox({ w: 0.34 * g, d: 0.23 * g }, { w: 0.44 * g, d: 0.33 * g }, WAIST + 0.03, -look.skirt.length), look.skirt.color));
   }
   if (look.overalls !== undefined) {
-    chest.add(part(block(0.26 * g, 0.02, 0.0, TORSO * 0.62, -0.11 * g - 0.008), look.overalls));
+    const overalls = look.overalls;
+    chest.add(part(block(0.26 * g, 0.02, 0.0, TORSO * 0.62, chestFront), overalls));
+    chest.add(part(block(0.1 * g, 0.006, TORSO * 0.35, TORSO * 0.55, chestFront - 0.012), multiply(overalls, 0xc8c8c8)));
+    // Braces from the bib up over the shoulders.
+    [-1, 1].forEach((side) => {
+      chest.add(part(block(0.04, 0.012, TORSO * 0.6, TORSO + 0.008, chestFront).translate(side * 0.085 * g, 0, 0), overalls));
+      chest.add(part(block(0.04, 0.22 * g + 0.012, TORSO, TORSO + 0.012).translate(side * 0.085 * g, 0, 0), overalls));
+    });
   }
   if (look.apron !== undefined) {
     body.add(part(block(0.3 * g, 0.02, -0.5, WAIST + 0.04, -0.17 * g), look.apron));
+    // A bib on the chest and the strings tied round the waist.
+    chest.add(part(block(0.22 * g, 0.012, 0, TORSO * 0.72, chestFront), look.apron));
+    body.add(part(block(0.35 * g, 0.25 * g, WAIST + 0.01, WAIST + 0.035), look.apron));
   }
   if (look.collar !== undefined) {
     chest.add(part(block(0.045, 0.02, TORSO - 0.01, NECK + 0.02, -0.055), look.collar));

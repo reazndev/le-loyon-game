@@ -1,4 +1,4 @@
-import { ConeGeometry } from 'three';
+import { ConeGeometry, type Object3D } from 'three';
 import type { MeshBuilder, Placed } from '../../game/kit/builders';
 import type { LevelKit } from '../../game/kit/levelKit';
 import type { SceneContext } from '../../game/scene';
@@ -298,14 +298,20 @@ export function doorHouses(kit: LevelKit, ctx: SceneContext, night: boolean): Ho
   return { upstairs: parts.upstairs ?? null };
 }
 
-/** Farms and houses further out, mostly in the fog: lit kitchens by day, nearly all dark at night. */
-export function outlyingHouses(kit: LevelKit, night: boolean): void {
-  const lit = (slots: string[]) => (slot: WindowSlot): WindowLook => {
+/**
+ * Farms and houses further out, mostly in the fog: lit kitchens by day, and at night a few
+ * bedrooms still lit upstairs. Returns the lit panes, so the scene can switch them on and off.
+ */
+export function outlyingHouses(kit: LevelKit, night: boolean): Object3D[] {
+  const panes: Object3D[] = [];
+  const capture = (_: WindowSlot, part: MeshBuilder) => panes.push(part.object);
+  const lit = (slots: string[], late: string[] = []) => (slot: WindowSlot): WindowLook => {
     const key = `${slot.face}:${slot.floor}:${slot.col}`;
+    if (night && late.includes(key)) return 'lit';
     if (slots.includes(key)) return night ? 'dark' : 'lit';
     return night && slot.floor === 0 ? 'shut' : 'dark';
   };
-  const farm = (x: number, z: number, yaw: number, litSlots: string[], wall: number = palette.render) => {
+  const farm = (x: number, z: number, yaw: number, litSlots: string[], wall: number = palette.render, late: string[] = []) => {
     house(kit, {
       w: 10,
       d: 9,
@@ -317,7 +323,8 @@ export function outlyingHouses(kit: LevelKit, night: boolean): void {
       gable: 'boards',
       wall,
       shutter: palette.shutterGreen,
-      window: lit(litSlots),
+      window: lit(litSlots, late),
+      capture,
     })
       .at(x, 0, z)
       .rotY(yaw);
@@ -331,11 +338,11 @@ export function outlyingHouses(kit: LevelKit, night: boolean): void {
       .at(x - Math.sin((yaw * Math.PI) / 180) * 10.5, 0, z - Math.cos((yaw * Math.PI) / 180) * 10.5)
       .rotY(yaw);
   };
-  farm(-35, -6, 90, ['front:0:0']);
+  farm(-35, -6, 90, ['front:0:0'], palette.render, ['front:1:2']);
   farm(-34, 26, 180, ['right:0:1'], palette.renderWarm);
   farm(24, 44, -90, ['front:0:2']);
 
-  const small = (x: number, z: number, yaw: number, litSlots: string[]) =>
+  const small = (x: number, z: number, yaw: number, litSlots: string[], late: string[] = []) =>
     house(kit, {
       w: 8,
       d: 7,
@@ -345,11 +352,13 @@ export function outlyingHouses(kit: LevelKit, night: boolean): void {
       doors: [0],
       wall: palette.render,
       shutter: palette.shutterBrown,
-      window: lit(litSlots),
+      window: lit(litSlots, late),
+      capture,
     })
       .at(x, 0, z)
       .rotY(yaw);
-  small(25, -19, -90, ['front:0:0', 'front:1:2']);
-  small(-11, 42, 90, ['front:0:2']);
+  small(25, -19, -90, ['front:0:0', 'front:1:2'], ['front:1:0']);
+  small(-11, 42, 90, ['front:0:2'], ['front:1:2']);
   small(-22, -27, 90, []);
+  return panes;
 }

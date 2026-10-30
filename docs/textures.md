@@ -31,6 +31,8 @@ All in `public/assets/textures/`. Tiling textures are 128x128 unless noted.
 | Sprites with alpha | `tree_spruce`, `tree_beech_bare`, `tree_birch` (96 px wide, tall), `fern_dead`, `bush`, `grass_tuft` (64 px wide) |
 | Foliage cards with alpha, for dense forest | `branch_spruce` (cut off at its top edge; hide that edge against the trunk), `branch_spruce_full` (whole horizontal spray with clean edges, 96x72, for cards that turn freely), `branch_beech`, `bramble`, `undergrowth` (96 px wide; undergrowth has a flat bottom edge meant to sit in the ground), `ivy_clump`, `hanging_lichen`, `sapling_spruce` (64 px), `tree_dead_snag` (96 px, tall), `leaf_cluster`, `tree_larch` |
 | Forest tiling | `spruce_wall` (a wall of dark spruce branches for far layers), `moss_floor` |
+| UI paper, not tiling, stretched over the sheet | `notebook_page_a`, `notebook_page_b` (150 px), `paper_sheet_a`, `paper_sheet_b` (184 px), `photo_card` (136 px). Pages alternate between the a and b sheets |
+| UI tiling | `leather_cover` (64 px, the notebook's cover) |
 | NPC faces, 64x64 | `face_priest`, `face_farmer`, `face_innkeeper`, `face_mechanic`, `face_old_woman`, `face_watchman`, `face_young_woman`, `face_young_man`, `face_driver`, `face_shopkeeper`, `face_widow` |
 | Forum photos | `photo_sighting_path`, `photo_sighting_field`, `photo_sighting_cemetery` (320 px JPEG, low quality on purpose) in `public/assets/photos/`, for the 90s web pages |
 
@@ -50,4 +52,5 @@ FLORA balance on 2026-10-30: $5.13. Budget for the build: $4.50.
 | 2026-10-30 | Monique's new portrait, a clean spruce branch | FLUX 3 Image Klein | 2 | $0.018 |
 | 2026-10-30 | Pixel compass body and needle | FLUX 3 Image Klein | 2 | $0.018 |
 | 2026-10-30 | Pixel compass redo, grimier and lower resolution | GPT Image 2.5 | 2 | $0.11 |
-| | **Total** | | 79 | **$0.95** |
+| 2026-10-30 | Notebook pages, loose paper, leather cover, photo card | FLUX 3 Image Klein | 6 | $0.054 |
+| | **Total** | | 85 | **$1.00** |

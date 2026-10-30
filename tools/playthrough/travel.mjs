@@ -6,18 +6,18 @@ import { StageError } from './session.mjs';
 export const exits = {
   squareToPath: [-10, -40, 0, 'cemetery_path'],
   pathToCemetery: [0, -36.5, 0, 'cemetery'],
-  pathToSquare: [-7, 46, 90, 'village_square'],
+  pathToSquare: [-7, -15, 90, 'village_square'],
   cemeteryToPath: [0, 15, 180, 'cemetery_path'],
   cemeteryToForest: [-8.5, -13.5, 0, 'forest_path'],
-  forestToFort: [16, -45, 0, 'bunker_exterior'],
-  forestToCemetery: [0, 73, 180, 'cemetery'],
+  forestToFort: [11.5, -21.5, 0, 'bunker_exterior'],
+  forestToCemetery: [0, 30, 180, 'cemetery'],
   fortToForest: [0, 25, 180, 'forest_path'],
   squareToGremaud: [10, 13.5, -90, 'house_gremaud'],
-  squareToYerly: [4.6, 51, 180, 'yerly_farm'],
-  yerlyToSquare: [45, 12, -90, 'village_square'],
+  squareToYerly: [4.6, 39, 180, 'yerly_farm'],
+  yerlyToSquare: [35, 12, -90, 'village_square'],
   gremaudToSquare: [-0.4, 15.5, 180, 'village_square'],
   fortInsideToOutside: [0, -1.5, 180, 'bunker_exterior'],
-  larchToFort: [0, 31.5, 180, 'bunker_exterior'],
+  larchToFort: [0, 17, 180, 'bunker_exterior'],
 };
 export const walk = (s, exit) => s.walkOut(...exit);
 

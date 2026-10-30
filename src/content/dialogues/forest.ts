@@ -23,8 +23,8 @@ export const nodes = {
   sighting_1: {
     effects: { set: 'first_sighting' },
     lines: [
-      'Someone was standing there. Right there, by the wall.',
-      "The back gate is open. It wasn't open before.",
+      'Someone was standing out there in the trees. Looking at me.',
+      "The back gate is open. It wasn't open before. He's going into the forest.",
     ],
   },
   heifer_found: {

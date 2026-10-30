@@ -269,10 +269,10 @@ const heifer = {
   async play(s) {
     await walk(s, exits.squareToYerly);
     // P3: Marquise at the forest edge above the field. Walking up to her makes her follow.
-    await s.teleport(-59, -8, 90);
+    await s.teleport(-39, -8, 90);
     await s.until(() => window.__game.state().flags.includes('heifer_found'), 'Marquise to notice the reporter');
     await s.shot('12-heifer');
-    await s.teleport(-50, -6, -90);
+    await s.teleport(-30, -6, -90);
     await s.seconds(3);
     await s.talkTo('bernard', 'At the forest edge', 'You carried his coffin');
     if (!(await s.state()).inventory.includes('shovel')) await s.talkTo('bernard');

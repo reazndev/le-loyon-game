@@ -6,7 +6,7 @@ The anticipation beats, area by area and stage by stage. This file is the brief 
 
 1. **Wait.** Most of the game is quiet walking in fog. The player should spend long stretches waiting for something that doesn't come. A beat only works if the minutes before it were empty.
 2. **Sound first.** Hear it before you see it, and usually only hear it. Footsteps that aren't yours, a branch, a bell, breathing through rubber, and silence where there should be sound.
-3. **No music cues.** No sting when a figure appears. Nothing tells the player "this is a scare". Some players will miss half the sightings, and that is correct.
+3. **No music cues.** No sting when a figure appears. Nothing tells the player "this is a scare". Some players will miss half the sightings, and that is correct. The one exception is the first sighting (`cem1_back_wall`): a low drone swells in slowly as he appears and fades a while after he leaves. It is a bed, not a sting.
 4. **Distance.** Le Loyon is almost always 12 m or more away, at the edge of the fog, and blurred by it. Before the hidden room he is never closer than 8 m and never fully lit.
 5. **Wrong movement.** When he moves, it is slow, stiff, a limp on the left leg. He never runs toward the player. He never runs at all, except once in the forced-photo branch, away.
 6. **Change behind you.** Tank controls make turning slow. Use it. Things change while the player's back is turned: a gate that was shut is open, an object has moved, a figure was there and isn't.
@@ -162,7 +162,7 @@ The church is the one safe place. Use it as a rest.
 | `cem1_lantern` | Entering | Daniel's lantern is the only light. The player sees it from the gate, a red point in the black. | Real. Marc lit it within the hour. |
 | `cem1_silence` | Reading the first grave | Ambient fades over a minute to nothing. | Builds to jumpscare 1. |
 | `cem1_dog` | Reading a grave in rows 2 to 4, back to the gate | Jumpscare 1. | Raymond and Bari. |
-| `cem1_back_wall` | All graves read, Raymond gone | The first sighting. A figure behind the back wall by the Chassot plot. Silence drop, no cue. It stays until approached or lit, then turns and walks into the forest through the back gate, limping. | Real. `first_sighting`. |
+| `cem1_back_wall` | All graves read, Raymond gone | The first sighting. A figure outside the walls among the spruces, 4.5 m past the back wall, right of the back gate. Silence drop, then a low drone swells in. Once seen, it stands facing the player for six seconds while its mask lenses glow faintly and go dark, then walks slowly into the forest. The back gate creaks open on its own and the reporter is told to follow. The drone fades 20 s later. | Real. `first_sighting`. |
 | `cem1_photo` | Any photo before the sighting | Photo 7 develops with a figure in it. | Real. Marc was there. Confirmed by his notebook. |
 
 ### Cemetery, night 2: the dig

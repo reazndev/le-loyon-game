@@ -19,8 +19,9 @@ export function hints(kit: LevelKit, ctx: SceneContext, { larch, grave, offTrack
   kit.hint('Take a photo of the cross before you go.', {
     if: { ...found, item: 'polaroid_camera', notItem: 'photo_forest_grave' },
     near: { ...grave, r: 4 },
+    point: grave,
   });
-  kit.hint('A long low pile of stones lies under the larch. Look closer.', { if: climbing, near: { ...larch, r: 9 } });
-  kit.hint('Follow the track uphill. The larch is gold among the black spruce.', { if: climbing });
+  kit.hint('A long low pile of stones lies under the larch. Look closer.', { if: climbing, near: { ...larch, r: 9 }, point: grave });
+  kit.hint('Follow the track uphill. The larch is gold among the black spruce.', { if: climbing, point: larch });
   kit.hint('Go back down the track to the barn, then the path to the village.');
 }

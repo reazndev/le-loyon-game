@@ -1,5 +1,6 @@
 import { Vector3 } from 'three';
 import type { NotebookGoal } from '../content';
+import type { LiveHint } from './liveHint';
 import type { World } from './world';
 
 /** Which scenes open onto which. The compass walks this to find the next door toward a goal. */
@@ -37,10 +38,12 @@ export function nextScene(from: string, to: string): string | null {
 }
 
 /**
- * Where the compass points for a step: the person in the scene where the step happens, or the
- * nearest way out toward that scene. Null when there is nothing to point at.
+ * Where the compass points: the spot the clue on screen sends the player to, else the person in
+ * the scene where the step happens, else the nearest way out toward that scene. Null when there
+ * is nothing to point at.
  */
-export function compassTarget(world: World, scene: string, step: NotebookGoal | undefined, from: Vector3): Vector3 | null {
+export function compassTarget(world: World, scene: string, step: NotebookGoal | undefined, hint: LiveHint | null, from: Vector3): Vector3 | null {
+  if (hint?.point) return new Vector3(hint.point.x, from.y, hint.point.z);
   if (!step?.to) return null;
   if (step.to === scene) {
     const person = step.who ? world.scene.getObjectByName(step.who) : undefined;

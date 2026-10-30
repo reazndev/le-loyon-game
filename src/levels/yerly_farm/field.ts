@@ -21,7 +21,7 @@ export function land(kit: LevelKit): void {
     .at(cx, 0, cz)
     .walkable('grass');
   trailStrip(kit, forestTrack, 1.4, fieldHeight);
-  const tufts = scatter({ x: -30, z: -6, w: 90, d: 50, count: 520, seed: 'yerly-tufts', spacing: 1.2, scale: [0.6, 1.3], avoid: (x, z) => x > -18 && z > -14 && z < 16 });
+  const tufts = scatter({ x: -20, z: -6, w: 70, d: 50, count: 400, seed: 'yerly-tufts', spacing: 1.2, scale: [0.6, 1.3], avoid: (x, z) => x > -18 && z > -14 && z < 16 });
   billboards(kit, { texture: 'grass_tuft', w: 0.85, h: 0.5, color: 0x7c7e68, sink: 0.05 }, tufts);
 }
 
@@ -82,12 +82,12 @@ export function forestEdge(kit: LevelKit): void {
   undergrowth(kit, area, { seed: 'yerly-edge-tall', count: 300, mix: tallPlants, spacing: 1.1, avoid: underTrees(1.9) });
   mossPatches(kit, fieldHeight, scatter({ ...area, count: 30, seed: 'yerly-edge-moss', spacing: 2.4, avoid: (x, z) => x > FOREST_EDGE || underTrees(1.4)(x, z) }));
   [
-    [-63, -15, 0.5],
-    [-65, 2, 0.7],
-    [-70, -12, 0.45],
+    [-43, -15, 0.5],
+    [-45, 2, 0.7],
+    [-50, -12, 0.45],
   ].forEach(([x, z, size], i) => rock(kit, x!, z!, size!, `yerly-rock-${i}`));
   kit.trees('bare', [
-    { x: -40, z: -19.5, scale: 0.9 },
+    { x: -35, z: -19.5, scale: 0.9 },
     { x: -28, z: 6.5, scale: 0.8, yaw: 120 },
   ]).shade(0.1);
 }

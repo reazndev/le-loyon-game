@@ -60,6 +60,22 @@ Each preset takes overrides: `particles(kit, drizzle({ count: 800 }))`. The spec
 
 `rustle(audio, 'bush' | 'leaves', { at, volume })` plays one rustle from the undergrowth. `animalCall(audio, animal, { at, volume, bus })` plays one call: a random take at a slightly different pitch each time. The files are trimmed takes in `public/assets/audio/wild/`; the source recordings and their licenses are in `docs/credits.md`.
 
+## Villagers
+
+`src/game/village/` holds the people of Leurs who are not in the script, and the signs that the houses are lived in.
+
+`walker(kit, { look, route, ... })` in `walker.ts` is someone going about their day in the background. `look` is a key of `folk` in `folk.ts`: `shopper`, `farmer`, `smoker`, `sweeper`, `cyclist`, `neighbour`, `childA`, `childB`, and `late`. The walker builds a villager with `buildHuman` and walks the route with the `Character` walk cycle, from the first stop to the last. It then waits `rest` seconds out of sight and walks the route back the other way. A stop with `door: true` is a house door: the walker comes out of it or goes in, and the door is heard shutting. Put the other route ends in the fog. A walker appears and vanishes only when the player is more than 16 m away, and walks on past the end until then. No one can be talked to.
+
+- Walkers stop when the player is in their way, step round them after a second or so, and turn their heads to the stranger within 5 m. A rider rings the bell instead.
+- Footsteps come from the ground under each step, heard within 18 m.
+- Options: `inHand` (a bag or a broom), `inFront` (a barrow), `rides` (a bicycle; the walker sits and coasts), `leadsCow` (a cow on a rope with its bell), `activity` at stops (`'sweep'` swings the broom and scrapes, `'smoke'` raises the cigarette and lights the ember), `stares` (faces the player through every stop), `once`, `stepSound`, and `tread`.
+
+`houses.ts` has `chimneySmoke(kit, { x, z, top }, wind, seed)`, a chimney stack with one particle field of smoke leaning off with the wind. It also has `windowLife(kit, ctx, panes, 'dusk' | 'bedtime')`. At dusk half the lit panes start dark and come on one by one, and later someone goes from room to room. At bedtime the panes go out one by one and stay out. `outlyingHouses` in the square returns its lit panes for this. `sounds.ts` has the synthesized sounds the walkers make: `broomStroke`, `bicycleBell`, `freewheel`, and `barrowSqueak`.
+
+`passingCars(kit, ctx, { road, every, yieldTo })` in `src/levels/village_square/traffic.ts` sends a Fiat with its headlights on along a road, keeping to the right. It starts and ends 30 m past the road's ends. It brakes and waits for the player or anyone in `yieldTo` standing in the road ahead.
+
+The square uses all of this in `village_square/people.ts`, and fewer people come out each day. At night the lights go out, a car comes by rarely, and on nights 1 and 2 one late figure may come down the church lane. It stops under the lamp to look at the reporter and goes into the house with the television. Keep it to a handful of walkers per scene: each villager is a few dozen small meshes, and only those in the street are drawn.
+
 ## Startles
 
 `startle(id, kind, zone, from)` in `src/game/scares/startles.ts` is a scare beat for a scare director. The first time the player walks into `zone`, something goes off at `from`: `'crows'` or `'pigeons'` bursting out of a tree or a roof, an `'owl'` screeching overhead, a `'deer'` crashing away through the undergrowth, or `'rats'` scattering. Each fires once per game. Put `from` in the tree, the rafters, or the bush the noise belongs to, close to the path, so the scare has a cause the player can see.

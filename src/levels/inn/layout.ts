@@ -14,6 +14,8 @@ export const KITCHEN_DOOR = { x: 4.1, w: 0.8, h: 2.05 };
 
 /** The counter runs along the north wall from `x0` to the east wall. */
 export const COUNTER = { x0: 0.9, z: -3.0, d: 0.6, h: 1.05 };
+/** Monique behind the counter. */
+export const INNKEEPER = { x: 2.5, z: COUNTER.z - 0.4 };
 /** Gilles on his stool in front of the counter on day 1. */
 export const GILLES_AT_COUNTER = { x: 1.45, z: COUNTER.z + 0.62 };
 export const TABLES = [

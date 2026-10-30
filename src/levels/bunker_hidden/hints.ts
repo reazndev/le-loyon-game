@@ -27,10 +27,10 @@ export function hints(kit: LevelKit, ctx: SceneContext, arrival: Arrival, layout
     when: () => !lights.flashlightOn,
   });
 
-  kit.hint('Climb the rungs. The hatch opens onto the forest.', { if: metMarc, near: { ...layout.rungs, r: 3 } });
-  kit.hint('Go out by the tunnel at the back, not the front.', { if: metMarc, near: { ...layout.threshold, r: 1.2 } });
-  kit.hint('Keep going, crouched, to the iron rungs at the end.', { if: metMarc, when: () => ctx.player.position.x > layout.tunnelStart });
-  kit.hint("Open the low steel door at the back. That's the tunnel.", { if: metMarc });
+  kit.hint('Climb the rungs. The hatch opens onto the forest.', { if: metMarc, near: { ...layout.rungs, r: 3 }, point: layout.rungs });
+  kit.hint('Go out by the tunnel at the back, not the front.', { if: metMarc, near: { ...layout.threshold, r: 1.2 }, point: layout.tunnelDoor });
+  kit.hint('Keep going, crouched, to the iron rungs at the end.', { if: metMarc, when: () => ctx.player.position.x > layout.tunnelStart, point: layout.rungs });
+  kit.hint("Open the low steel door at the back. That's the tunnel.", { if: metMarc, point: layout.tunnelDoor });
 
   if (arrival === 'dark') {
     kit.hint('Shine your torch into the far corners of the room.', { if: notYet, when: () => ctx.time > STUCK });

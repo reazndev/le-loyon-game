@@ -5,14 +5,14 @@ import { everyFrame } from '../church/everyFrame';
 import { cafeLit, type InnDressing } from './dressing';
 import { placeSetting } from './furniture';
 import { loopSound } from './interior';
-import { CORNER_TABLE, COUNTER, GILLES_AT_COUNTER, TABLES } from './layout';
+import { CORNER_TABLE, COUNTER, GILLES_AT_COUNTER, INNKEEPER, TABLES } from './layout';
 import { tvMurmur } from './sounds';
 
 /** Who is in the café, by the table in 02-village.md. */
 export function placeCafeCast(kit: LevelKit, ctx: SceneContext, dressing: InnDressing): void {
   const { state } = ctx;
   if (!cafeLit(dressing)) return;
-  kit.npc('monique').at(2.5, 0, COUNTER.z - 0.4).faceYaw(180).watch(4).talk('monique');
+  kit.npc('monique').at(INNKEEPER.x, 0, INNKEEPER.z).faceYaw(180).watch(4).talk('monique');
 
   if (dressing.day === 1 && !dressing.endingMorning) {
     // Gilles at the counter with a glass of white.

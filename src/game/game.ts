@@ -15,8 +15,9 @@ import { GameUi, type PauseAction } from './gameUi';
 import { itemInfo } from './items';
 import { isDesktopApp } from './platform';
 import { bearing, compassTarget } from './compass';
+import { sketchWorld } from './mapSketch';
 import { Breathing } from './breathing';
-import { pickHint } from './liveHint';
+import { pickHint, type LiveHint } from './liveHint';
 import { currentGoal, nextStep } from './notebook';
 import { latestSave, readSave, writeSave } from './save';
 import { brightnessFactor, loadSettings, saveSettings, STEPS, type Settings } from './settings';
@@ -41,6 +42,9 @@ export const AUTO_SLOT = 'auto';
 /** The slots Continue and Load game pick the newest of: the pause menu's save, the autosave, and waking at the inn. */
 export const CONTINUE_SLOTS = [SAVE_SLOT, AUTO_SLOT, 'sleep'];
 
+/** How fast the beam catches up with the view, per second. Lower trails further behind. */
+const FLASHLIGHT_FOLLOW = 9;
+
 /** Owns every system and runs the frame loop. */
 export class Game {
   readonly state = new GameState();
@@ -64,6 +68,8 @@ export class Game {
   private frameCaptures: ((frame: HTMLCanvasElement) => void)[] = [];
   private elapsed = 0;
   private lastTime = 0;
+  /** Where the beam points. It trails the view a little, like a torch swung by hand. */
+  private readonly beam = new Vector3();
   private frameWaiters: { frame: number; resolve: () => void }[] = [];
 
   constructor(frame: HTMLElement, scenes: Scene[]) {
@@ -197,12 +203,13 @@ export class Game {
     else if (!this.scenes.busy) this.updatePlay(dt);
     if (this.ui.open || this.scenes.busy) this.overlay.prompt.hide();
     const playing = !this.ui.open && !this.scenes.busy && this.state.scene !== 'home';
-    this.overlay.showGoal(playing ? currentGoal(this.state) : null, playing ? pickHint(this.world.hints, this.state, this.player.position) : null);
+    const hint = playing ? pickHint(this.world.hints, this.state, this.player.position) : null;
+    this.overlay.showGoal(playing ? currentGoal(this.state) : null, hint?.text ?? null);
     this.overlay.showHud(playing ? this.hudButtons() : null);
-    this.updateCompass(playing);
+    this.updateCompass(playing, hint);
     this.scenes.update(dt);
 
-    this.updateSenses();
+    this.updateSenses(dt);
     this.renderer.render(this.world.scene, this.player.camera, this.elapsed);
     this.resolveFrameCaptures();
     this.frames++;
@@ -244,23 +251,18 @@ export class Game {
   }
 
   /** The minimap and the compass, pointing at the next step: the person to talk to, or the way out toward them. */
-  private updateCompass(playing: boolean): void {
+  private updateCompass(playing: boolean, hint: LiveHint | null): void {
     if (!playing) return this.overlay.navigation.show(null);
     const step = nextStep(this.state);
     const from = this.player.position;
-    const target = compassTarget(this.world, this.state.scene, step, from);
+    const target = compassTarget(this.world, this.state.scene, step, hint, from);
     const device = this.input.lastDevice;
     this.overlay.navigation.show({
       player: { x: from.x, z: from.z },
       yaw: this.player.yaw,
       bearing: target && from.distanceTo(target) > 2 ? bearing(from, this.player.forward(), target) : null,
       target: target && { x: target.x, z: target.z },
-      walls: this.world.collision.all,
-      ground: (x, z) => this.world.ground.sample(x, z, from.y + 1).surface,
-      exits: this.world.exits.map((exit) => {
-        const at = exit.object.getWorldPosition(new Vector3());
-        return { x: at.x, z: at.z };
-      }),
+      sketch: (this.world.mapSketch ??= sketchWorld(this.world)),
       keys: { compass: compassLabel[device], map: mapLabel[device] },
     });
   }
@@ -274,14 +276,17 @@ export class Game {
   }
 
   /** Moves the flashlight and the audio listener with the camera. */
-  private updateSenses(): void {
+  private updateSenses(dt: number): void {
     const camera = this.player.camera;
     const forward = camera.getWorldDirection(new Vector3());
     const right = new Vector3().crossVectors(forward, camera.up).normalize();
     // Held at chest height, a little to the right, so the beam has some parallax.
     const hand = camera.position.clone().addScaledVector(right, 0.18).add(new Vector3(0, -0.35, 0));
-    const aim = forward.clone().add(new Vector3(0, -0.06, 0));
-    this.world.lights.aimFlashlight(hand, aim);
+    const aim = forward.clone().add(new Vector3(0, -0.06, 0)).normalize();
+    // Snaps on a scene change or a sharp turn, such as a cutscene cut, instead of sweeping across.
+    if (this.scenes.busy || this.beam.dot(aim) < 0) this.beam.copy(aim);
+    else this.beam.lerp(aim, 1 - Math.exp(-FLASHLIGHT_FOLLOW * dt)).normalize();
+    this.world.lights.aimFlashlight(hand, this.beam);
     this.world.lights.update(camera.position, this.elapsed);
     this.audio.setListener(camera.position, forward);
   }

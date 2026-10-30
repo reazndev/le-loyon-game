@@ -21,35 +21,30 @@ import { billboards } from '../forest_path/woods';
 import { startle } from '../../game/scares/startles';
 
 /**
- * Chemin du cimetière. A gravel path climbs from behind the church in three switchbacks between
+ * Chemin du cimetière. A gravel path climbs from behind the church in two short switchbacks between
  * wet meadows and a barbed-wire fence, past a wayside cross, to the cemetery gate on the hilltop.
  */
 
 const path: Trail = [
-  [-1, 47],
-  [1, 38],
-  [10, 30.5],
-  [15, 26],
-  [6, 18],
-  [-8, 10],
-  [-13, 5],
-  [-6, -3],
-  [6, -10],
-  [9, -15],
-  [3, -22],
-  [0.5, -30],
+  [-1, -14],
+  [1, -17],
+  [8, -22],
+  [9, -24],
+  [-4, -29.5],
+  [-5.5, -31.5],
+  [-1, -34.5],
   [0, -37.5],
 ];
-const CROSS = { x: -15.6, z: 4.6 };
-const CHURCH = { x: -1, z: 54, w: 15, d: 9 };
+const CROSS = { x: 1, z: -24.5 };
+const CHURCH = { x: -1, z: -7, w: 15, d: 9 };
 const SIDE_DOOR = { x: 2.5, z: CHURCH.z - CHURCH.d / 2 };
 const GATE_Z = -40;
 /** The lower edge of the church roof on the path's side, above the ground at its foot. */
 const EAVES = { y: 7.62, z: CHURCH.z - CHURCH.d / 2 - 0.3 };
 
-/** The hill rises about thirteen meters from the church to the cemetery, with a cross slope. */
+/** The hill rises about seven meters from the church to the cemetery, with a cross slope. */
 const height = (x: number, z: number): number => {
-  const rise = 0.155 * (48 - Math.min(48, Math.max(z, GATE_Z))) + 0.04 * x;
+  const rise = 0.26 * (-13 - Math.min(-13, Math.max(z, GATE_Z))) + 0.04 * x;
   const near = Math.min(1, distanceToTrails([path], x, z) / 4);
   return rise + near * (0.35 * Math.sin(x * 0.27 + 1.1) * Math.cos(z * 0.21) + 0.15 * Math.sin(x * 0.7 - z * 0.5));
 };
@@ -57,8 +52,8 @@ const height = (x: number, z: number): number => {
 export const cemeteryPathScene = defineScene({
   id: 'cemetery_path',
   spawns: {
-    default: { x: -1, z: 45.5, yaw: 0 },
-    from_square: { x: -1, z: 45.5, yaw: 0 },
+    default: { x: -1, z: -15.5, yaw: 0 },
+    from_square: { x: -1, z: -15.5, yaw: 0 },
     from_church: { x: SIDE_DOOR.x, z: SIDE_DOOR.z - 1.3, yaw: 0 },
     from_cemetery: { x: 0, z: -35.5, yaw: 180 },
   },
@@ -71,10 +66,10 @@ export const cemeteryPathScene = defineScene({
 
     kit.ground('grass', 0);
     kit
-      .terrain({ w: 90, d: 110, cell: 1.5, height: (x, z) => height(x, z + 4) })
+      .terrain({ w: 90, d: 54, cell: 1.5, height: (x, z) => height(x, z - 25) })
       .texture('pasture', { tile: 3 })
       .color(0x8a8e76)
-      .at(0, 0, 4)
+      .at(0, 0, -25)
       .walkable('grass');
     const fenced = path.slice(1, -1).map((p, i) => [p, path[i + 2]!] as Trail).filter((_, i) => i % 2 === 0);
     kit.batch((still) => {
@@ -84,28 +79,28 @@ export const cemeteryPathScene = defineScene({
       wayside(still, ctx, phase);
       cemeteryWall(still);
       // At the eastern bend, facing down the hill toward the church.
-      bench(still, { x: 16.8, z: 27.2 }, { x: 16.8, z: 40 });
-      fenceSign(still, { x: 4.27, z: 37.36 }, { x: 3.25, z: 36.13 });
+      bench(still, { x: 10.8, z: -22.8 }, { x: 10.8, z: -10 });
+      fenceSign(still, { x: 4.32, z: -17.4 }, { x: 3.39, z: -18.7 });
     });
     fenceVerges(kit, fenced, 1.9);
     meadow(kit);
 
     kit.exit({ w: 6, d: 1, to: 'cemetery', spawn: 'front_gate' }).at(0, 0, GATE_Z + 1.2);
-    kit.exit({ w: 1, d: 6, to: 'village_square', spawn: 'church_door' }).at(-9.5, 0, 46);
+    kit.exit({ w: 1, d: 6, to: 'village_square', spawn: 'church_door' }).at(-9.5, 0, -15);
     [
       { x: 0, z: -48, w: 90, d: 1 },
-      { x: 0, z: 58, w: 90, d: 1 },
-      { x: -30, z: 4, w: 1, d: 110 },
-      { x: 30, z: 4, w: 1, d: 110 },
+      { x: 0, z: -3, w: 90, d: 1 },
+      { x: -30, z: -25, w: 1, d: 54 },
+      { x: 30, z: -25, w: 1, d: 54 },
     ].forEach(({ x, z, w, d }) => kit.barrier({ w, d }).at(x, 0, z));
 
     // The church stands at the foot of the path.
-    hillAmbience(kit, ctx, { x: 0, z: 1 });
+    hillAmbience(kit, ctx, { x: 0, z: -26 });
     if (!night)
       crows(kit, ctx, [
-        { x: 12, z: 28.6, y: 1.2 },
-        { x: -2, z: 14.5, y: 1.2, yaw: 60 },
-        { x: 4.8, z: -14, y: 0, yaw: 200 },
+        { x: 6, z: -19.3, y: 1.2 },
+        { x: 3.1, z: -28.2, y: 1.2, yaw: 60 },
+        { x: 2, z: -33, y: 0, yaw: 200 },
         // On the church's eaves, black against the fog.
         { x: CHURCH.x - 3.5, z: EAVES.z, y: EAVES.y, yaw: 170 },
         { x: CHURCH.x + 2.2, z: EAVES.z, y: EAVES.y, yaw: 200 },
@@ -116,9 +111,9 @@ export const cemeteryPathScene = defineScene({
 
 /** Wet grass, tufts, a few bare trees and the posts of an old hay rack in the fog. */
 function meadow(kit: LevelKit): void {
-  const offPath = (x: number, z: number) => distanceToTrails([path], x, z) < 1.6 || (Math.abs(x - CHURCH.x) < 10 && z > 44);
-  billboards(kit, { texture: 'grass_tuft', w: 1, h: 0.62, color: 0x80826a, sink: 0.04 }, scatter({ x: 0, z: 4, w: 56, d: 100, count: 700, seed: 'hill-tufts', spacing: 0.9, scale: [0.7, 1.4], avoid: offPath }));
-  kit.trees('bare', scatter({ x: 0, z: 4, w: 60, d: 96, count: 11, seed: 'hill-trees', spacing: 12, avoid: (x, z) => distanceToTrails([path], x, z) < 5 })).collider().shade(0.12);
+  const offPath = (x: number, z: number) => distanceToTrails([path], x, z) < 1.6 || (Math.abs(x - CHURCH.x) < 10 && z > CHURCH.z - 10);
+  billboards(kit, { texture: 'grass_tuft', w: 1, h: 0.62, color: 0x80826a, sink: 0.04 }, scatter({ x: 0, z: -24, w: 56, d: 46, count: 320, seed: 'hill-tufts', spacing: 0.9, scale: [0.7, 1.4], avoid: offPath }));
+  kit.trees('bare', scatter({ x: 0, z: -24, w: 60, d: 44, count: 5, seed: 'hill-trees', spacing: 12, avoid: (x, z) => distanceToTrails([path], x, z) < 5 })).collider().shade(0.12);
   kit.trees('spruce', scatter({ x: 0, z: GATE_Z - 6, w: 70, d: 10, count: 26, seed: 'hill-spruce', spacing: 3, scale: [1, 1.4] })).collider().shade(0.12);
 }
 
@@ -153,7 +148,7 @@ function church(kit: LevelKit, ctx: SceneContext, night: boolean): void {
  */
 function wayside(kit: LevelKit, ctx: SceneContext, phase: StoryPhase): void {
   const wood = 0x5a4e42;
-  const facing = yawToward(-6 - CROSS.x, -3 - CROSS.z) + 180;
+  const facing = yawToward(-3.5 - CROSS.x, -29.3 - CROSS.z) + 180;
   const parts: { rosary?: Placed } = {};
   kit
     .group((g) => {
@@ -175,7 +170,7 @@ function wayside(kit: LevelKit, ctx: SceneContext, phase: StoryPhase): void {
     .at(CROSS.x, 0, CROSS.z)
     .rotY(facing)
     .onGround();
-  crossOfferings(kit, CROSS, { x: -6, z: -3 });
+  crossOfferings(kit, CROSS, { x: -3.5, z: -29.3 });
   kit.hotspot({ prompt: 'Look at the cross', radius: 0.6, onInteract: () => playNode(ctx, 'path_cross') }).at(CROSS.x, 0, CROSS.z);
 
   if (phase !== 'night1') return;
@@ -233,7 +228,7 @@ function cemeteryWall(kit: LevelKit): void {
 function stagePath(kit: LevelKit, phase: StoryPhase): Patrol | null {
   if (!isNight(phase)) return null;
   // An owl in the yew at the first bend, screeching as the reporter comes round it.
-  kit.use(scareDirector([startle('path_owl', 'owl', { x: 12.5, z: 28.3, r: 3 }, { x: 16, y: 5, z: 30 })], { random: { surface: 'gravel' } }));
+  kit.use(scareDirector([startle('path_owl', 'owl', { x: 6.3, z: -20.8, r: 3 }, { x: 9.5, y: 5, z: -19.5 })], { random: { surface: 'gravel' } }));
   if (phase !== 'night2') return null;
   const ahead = (meters: number) => {
     const p = pointAlong(path, meters);
@@ -241,13 +236,13 @@ function stagePath(kit: LevelKit, phase: StoryPhase): Patrol | null {
   };
   const patrol = kit.use(
     watchmanPatrol({
-      route: [ahead(68), ahead(80), ahead(88), ahead(97), ahead(106), { x: 0, z: GATE_Z }, { x: 0, z: GATE_Z - 6 }],
+      route: [ahead(27), ahead(30.5), ahead(33.5), ahead(37), { x: 0, z: GATE_Z }, { x: 0, z: GATE_Z - 6 }],
       once: true,
       firstIn: Number.POSITIVE_INFINITY,
       speed: 0.85,
     }),
   );
-  kit.trigger({ r: 4 }).at(-11, 0, 7).once().onEnter(() => patrol.hurry(Number.POSITIVE_INFINITY));
+  kit.trigger({ r: 3.5 }).at(5.7, 0, -25.4).once().onEnter(() => patrol.hurry(Number.POSITIVE_INFINITY));
   return patrol;
 }
 

@@ -105,7 +105,7 @@ export function exits(kit: LevelKit): void {
   const { x0, x1, z0, z1 } = BOUNDS;
   kit.exit({ w: 1, d: 8, to: 'chassot_farm', spawn: 'from_square' }).at(x0 + 1.5, 0, 8.5);
   kit.exit({ w: 8, d: 1, to: 'yerly_farm', spawn: 'from_square' }).at(4.6, 0, z1 - 1.5);
-  kit.exit({ w: 5, d: 1, to: 'cemetery_path', spawn: 'from_square' }).at(-10, 0, z0 + 2.5);
+  kit.exit({ w: 5, d: 1, to: 'cemetery_path', spawn: 'from_square' }).at(-10, 0, z0 + 5);
   [
     { x: (x0 + x1) / 2, z: z0, w: x1 - x0, d: 1 },
     { x: (x0 + x1) / 2, z: z1, w: x1 - x0, d: 1 },

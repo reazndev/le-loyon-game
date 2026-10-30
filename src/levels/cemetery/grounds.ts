@@ -9,6 +9,7 @@ import {
   graves,
   inside,
   SHED,
+  SIGHTING,
   BACK_Z,
   BIN,
   CHASSOT_BEDS,
@@ -101,6 +102,9 @@ export function hill(kit: LevelKit, night: boolean): void {
   const near = (x: number, z: number) => Math.abs(x) < GROUNDS.w / 2 + 14 && z > BACK_Z - 16;
   kit.trees('spruce', spruce.filter((s) => near(s.x, s.z))).collider().shade(0.12);
   billboards(kit, { texture: 'tree_spruce', w: 4.6, h: 9.6, color: 0x6c7468 }, spruce.filter((s) => !near(s.x, s.z)));
+  // The strip behind the back gate is kept clear for the path, all but a few trunks round where Le Loyon stands on night 1.
+  const trunks = [[2.4, -1.2], [-3.8, -1.9], [1.2, -4.4], [-2.4, -5.8]] as const;
+  kit.trees('spruce', trunks.map(([dx, dz]) => ({ x: SIGHTING.x + dx, z: SIGHTING.z + dz, yaw: dx * 40 }))).collider().shade(0.12);
   // A few bare trees down the slopes, so the fog has shapes in it.
   kit.trees('bare', scatter({ x: 0, z: 18, w: 104, d: 60, count: 14, seed: 'cemetery-bare', spacing: 9, avoid: (x, z) => nearWalls(x, z) || Math.abs(x - 2) < 6 })).collider().shade(0.12);
   undergrowth(kit, { x: 0, z: BACK_Z - 9, w: 60, d: 14 }, { seed: 'cemetery', count: 90, avoid: (x, z) => nearWalls(x, z) || (Math.abs(x - BACK_GATE.x) < 1 && z > BACK_Z - 9) });

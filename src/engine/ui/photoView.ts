@@ -1,5 +1,4 @@
 import { el, setVisible } from './dom';
-import { grainTexture } from './grain';
 
 /** An instant photo held up to the screen: the picture in a white card with a caption strip. */
 export class PhotoView {
@@ -11,7 +10,7 @@ export class PhotoView {
   constructor(parent: HTMLElement) {
     this.screen = el('div', 'ui-photo', parent);
     const card = el('div', 'ui-polaroid', this.screen);
-    card.style.backgroundImage = `url(${grainTexture(214, 210, 198)})`;
+    card.style.backgroundImage = 'url(assets/textures/photo_card.png)';
     const window = el('div', 'ui-polaroid-image', card);
     this.image = el('img', '', window);
     this.unexposed = el('div', 'ui-polaroid-unexposed', window);

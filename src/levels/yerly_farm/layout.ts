@@ -19,16 +19,16 @@ export const BERNARD = { x: 2.4, z: 1.2, yaw: 160 };
 export const HOME_SPOT = { x: 16.2, z: -4.2 };
 
 /** The field between its fences, from the gate up to the trees. */
-export const FIELD = { x0: -64, x1: -20, z0: -17, z1: 4 };
-export const FOREST_EDGE = -66;
+export const FIELD = { x0: -44, x1: -20, z0: -17, z1: 4 };
+export const FOREST_EDGE = -46;
 /** Marquise at the forest edge on day 2, staring into the trees (for2_heifer). */
-export const MARQUISE = { x: -61.5, z: -8, yaw: 80 };
+export const MARQUISE = { x: -41.5, z: -8, yaw: 80 };
 /** The dark shape 12 m into the trees that is not there when the reporter looks again (for2_stump). */
-export const SHAPE = { x: -75, z: -5.5 };
-export const STUMP = { x: -73.4, z: -8.2 };
+export const SHAPE = { x: -55, z: -5.5 };
+export const STUMP = { x: -53.4, z: -8.2 };
 
 export const farmRoad: Trail = [
-  [52, 12],
+  [37, 12],
   [24, 12],
   [12, 9],
   [6, 6],
@@ -39,16 +39,16 @@ export const forestTrack: Trail = [
   [FOREST_EDGE - 12, -10],
 ];
 
-export const BOUNDS = { x0: -80, x1: 54, z0: -30, z1: 26 };
+export const BOUNDS = { x0: -60, x1: 39, z0: -30, z1: 26 };
 
-/** Flat in the yard; the field rises west toward the forest, five meters over its length. */
+/** Flat in the yard; the field rises west toward the forest, four meters over its length. */
 export function fieldHeight(x: number, z: number): number {
   const rise = Math.max(0, -18 - x);
-  return rise * 0.11 + Math.min(1, rise / 8) * 0.3 * Math.sin(x * 0.19 + 0.4) * Math.cos(z * 0.23);
+  return rise * 0.15 + Math.min(1, rise / 8) * 0.3 * Math.sin(x * 0.19 + 0.4) * Math.cos(z * 0.23);
 }
 
 export const spawns = {
-  default: { x: 46, z: 12, yaw: 90 },
-  from_square: { x: 46, z: 12, yaw: 90 },
+  default: { x: 31, z: 12, yaw: 90 },
+  from_square: { x: 31, z: 12, yaw: 90 },
   from_forest: { x: FOREST_EDGE - 6, z: -8.8, yaw: -95 },
 };

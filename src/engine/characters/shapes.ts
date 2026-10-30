@@ -6,7 +6,7 @@ import { BufferGeometry, Float32BufferAttribute } from 'three';
  * around, which makes posing a matter of setting rotations.
  */
 
-type Point = [number, number, number];
+export type Point = [number, number, number];
 
 /** Builds flat-shaded quads (two triangles each) from corner lists in counterclockwise order seen from outside. */
 function quads(faces: [Point, Point, Point, Point][]): BufferGeometry {
@@ -182,6 +182,59 @@ export function projectFront(geometry: BufferGeometry, box: { x0: number; x1: nu
     clamp((position.getY(i) - box.y0) / (box.y1 - box.y0)),
   ]).flat();
   geometry.setAttribute('uv', new Float32BufferAttribute(uvs, 2));
+  return geometry;
+}
+
+/**
+ * A flat-shaded open tube along a path, for rope and straps. The section turns by `twist`
+ * radians from one point to the next, so its facets wind round like the strands of a rope.
+ * UVs run in meters around and along it, so a tiling texture keeps one size over bends.
+ */
+export function tube(path: Point[], radius: number | ((i: number) => number), sides: number, twist = 0): BufferGeometry {
+  const sub = (a: Point, b: Point): Point => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
+  const scale = (a: Point, k: number): Point => [a[0] * k, a[1] * k, a[2] * k];
+  const dot = (a: Point, b: Point) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+  const cross = (a: Point, b: Point): Point => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
+  const unit = (a: Point) => scale(a, 1 / (Math.hypot(...a) || 1));
+  const tangents = path.map((_, i) => unit(sub(path[Math.min(i + 1, path.length - 1)]!, path[Math.max(i - 1, 0)]!)));
+  const first = tangents[0]!;
+  // Each section's normal is the last one carried along the path, so the tube doesn't twist on its own at bends.
+  let normal = unit(cross(first, Math.abs(first[1]) < 0.9 ? [0, 1, 0] : [1, 0, 0]));
+  const rings = path.map((p, i) => {
+    const t = tangents[i]!;
+    normal = unit(sub(normal, scale(t, dot(normal, t))));
+    const binormal = cross(t, normal);
+    const r = typeof radius === 'number' ? radius : radius(i);
+    return Array.from({ length: sides }, (_, j): Point => {
+      const a = (j / sides) * Math.PI * 2 + twist * i;
+      return p.map((v, c) => v + (normal[c]! * Math.cos(a) + binormal[c]! * Math.sin(a)) * r) as Point;
+    });
+  });
+  const along = path.reduce<number[]>((acc, p, i) => [...acc, i ? acc[i - 1]! + Math.hypot(...sub(p, path[i - 1]!)) : 0], []);
+  const around = (typeof radius === 'number' ? radius : radius(0)) * Math.PI * 2;
+  const positions: number[] = [];
+  const uvs: number[] = [];
+  rings.slice(1).forEach((upper, i) => {
+    const lower = rings[i]!;
+    for (let j = 0; j < sides; j++) {
+      const k = (j + 1) % sides;
+      const corners: [Point, number, number][] = [
+        [lower[j]!, j / sides, along[i]!],
+        [lower[k]!, (j + 1) / sides, along[i]!],
+        [upper[k]!, (j + 1) / sides, along[i + 1]!],
+        [upper[j]!, j / sides, along[i + 1]!],
+      ];
+      [0, 1, 2, 0, 2, 3].forEach((c) => {
+        const [point, u, v] = corners[c]!;
+        positions.push(...point);
+        uvs.push(u * around, v);
+      });
+    }
+  });
+  const geometry = new BufferGeometry();
+  geometry.setAttribute('position', new Float32BufferAttribute(positions, 3));
+  geometry.setAttribute('uv', new Float32BufferAttribute(uvs, 2));
+  geometry.computeVertexNormals();
   return geometry;
 }
 

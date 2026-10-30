@@ -6,29 +6,29 @@ import { branchDrips, cairn, fallenBranches, huntersHide, plasticBag, privateSig
 import { beside, distanceToTrails, nearestOnTrails, pointAlong, type Trail } from './trail';
 
 /** An old fence along the east side of the path, a step off it, gone at its lower end. */
-const fence: Trail = [18, 22, 26, 30, 33].map((meters) => {
+const fence: Trail = [7, 9, 11, 13, 14.5].map((meters) => {
   const p = beside(main, meters, -2.5);
   return [p.x, p.z] as const;
 });
-const HIDE = { x: -6.5, z: 38.5 };
+const HIDE = { x: -4.7, z: 15.8 };
 const stumps = (
   [
-    [main, 8, -1.8, 1.1],
-    [main, 52, 1.9, 0.9],
-    [toFort, 30, -1.8, 1],
-    [toStream, 16, 1.9, 1.2],
+    [main, 4, -1.8, 1.1],
+    [main, 22.5, 1.9, 0.9],
+    [toFort, 24, -1.8, 1],
+    [toStream, 14, 1.9, 1.2],
   ] as const
 ).map(([trail, meters, side, size]) => ({ ...beside(trail, meters, side), size }));
 const branches = (
   [
-    [main, 15, 1.7, 30],
-    [main, 40, -1.9, 100],
-    [main, 68, 1.8, -20],
+    [main, 6.5, 1.7, 30],
+    [main, 17, -1.9, 100],
+    [main, 29, 1.8, -20],
     [toFort, 12, 1.9, 70],
-    [toStream, 40, -1.8, 10],
+    [toStream, 29, -1.8, 10],
   ] as const
 ).map(([trail, meters, side, yaw]) => ({ ...beside(trail, meters, side), yaw }));
-const CAIRN = beside(toStream, 26, -1.6);
+const CAIRN = beside(toStream, 16.4, -1.6);
 const BAG = beside(toStream, 11, -2.4);
 
 /** Where undergrowth would bury the props: tall plants off the fence and the hide, any plant off the small things. */
@@ -47,19 +47,19 @@ export function dressPath(kit: LevelKit, ctx: SceneContext): void {
   const perches = kit.batch((still) => {
     const watching = huntersHide(still, ctx, HIDE, nearestOnTrails([main], HIDE.x, HIDE.z));
     const posts = wireFence(still, ctx, height, fence, 'forest-path-fence');
-    privateSign(still, beside(main, 19, -2.1), pointAlong(main, 12));
+    privateSign(still, beside(main, 8, -2.1), pointAlong(main, 5));
     const stumpTops = stumps.map((at, i) => rottenStump(still, at, at.size, `forest-path-stump-${i}`));
     branches.forEach((at, i) => fallenBranches(still, at, at.yaw, `forest-path-branches-${i}`));
     cairn(still, CAIRN, 'forest-path-cairn');
     plasticBag(still, BAG);
     // The log by the gate, from `index.ts`, halfway along.
-    const log = { x: 6.85, z: 59.1, y: 0.38 };
+    const log = { x: 5.95, z: 24.8, y: 0.38 };
     return [watching, posts[2]!, stumpTops[0]!, stumpTops[2]!, stumpTops[3]!, log];
   });
   if (ctx.state.time === 'day') crows(kit, ctx, perches);
   branchDrips(kit, ctx, height, [
-    { x: 1.9, z: 63 },
-    { x: -0.6, z: 33 },
+    { x: 1.4, z: 26.9 },
+    { x: -0.5, z: 14 },
     { x: 6.5, z: -10.5 },
   ]);
 }

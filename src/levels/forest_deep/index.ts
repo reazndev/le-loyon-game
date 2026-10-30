@@ -39,19 +39,18 @@ import { startle } from '../../game/scares/startles';
  */
 
 export const track: Trail = [
-  [0, 33],
-  [-3.5, 24],
-  [2.5, 15],
+  [0, 18],
+  [2.6, 11.5],
   [-2.2, 6],
   [1.6, -2],
   [0, -9.5],
 ];
 const LARCH = { x: 0.4, z: -14.8 };
 const GRAVE = { x: 0.2, z: -12.4 };
-const area: Area = { x: 0, z: 3, w: 60, d: 76 };
+const area: Area = { x: 0, z: -4.5, w: 60, d: 61 };
 
 const inClearing = (x: number, z: number) => Math.max(0, Math.hypot(x - LARCH.x, z - LARCH.z + 1.5) - 5.5);
-const slope = (_x: number, z: number) => 0.12 * (33 - z);
+const slope = (_x: number, z: number) => 0.12 * (18 - z);
 const calm = (x: number, z: number) => Math.min(distanceToTrails([track], x, z), inClearing(x, z));
 const height = woodsHeight(slope, calm);
 
@@ -74,7 +73,7 @@ function below(from: { x: number; z: number; yaw: number }, ahead: number, side:
  * Each figure stands 10 m below a point on the track, at the edge of the day fog. It is set off
  * further up, from where it is still hidden, so it is already there when the fog gives it up.
  */
-const watchedFrom1 = goingDown(30);
+const watchedFrom1 = goingDown(24);
 const watchedFrom2 = goingDown(16);
 
 export const watchedFrom = [watchedFrom1, watchedFrom2] as const;
@@ -88,17 +87,17 @@ export const markers = {
   },
   for3_watched_trigger_1: {
     beat: 'for3_watched',
-    ...goingDown(42),
+    ...goingDown(28.5),
     note: 'Walking back down after the grave: when the player passes here, the figure stands at for3_watched_1, still hidden in the fog.',
   },
   for3_watched_1: {
     beat: 'for3_watched',
     ...below(watchedFrom1, 10, -5.5),
-    note: 'Below the player at the edge of the fog, between the trunks, looking up, seen from 30 m up the track. It does not move. Gone once looked at and looked away from.',
+    note: 'Below the player at the edge of the fog, between the trunks, looking up, seen from 24 m up the track. It does not move. Gone once looked at and looked away from.',
   },
   for3_watched_trigger_2: {
     beat: 'for3_watched',
-    ...goingDown(24),
+    ...goingDown(20.5),
     note: 'Past the first figure, at the next turn of the track: the figure at for3_watched_2, then not at all.',
   },
   for3_watched_2: {
@@ -118,7 +117,7 @@ function stageLarch(kit: LevelKit, ctx: SceneContext): ScareDirector {
   return kit.use(
     scareDirector(unspent(ctx.state, [
       // Crows roosting in the spruce over the track, halfway up to the larch.
-      startle('deep_crows', 'crows', { x: 0, z: 10, r: 4 }, { x: -4, y: 7, z: 6 }),
+      startle('deep_crows', 'crows', { x: -1.7, z: 5, r: 4 }, { x: -5.7, y: 7, z: 1 }),
       { id: 'for3_grave', when: { after: Number.POSITIVE_INFINITY }, do: [{ silence: 6 }] },
       {
         id: 'for3_watched',
@@ -138,8 +137,8 @@ function stageLarch(kit: LevelKit, ctx: SceneContext): ScareDirector {
 export const forestDeepScene = defineScene({
   id: 'forest_deep',
   spawns: {
-    default: { x: 0, z: 30.5, yaw: 0 },
-    from_fort: { x: 0, z: 30.5, yaw: 0 },
+    default: { x: 0, z: 15.5, yaw: 0 },
+    from_fort: { x: 0, z: 15.5, yaw: 0 },
   },
   atmosphere: forestAtmosphere,
 
@@ -158,21 +157,21 @@ export const forestDeepScene = defineScene({
     const near = (x: number, z: number) => calm(x, z) < 10;
     const spruceClear = (x: number, z: number) => calm(x, z) < 4.2 || inSight(x, z, 3);
     const avoid = (x: number, z: number) => onTrack(x, z) || inClearing(x, z) < 1 || inSight(x, z, 1.2);
-    woodland(kit, { area, seed: 'larch', avoid, near, spruceClear, spruce: 520, beech: 50, distant: 1100 });
+    woodland(kit, { area, seed: 'larch', avoid, near, spruceClear, spruce: 420, beech: 40, distant: 880 });
     const watchers = (x: number, z: number) => inSight(x, z, 3) || [markers.for3_watched_1, markers.for3_watched_2].some((m) => Math.hypot(x - m.x, z - m.z) < 3);
-    leaningBeeches(kit, { area, seed: 'larch', trails: [track], count: 14, from: 2, to: 3.6, avoid: (x, z) => inClearing(x, z) < 2 || inSight(x, z, 2) });
-    spruceWall(kit, { area, seed: 'larch', trails: [track], from: 10, to: 24, count: 200, avoid: (x, z) => watchers(x, z) || inClearing(x, z) < 6 });
+    leaningBeeches(kit, { area, seed: 'larch', trails: [track], count: 11, from: 2, to: 3.6, avoid: (x, z) => inClearing(x, z) < 2 || inSight(x, z, 2) });
+    spruceWall(kit, { area, seed: 'larch', trails: [track], from: 10, to: 24, count: 160, avoid: (x, z) => watchers(x, z) || inClearing(x, z) < 6 });
     const offTrack = (inner: number, outer: number) => (x: number, z: number) => {
       const d = calm(x, z);
       return distanceToTrails([track], x, z) < inner || inClearing(x, z) < 0.2 || d > outer || inSight(x, z, 1.5);
     };
     const props = keepClear(track);
-    undergrowth(kit, area, { seed: 'larch-low', count: 700, mix: lowPlants, spacing: 0.75, avoid: (x, z) => offTrack(0.9, 9)(x, z) || props.low(x, z) });
-    undergrowth(kit, area, { seed: 'larch-tall', count: 800, mix: tallPlants, spacing: 1, avoid: (x, z) => offTrack(1.7, 14)(x, z) || props.tall(x, z) || props.low(x, z) });
-    mossPatches(kit, height, scatter({ ...area, count: 70, seed: 'larch-moss', spacing: 2.4, avoid: offTrack(1.2, 10) }));
-    fallenLog(kit, 4.2, 19, 30, 4);
+    undergrowth(kit, area, { seed: 'larch-low', count: 560, mix: lowPlants, spacing: 0.75, avoid: (x, z) => offTrack(0.9, 9)(x, z) || props.low(x, z) });
+    undergrowth(kit, area, { seed: 'larch-tall', count: 640, mix: tallPlants, spacing: 1, avoid: (x, z) => offTrack(1.7, 14)(x, z) || props.tall(x, z) || props.low(x, z) });
+    mossPatches(kit, height, scatter({ ...area, count: 56, seed: 'larch-moss', spacing: 2.4, avoid: offTrack(1.2, 10) }));
+    fallenLog(kit, 6, 11, 30, 4);
     fallenLog(kit, -4.5, 1, -60, 5);
-    rock(kit, 3.5, 9, 0.6, 'larch-rock-1');
+    rock(kit, 4.6, 8.6, 0.6, 'larch-rock-1');
     rock(kit, -3.8, -6, 0.5, 'larch-rock-2');
     dressTrack(kit, ctx, track, height);
 
@@ -182,7 +181,7 @@ export const forestDeepScene = defineScene({
     hints(kit, ctx, { larch: LARCH, grave: GRAVE, offTrack: (x, z) => calm(x, z) > 6 });
 
     enclose(kit, area);
-    kit.exit({ w: 6, d: 1, to: 'bunker_exterior', spawn: 'from_track' }).at(0, 0, 34.2);
+    kit.exit({ w: 6, d: 1, to: 'bunker_exterior', spawn: 'from_track' }).at(0, 0, 19.2);
 
     forestAmbience(kit, ctx);
   },

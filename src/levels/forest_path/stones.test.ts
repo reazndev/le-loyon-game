@@ -15,7 +15,7 @@ describe('edgeStoneSpots', () => {
   });
 
   it('puts one within a few steps all along', () => {
-    expect(stones.length).toBeGreaterThan(30);
+    expect(stones.length).toBeGreaterThan(20);
   });
 
   it('lays the same stones every time', () => {

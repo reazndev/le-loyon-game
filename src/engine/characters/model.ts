@@ -25,5 +25,7 @@ export interface CharacterModel {
   readonly hand?: Object3D;
   /** Raises the right arm to hold something out in front. */
   holding?: boolean;
+  /** Lights the eyes, from 0 for dark to 1 for their brightest. Le Loyon's mask lenses only. */
+  eyes?(amount: number): void;
   pose(input: PoseInput, look: Look): void;
 }

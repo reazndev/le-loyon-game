@@ -84,8 +84,8 @@ function verges(kit: LevelKit): void {
     [[-15.5, 12.1], [-13, 12.1]],
     [[-47, 4.9], [-13.5, 4.9]],
     // The road south past the garage, out to the Yerly farm.
-    [[1, 33], [1, 55]],
-    [[8.3, 34], [8.3, 55]],
+    [[1, 33], [1, 43]],
+    [[8.3, 34], [8.3, 43]],
     // The street side of the Gremaud garden wall.
     [[GREMAUD_GATE.x - 0.45, GREMAUD_GATE.z - 6], [GREMAUD_GATE.x - 0.45, GREMAUD_GATE.z - 1.3]],
     [[GREMAUD_GATE.x - 0.45, GREMAUD_GATE.z + 1.3], [GREMAUD_GATE.x - 0.45, GREMAUD_GATE.z + 6]],

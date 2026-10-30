@@ -265,7 +265,7 @@ Triggered when the player has read at least one of the three graves. After a lon
 > His light goes down the path, swinging. The bell on the dog's collar fades out.
 > Then nothing at all.
 
-After this, the first sighting can trigger (see [05-forest-bunker.md](05-forest-bunker.md#night-1-the-first-sighting)).
+After this, the first sighting can trigger: Le Loyon stands among the spruces outside the back wall, looks back at the reporter while his mask lenses glow and go dark, and walks slowly into the forest. The back gate creaks open behind him and the notebook says to follow him. See [05-forest-bunker.md](05-forest-bunker.md#night-1-the-first-sighting).
 
 ### Night 2: the warning
 

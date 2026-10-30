@@ -1,5 +1,5 @@
 import { MathUtils, Vector3 } from 'three';
-import type { Character } from '../../engine/characters/character';
+import type { Character, WalkOptions } from '../../engine/characters/character';
 import { headingOf } from '../../engine/characters/motion';
 import type { FigureSpec } from './beats';
 
@@ -9,6 +9,15 @@ export const OUT_OF_VIEW = 50;
 export const IN_VIEW = 38;
 /** Degrees off center that count as looking straight at it. */
 export const LOOKED_AT = 12;
+/** Seconds after being seen before the eyes start to light, and how long they take to light and go dark. */
+const EYES_AFTER = 1;
+const EYES_FOR = 2.2;
+
+/** How lit the eyes are `seenFor` seconds after the figure was seen: one slow swell up and down. */
+const eyeGlow = (seenFor: number) => {
+  const t = (seenFor - EYES_AFTER) / EYES_FOR;
+  return t > 0 && t < 1 ? Math.sin(t * Math.PI) : 0;
+};
 
 /** Where the player is looking from and how far they can see. */
 export interface Viewer {
@@ -27,6 +36,7 @@ export class Figure {
   private elapsed = 0;
   private lookedFor = 0;
   private seen = false;
+  private seenFor = 0;
   private readonly head = new Vector3();
 
   constructor(
@@ -53,9 +63,12 @@ export class Figure {
     this.lookedFor = angle < LOOKED_AT && distance < viewer.sight ? this.lookedFor + dt : 0;
     if (this.lookedFor >= (this.spec.hold ?? 0.8)) this.seen = true;
     if (this.phase === 'leaving') return;
+    if (this.seen) this.seenFor += dt;
+    if (this.spec.eyes) c.model.eyes?.(eyeGlow(this.seenFor));
 
     const vanish = this.spec.vanish ?? 'seen';
     if (distance < (this.spec.near ?? 8)) return this.leave();
+    if (this.spec.stare !== undefined && this.seenFor >= this.spec.stare) return this.leave();
     if (vanish === 'seen' && this.seen) return this.hide();
     if (vanish === 'unseen' && this.seen && !inView) return this.hide();
     if (this.spec.timeout !== undefined && this.elapsed > this.spec.timeout && !inView) this.hide();
@@ -66,7 +79,13 @@ export class Figure {
     this.phase = 'gone';
     this.character.stop();
     this.character.lookAt = null;
+    this.character.turnToLook = false;
+    this.character.model.eyes?.(0);
     this.character.root.visible = false;
+  }
+
+  private get pace(): WalkOptions {
+    return this.spec.speed ? { speed: this.spec.speed } : {};
   }
 
   private tryAppear(viewer: Viewer): void {
@@ -81,14 +100,22 @@ export class Figure {
     c.root.visible = true;
     this.phase = 'shown';
     this.elapsed = 0;
-    if (this.spec.walk) void c.walk(this.spec.walk).then(() => this.phase === 'shown' && this.hide());
-    else c.lookAt = viewer.eye;
+    this.spec.onShow?.();
+    if (this.spec.walk) void c.walk(this.spec.walk, this.pace).then(() => this.phase === 'shown' && this.hide());
+    else {
+      c.lookAt = viewer.eye;
+      // One that stares keeps its whole body turned to the player.
+      c.turnToLook = this.spec.stare !== undefined;
+    }
   }
 
   private leave(): void {
     if (!this.spec.leave) return this.hide();
     this.phase = 'leaving';
     this.character.lookAt = null;
-    void this.character.walk(this.spec.leave).then(() => this.phase === 'leaving' && this.hide());
+    this.character.turnToLook = false;
+    this.character.model.eyes?.(0);
+    this.spec.onLeave?.();
+    void this.character.walk(this.spec.leave, this.pace).then(() => this.phase === 'leaving' && this.hide());
   }
 }

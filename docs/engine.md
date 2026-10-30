@@ -83,6 +83,7 @@ For automated tests. Defined in `src/game/debug.ts`.
 - **Yaw.** 0 faces -Z, 90 faces -X, 180 faces +Z, -90 faces +X. Positive `rotY` turns counterclockwise seen from above.
 - **Origins.** Boxes, cylinders, roofs, sprites, and doors have their origin at the bottom center, so `.at(x, 0, z)` stands them on the floor. Planes, terrains, and glows are centered on their origin.
 - **Colors.** Hex numbers such as `0xffc070`. There is no sRGB conversion: the value you write is the value lit and shown.
+- **Walking distance.** The player walks at 1.45 m/s, so 40 m takes about 30 seconds. Keep any walk between two places in a level under that. Fog makes a short path feel long, so a longer path adds little. The longest walks are the cemetery path (about 26 s), the forest path from the back gate to the shrine (21 s) and on to the fort (19 s), and the forest track to the larch (21 s).
 
 ## Scenes
 

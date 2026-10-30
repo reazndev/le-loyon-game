@@ -10,17 +10,17 @@ export function trackProps(track: Trail) {
   const at = (meters: number, side: number) => beside(track, meters, side);
   return {
     /** A short run of fence nobody mends, along the left of the track, its last post down. */
-    fence: [24, 27, 30].map((meters) => [at(meters, -2.5).x, at(meters, -2.5).z] as const) as Trail,
+    fence: [15, 18, 21].map((meters) => [at(meters, -2.5).x, at(meters, -2.5).z] as const) as Trail,
     stumps: [
-      { ...at(12, 1.8), size: 1.1 },
-      { ...at(35, -1.8), size: 0.9 },
+      { ...at(8, 1.8), size: 1.1 },
+      { ...at(24, -1.8), size: 0.9 },
     ],
     branches: [
       { ...at(6, -1.7), yaw: 40 },
-      { ...at(22, 1.9), yaw: -30 },
-      { ...at(40, -1.8), yaw: 80 },
+      { ...at(14, 1.9), yaw: -30 },
+      { ...at(26, -1.8), yaw: 80 },
     ],
-    cairns: [at(3, -1.6), at(44, 1.5)],
+    cairns: [at(3, -1.6), at(28, 1.5)],
   };
 }
 
@@ -46,7 +46,7 @@ export function dressTrack(kit: LevelKit, ctx: SceneContext, track: Trail, heigh
     branches.forEach((at, i) => fallenBranches(still, at, at.yaw, `larch-branches-${i}`));
     const marks = cairns.map((at, i) => cairn(still, at, `larch-cairn-${i}`));
     // The log beside the track, from `index.ts`, halfway along.
-    const log = { x: 5.93, z: 18, y: 0.38 };
+    const log = { x: 7.73, z: 10, y: 0.38 };
     return [...tops, posts[0]!, marks[0]!, log];
   });
   if (ctx.state.time === 'day') crows(kit, ctx, perches);
