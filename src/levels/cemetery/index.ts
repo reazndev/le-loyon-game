@@ -14,7 +14,7 @@ import { saveNightTwoStart } from './caught';
 import { DigSite } from './digSite';
 import { floor, hill, oldStones, tapAndBin, walls } from './grounds';
 import { graveStones, readGrave } from './graves';
-import { BACK_GATE, BACK_Z, FRONT_Z, GRAVE_FOOT, refusalFor, WALL_HEIGHT, type Grave } from './layout';
+import { BACK_GATE, BACK_Z, chassotGrave, FRONT_Z, GRAVE_FOOT, graveByDoc, refusalFor, WALL_HEIGHT, type Grave } from './layout';
 import { ossuary } from './shed';
 import { nightTwoRound } from './watchman';
 
@@ -87,6 +87,7 @@ export const cemeteryScene = defineScene({
 
     exits(kit, ctx, phase, gate);
     dayHint(kit, ctx, phase);
+    shimmerUnreadGraves(kit, ctx);
     // The village lies below the front gate. On night 1 the silence before the dog has no bell in it.
     hillAmbience(kit, ctx, { x: 0, z: 1 }, !(phase === 'night1' && !state.hasFlag('met_raymond')));
     if (!night) crows(kit, ctx, [
@@ -98,6 +99,26 @@ export const cemeteryScene = defineScene({
     ]);
   },
 });
+
+/** The three graves the abbé named catch the light now and then until the reporter has read them. */
+function shimmerUnreadGraves(kit: LevelKit, ctx: SceneContext): void {
+  const story: [Grave, string][] = [
+    [graveByDoc('grave_menoud'), 'read_grave_menoud'],
+    [graveByDoc('grave_gremaud'), 'read_grave_gremaud'],
+    [chassotGrave, 'read_grave_chassot'],
+  ];
+  story.forEach(([grave, flag], i) => {
+    const glint = kit.glow(1, 0xc8d4f0).at(grave.x, grave.h + 0.2, grave.z);
+    const period = 5 + i * 1.7;
+    everyFrame(kit, () => {
+      // A short swell, about a second long, once per period, each grave out of step with the others.
+      const t = ((ctx.time + i * 2.3) % period) / 1.1;
+      const amount = ctx.state.hasFlag(flag) || t > 1 ? 0 : Math.sin(t * Math.PI);
+      glint.mesh.visible = amount > 0.02;
+      glint.mesh.scale.setScalar(0.3 + amount);
+    });
+  });
+}
 
 /** By day the cemetery has nothing to do, so the reporter says once a day what it is for. */
 const dayHints: Partial<Record<StoryPhase, string>> = {
