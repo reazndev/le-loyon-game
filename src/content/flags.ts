@@ -79,6 +79,7 @@ export const storyFlags = [
   'gar_yannick_left',
   'sat_in_confessional',
   'chu_confessional',
+  'chu_after_mass',
 ] as const;
 
 export type StoryFlag = (typeof storyFlags)[number];

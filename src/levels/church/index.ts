@@ -1,5 +1,7 @@
-import { defineScene } from '../../game/scene';
+import type { LevelKit } from '../../game/kit/levelKit';
+import { defineScene, type SceneContext } from '../../game/scene';
 import { scareDirector } from '../../game/scares/director';
+import { overneySpot } from './abbe';
 import { chimesBetween } from './clock';
 import { everyFrame } from './everyFrame';
 import { CHANCEL, CONFESSIONAL, MAIN_DOOR, NAVE, RAISED, SIDE_DOOR, TOWER, WALL } from './layout';
@@ -47,6 +49,7 @@ export const churchScene = defineScene({
     buildNave(kit, ctx);
     buildSacristy(kit, ctx, night);
     placeAbbe(kit, ctx);
+    if (overneySpot(ctx.state) === 'nave' && !ctx.state.hasFlag('chu_after_mass')) lastOutOfMass(kit, ctx);
 
     kit.door({ to: 'village_square', spawn: 'church_door', w: MAIN_DOOR.w, h: MAIN_DOOR.h, prompt: 'Go out' }).at(MAIN_DOOR.x, 0, NAVE.z1 - WALL / 2 - 0.05);
     kit
@@ -77,5 +80,22 @@ export const churchScene = defineScene({
     );
   },
 });
+
+/**
+ * Day 2, after morning mass: the reporter comes in as the last two old women leave. They walk
+ * down the aisle past the door, look once, and are gone.
+ */
+function lastOutOfMass(kit: LevelKit, ctx: SceneContext): void {
+  ctx.state.setFlag('chu_after_mass');
+  const door = NAVE.z1 - 0.9;
+  (['parishioner_1', 'parishioner_2'] as const).forEach((id, i) => {
+    const side = i === 0 ? -0.55 : 0.5;
+    const woman = kit.npc(id).at(side, 0, -2.6 - i * 0.9).faceYaw(180).watch(2.5);
+    void woman.character.walk([{ x: side, z: 4 }, { x: side * 1.4, z: door }], { speed: 0.55 - i * 0.05 }).then(() => {
+      woman.object.visible = false;
+      if (i === 1) woodCreak(ctx.audio, { x: MAIN_DOOR.x, y: 1.4, z: NAVE.z1 });
+    });
+  });
+}
 
 export const scenes = [churchScene];
