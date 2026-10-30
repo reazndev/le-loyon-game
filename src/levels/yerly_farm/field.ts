@@ -1,7 +1,7 @@
 import type { LevelKit } from '../../game/kit/levelKit';
 import { distanceToTrails } from '../forest_path/trail';
 import { scatter } from '../../game/kit/scatter';
-import { leaningBeeches, lowPlants, mossPatches, rock, spruceWall, tallPlants, trailStrip, undergrowth, woodland } from '../forest_path/woods';
+import { billboards, leaningBeeches, lowPlants, mossPatches, rock, spruceWall, tallPlants, trailStrip, undergrowth, woodland } from '../forest_path/woods';
 import { BOUNDS, FIELD, FOREST_EDGE, forestTrack, GATE, fieldHeight, SHAPE, STUMP } from './layout';
 
 /**
@@ -21,9 +21,8 @@ export function land(kit: LevelKit): void {
     .at(cx, 0, cz)
     .walkable('grass');
   trailStrip(kit, forestTrack, 1.4, fieldHeight);
-  scatter({ x: -30, z: -6, w: 90, d: 50, count: 520, seed: 'yerly-tufts', spacing: 1.2, scale: [0.6, 1.3], avoid: (x, z) => x > -18 && z > -14 && z < 16 }).forEach((s) =>
-    kit.sprite('grass_tuft', { w: 0.85 * s.scale!, h: 0.5 * s.scale! }).color(0x7c7e68).at(s.x, -0.05, s.z).onGround(),
-  );
+  const tufts = scatter({ x: -30, z: -6, w: 90, d: 50, count: 520, seed: 'yerly-tufts', spacing: 1.2, scale: [0.6, 1.3], avoid: (x, z) => x > -18 && z > -14 && z < 16 });
+  billboards(kit, { texture: 'grass_tuft', w: 0.85, h: 0.5, color: 0x7c7e68, sink: 0.05 }, tufts);
 }
 
 /** Post-and-wire fences along both sides of the field, and the gate standing open. */
@@ -90,5 +89,5 @@ export function forestEdge(kit: LevelKit): void {
   kit.trees('bare', [
     { x: -40, z: -19.5, scale: 0.9 },
     { x: -28, z: 6.5, scale: 0.8, yaw: 120 },
-  ]);
+  ]).shade(0.1);
 }

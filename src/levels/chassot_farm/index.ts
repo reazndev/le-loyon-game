@@ -1,11 +1,13 @@
 import { dialogues } from '../../content';
 import type { MeshBuilder } from '../../game/kit/builders';
+import { bareTree, ivyCover, thicket, VERGE_PLANTS, WILD_PLANTS } from '../../game/kit/foliage';
 import type { LevelKit } from '../../game/kit/levelKit';
-import { scatter } from '../../game/kit/scatter';
+import { scatter, spotsAlong } from '../../game/kit/scatter';
 import { scareDirector } from '../../game/scares/director';
 import { defineScene, type SceneContext } from '../../game/scene';
 import { everyFrame } from '../church/everyFrame';
 import { isNight, storyPhase } from '../forest_path/story';
+import { billboards } from '../forest_path/woods';
 import { villageAmbience, villageAtmosphere } from '../village_square/atmosphere';
 import { house, palette } from '../village_square/houses';
 import { tractor } from '../village_square/props';
@@ -104,25 +106,49 @@ function overgrowth(kit: LevelKit): void {
     const indoors = Math.abs(x - HOUSE.x) < HOUSE.w / 2 + 0.3 && Math.abs(z - HOUSE.z) < HOUSE.d / 2 + 0.3;
     return alongSide || inFront || garden || indoors || z > 3.8 && x > 6;
   };
+  const nettles = scatter({ x: 2, z: -6, w: 34, d: 34, count: 380, seed: 'chassot-nettles', spacing: 0.75, scale: [0.7, 1.35], avoid: trodden });
   const kinds = [
-    { texture: 'grass_tuft', w: 1.1, h: 0.9, color: 0x7a7c64 },
-    { texture: 'fern_dead', w: 1.1, h: 1.0, color: 0x80785e },
-    { texture: 'grass_tuft', w: 1.3, h: 1.1, color: 0x84806a },
+    { texture: 'grass_tuft', w: 1.1, h: 0.9, color: 0x7a7c64, sink: 0.05 },
+    { texture: 'fern_dead', w: 1.1, h: 1.0, color: 0x80785e, sink: 0.05 },
+    { texture: 'grass_tuft', w: 1.3, h: 1.1, color: 0x84806a, sink: 0.05 },
   ];
-  scatter({ x: 2, z: -6, w: 34, d: 34, count: 380, seed: 'chassot-nettles', spacing: 0.75, scale: [0.7, 1.35], avoid: trodden }).forEach((s, i) => {
-    const kind = kinds[i % kinds.length]!;
-    kit.sprite(kind.texture, { w: kind.w * s.scale!, h: kind.h * s.scale! }).color(kind.color).at(s.x, -0.05, s.z);
-  });
-  kit.trees('bare', [
-    { x: 12, z: -2, scale: 0.65, yaw: 30 },
-    { x: 15, z: -8, scale: 0.6, yaw: 200 },
-    { x: 12.5, z: -14, scale: 0.7 },
-    { x: -10, z: 6, scale: 0.75, yaw: 90 },
-  ]).collider();
+  kinds.forEach((kind, k) => billboards(kit, kind, nettles.filter((_, i) => i % kinds.length === k)));
+  // The old orchard, not pruned since the mother died: bare, mossy, a few brown leaves hanging on.
+  const orchard = (seed: string, ivy = false) => bareTree(seed, { height: 5, crownBase: 1.3, spread: 1.7, leaves: 0.45, ivy });
+  kit
+    .trees([orchard('chassot-a', true), orchard('chassot-b'), orchard('chassot-c')], [
+      { x: 12, z: -2, yaw: 30 },
+      { x: 15, z: -8, scale: 0.9, yaw: 200 },
+      { x: 12.5, z: -14, scale: 1.05 },
+      { x: -10, z: 6, yaw: 90 },
+      { x: 17.5, z: -15.5, scale: 0.85, yaw: 140 },
+    ])
+    .collider()
+    .shade(0.12);
+  wildHedge(kit);
   // The old fence along the road, posts leaning, rails down.
   for (let x = -14; x < 30; x += 2.6) {
     kit.box({ w: 0.1, h: 1.1, d: 0.1 }).texture('bark_spruce', { tile: 0.5 }).color(0x56504a).at(x, -0.1, 3.4).rotY(x * 17).object.rotation.z = Math.sin(x) * 0.18;
   }
+}
+
+/**
+ * The hedge along the road and down the west side, unclipped for years: bramble over it and young
+ * spruce and saplings through it, head high, with dead grass at its foot along the road. Ivy has
+ * the west wall of the house and the corners of the front.
+ */
+function wildHedge(kit: LevelKit): void {
+  const wild = ['a', 'b', 'c'].map((seed) => thicket(`chassot-hedge-${seed}`, { length: 3, depth: 1.6, count: 11, plants: WILD_PLANTS }));
+  kit.trees(wild, spotsAlong([[-15, 2.4], [-1.5, 2.4]], { step: 2.2, seed: 'chassot-road', jitter: 0.35, scale: [0.95, 1.3] }));
+  kit.trees(wild, spotsAlong([[-17, 1], [-17, -24]], { step: 2.3, seed: 'chassot-west', jitter: 0.5, scale: [1, 1.35] }));
+  kit.trees(wild, spotsAlong([[22, 2.6], [31, 2.6]], { step: 2.3, seed: 'chassot-east', jitter: 0.35 }));
+  kit.barrier({ w: 13.5, d: 1.2 }).at(-8.25, 0, 2.4);
+  const verge = ['a', 'b'].map((seed) => thicket(`chassot-verge-${seed}`, { length: 2.2, depth: 0.8, count: 9, plants: VERGE_PLANTS }));
+  kit.trees(verge, spotsAlong([[-15, 3.8], [-1, 3.8]], { step: 1.7, seed: 'chassot-verge', jitter: 0.2 }));
+  kit.trees(verge, spotsAlong([[8, 3.7], [33, 3.7]], { step: 1.7, seed: 'chassot-verge-east', jitter: 0.2 }));
+  const front = HOUSE.z + HOUSE.d / 2 + 0.03;
+  kit.trees(ivyCover('chassot-west-wall', { w: 6.5, h: 4.6 }), [{ x: HOUSE.x - HOUSE.w / 2 - 0.03, z: HOUSE.z - 0.5, yaw: -90 }]);
+  kit.trees(ivyCover('chassot-front', { w: 1.3, h: 3.4 }), [{ x: HOUSE.x - HOUSE.w / 2 + 0.6, z: front, yaw: 0 }, { x: HOUSE.x + HOUSE.w / 2 - 0.55, z: front, yaw: 0 }]);
 }
 
 /** The light in the gaps: a candle carried slowly along the front room, gone when the reporter comes near. */

@@ -1,7 +1,8 @@
 import { dialogues } from '../../content';
 import type { DialogueScript } from '../../game/dialogue';
+import { bareTree, HEDGE_PLANTS, ivyCover, thicket, VERGE_PLANTS } from '../../game/kit/foliage';
 import type { LevelKit } from '../../game/kit/levelKit';
-import { scatter } from '../../game/kit/scatter';
+import { scatter, spotsAlong } from '../../game/kit/scatter';
 import { defineScene, type SceneContext } from '../../game/scene';
 import { everyFrame } from '../church/everyFrame';
 import { woodCreak } from '../church/sounds';
@@ -72,15 +73,19 @@ function garden(kit: LevelKit): void {
   // The gate leaf stands open against the wall.
   kit.box({ w: 1.1, h: 1.0, d: 0.03 }).texture('iron_fence', { tile: [1.1, 1] }).cutout().doubleSided().color(0x3a3a38).at(GATE.x + 0.65, 0.05, GATE.z - 0.55).rotY(90);
 
-  kit.trees('bare', [{ x: 3.4, z: 8.6, scale: 0.6, yaw: 40 }]).collider();
+  kit.trees(bareTree('gremaud-apple', { height: 4.6, crownBase: 1.3, spread: 1.6, leaves: 0.4, ivy: true }), [{ x: 3.4, z: 8.6, yaw: 40 }]).collider();
   scatter({ x: 0, z: 8, w: 9, d: 6, count: 10, seed: 'gremaud-lawn', spacing: 1.4, scale: [0.5, 0.8], avoid: (x) => Math.abs(x - GATE.x) < 1.2 }).forEach((s) =>
     kit.sprite('grass_tuft', { w: 0.6 * s.scale!, h: 0.35 * s.scale! }).color(0x7e806a).at(s.x, 0, s.z),
   );
-  // A clipped hedge down the left side, between the garden and the inn's yard.
-  scatter({ x: -9.2, z: 3, w: 1.2, d: 18, count: 16, seed: 'gremaud-hedge', spacing: 1, scale: [1, 1.3] }).forEach((s) =>
-    kit.sprite('bush', { w: 1.7 * s.scale!, h: 1.5 * s.scale! }).color(0x5e6452).at(s.x, -0.1, s.z),
-  );
-  kit.barrier({ w: 1, d: 18 }).at(-9.2, 0, 3);
+  // A beech hedge down the left side, between the garden and the inn's yard, its dead leaves kept.
+  const hedge = ['a', 'b', 'c'].map((seed) => thicket(`gremaud-hedge-${seed}`, { length: 2.6, depth: 1.1, count: 11, plants: HEDGE_PLANTS }));
+  kit.trees(hedge, spotsAlong([[-6.3, -6], [-6.3, 11.4]], { step: 2, seed: 'gremaud-hedge', jitter: 0.15, scale: [1.1, 1.3] }));
+  kit.barrier({ w: 1, d: 17.4 }).at(-6.3, 0, 2.7);
+  // Ivy over the garden wall, and dead grass along its foot on the lane side.
+  const ivy = ['a', 'b'].map((seed) => ivyCover(`gremaud-wall-${seed}`, { w: 2.4, h: 0.7 }));
+  kit.trees(ivy, [-6.4, -3.2, 5.6].map((dx) => ({ x: GATE.x + dx, z: GATE.z + 0.2, yaw: 0 })));
+  const verge = ['a', 'b'].map((seed) => thicket(`gremaud-verge-${seed}`, { length: 2, depth: 0.6, count: 8, plants: VERGE_PLANTS }));
+  kit.trees(verge, [-1, 1].flatMap((side) => spotsAlong([[GATE.x + side * 1.2, GATE.z + 0.6], [GATE.x + side * 8.4, GATE.z + 0.6]], { step: 1.6, seed: `gremaud-verge-${side}`, jitter: 0.1 })));
 }
 
 /** The back of the Croix-Blanche: kitchen door, bins, crates of empties, the boy's window upstairs. */

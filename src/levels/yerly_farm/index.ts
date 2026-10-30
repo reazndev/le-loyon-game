@@ -8,6 +8,7 @@ import { nowAndThen, villageAmbience, villageAtmosphere } from '../village_squar
 import { fountainWater } from '../village_square/sounds';
 import { henhouse, toolShed, yard, type Hen } from './farmyard';
 import { fences, forestEdge, land } from './field';
+import { greenery } from './greenery';
 import { BERNARD, BOUNDS, FOREST_EDGE, HENHOUSE, spawns, STALL } from './layout';
 import { marquise } from './marquise';
 import { cluck, moo } from './sounds';
@@ -29,6 +30,7 @@ export const yerlyFarmScene = defineScene({
     land(kit);
     yard(kit, night);
     fences(kit);
+    greenery(kit);
     forestEdge(kit);
     const shovel = toolShed(kit);
     everyFrame(kit, () => (shovel.object.visible = !holds('has_shovel', ctx.state)));
