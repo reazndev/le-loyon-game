@@ -91,6 +91,22 @@ describe('DialogueRunner', () => {
     expect(runner.step).toEqual({ kind: 'choice', speaker: undefined, text: undefined, choices: ['Yes'] });
   });
 
+  it('skips conditional lines whose condition fails, checked after the node effects', () => {
+    const script: DialogueScript = {
+      start: 'a',
+      nodes: {
+        a: {
+          effects: { set: 'seen' },
+          lines: ['One.', { if: { flag: 'nope' }, text: 'Hidden.' }, { if: { flag: 'seen' }, text: 'Two.' }],
+        },
+      },
+    };
+    const runner = new DialogueRunner(script, new GameState());
+    expect(runner.step).toMatchObject({ text: 'One.' });
+    expect(runner.advance()).toMatchObject({ text: 'Two.' });
+    expect(runner.advance()).toEqual({ kind: 'end' });
+  });
+
   it('throws on a jump to a missing node', () => {
     expect(() => new DialogueRunner({ start: 'nowhere', nodes: {} }, new GameState())).toThrow(/nowhere/);
   });

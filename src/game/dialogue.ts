@@ -12,9 +12,15 @@ export interface DialogueChoice {
   next?: Next;
 }
 
+/** A line that shows only while its condition holds. */
+export interface ConditionalLine {
+  if: Condition;
+  text: string;
+}
+
 export interface DialogueNode {
   speaker?: string;
-  lines: string[];
+  lines: (string | ConditionalLine)[];
   /** Applied when the node starts. */
   effects?: Effect;
   /** Shown with the last line, once it has been typed out. */
@@ -39,6 +45,7 @@ export type DialogueStep =
  */
 export class DialogueRunner {
   private node: DialogueNode | null = null;
+  private lines: string[] = [];
   private line = 0;
   private visibleChoices: DialogueChoice[] = [];
   private current: DialogueStep = { kind: 'end' };
@@ -57,7 +64,7 @@ export class DialogueRunner {
   /** Moves past the current line. Does nothing while a choice is waiting. */
   advance(): DialogueStep {
     if (this.current.kind !== 'line' || !this.node) return this.current;
-    if (this.line + 1 < this.node.lines.length) {
+    if (this.line + 1 < this.lines.length) {
       this.line++;
       return this.show();
     }
@@ -81,18 +88,19 @@ export class DialogueRunner {
     this.line = 0;
     apply(node.effects, this.state);
     // Conditions are checked once, after the node's own effects.
+    this.lines = node.lines.flatMap((l) => (typeof l === 'string' ? [l] : check(l.if, this.state) ? [l.text] : []));
     this.visibleChoices = (node.choices ?? []).filter((c) => check(c.if, this.state));
-    if (node.lines.length === 0 && this.visibleChoices.length === 0) return this.follow(node.next);
+    if (this.lines.length === 0 && this.visibleChoices.length === 0) return this.follow(node.next);
     return this.show();
   }
 
   private show(): DialogueStep {
     const node = this.node!;
-    const isLast = this.line >= node.lines.length - 1;
+    const isLast = this.line >= this.lines.length - 1;
     this.current =
       isLast && this.visibleChoices.length > 0
-        ? { kind: 'choice', speaker: node.speaker, text: node.lines[this.line], choices: this.visibleChoices.map((c) => c.text) }
-        : { kind: 'line', speaker: node.speaker, text: node.lines[this.line]! };
+        ? { kind: 'choice', speaker: node.speaker, text: this.lines[this.line], choices: this.visibleChoices.map((c) => c.text) }
+        : { kind: 'line', speaker: node.speaker, text: this.lines[this.line]! };
     return this.current;
   }
 

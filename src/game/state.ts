@@ -14,6 +14,7 @@ export interface PlayerPose {
 export interface StateEvents extends Record<string, unknown> {
   flag: { flag: string; on: boolean };
   item: { item: string; held: boolean };
+  count: { name: string; value: number };
   time: TimeOfDay;
 }
 
@@ -23,15 +24,18 @@ export interface StateSnapshot {
   time: TimeOfDay;
   flags: string[];
   inventory: string[];
+  /** Missing in saves made before counts existed. */
+  counts?: Record<string, number>;
   player: PlayerPose;
 }
 
-/** Flags, inventory, current scene, and time of day. Inventory holds each item once, in pickup order. */
+/** Flags, counts, inventory, current scene, and time of day. Inventory holds each item once, in pickup order. */
 export class GameState implements StateMutator {
   readonly events = new Emitter<StateEvents>();
   scene = '';
   player: PlayerPose = { x: 0, y: 0, z: 0, yaw: 0 };
   private readonly flags = new Set<string>();
+  private readonly counts = new Map<string, number>();
   private readonly items: string[] = [];
   private timeOfDay: TimeOfDay = 'day';
 
@@ -60,6 +64,16 @@ export class GameState implements StateMutator {
     this.events.emit('flag', { flag, on });
   }
 
+  count(name: string): number {
+    return this.counts.get(name) ?? 0;
+  }
+
+  setCount(name: string, value: number): void {
+    if (this.count(name) === value) return;
+    this.counts.set(name, value);
+    this.events.emit('count', { name, value });
+  }
+
   hasItem(item: string): boolean {
     return this.items.includes(item);
   }
@@ -83,6 +97,7 @@ export class GameState implements StateMutator {
       time: this.timeOfDay,
       flags: [...this.flags].sort(),
       inventory: [...this.items],
+      counts: Object.fromEntries(this.counts),
       player: { ...this.player },
     };
   }
@@ -94,6 +109,8 @@ export class GameState implements StateMutator {
     this.player = { ...snapshot.player };
     this.flags.clear();
     snapshot.flags.forEach((f) => this.flags.add(f));
+    this.counts.clear();
+    Object.entries(snapshot.counts ?? {}).forEach(([name, value]) => this.counts.set(name, value));
     this.items.splice(0, this.items.length, ...snapshot.inventory);
   }
 }
