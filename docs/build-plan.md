@@ -34,7 +34,9 @@ Debug hooks: `?scene=<id>&time=<day|night>&flags=a,b` loads any scene directly, 
 - [x] **1a. Engine core.** Vite, TypeScript, Three.js, Electron. 640x480 render with PS1 effects and fog. Tank controls on keyboard and gamepad. Collision, interaction prompts, dialogue box, inventory, flags, save, scene transitions, audio manager. A test room. Screenshot script. API notes in `docs/engine.md`.
 - [x] **1b. Script.** Full story script in `docs/script/`, with fact-checked background on the Foreign Legion, Bosnia, Swiss law, Fribourg, and 1998 technology.
 - [x] **1c. Texture pipeline.** Filter script, texture list, first FLORA batch. See `docs/textures.md`.
-- [ ] **2. Areas.** Built in parallel: home and prologue computer; village and inn; church and cemetery; forest and bunker.
+- [ ] **2. Areas.** Built in parallel by subagents, following `docs/agent-brief.md`.
+  - Wave 1, started 2026-10-30 01:05 UTC: content data (`src/content`), desktop and prologue (`src/desktop`, `home`), characters, scares and patrol, forest and bunker.
+  - Wave 2, after wave 1: village outdoors (square, farms, road), village interiors (inn, laiterie, garage, Gremaud house), church and cemetery (with the dig and the patrol).
 - [ ] **3. Systems.** Le Loyon sightings and scare director, procedural sound and ambience, night watchman and grave digging, the dial-up forum during the game.
 - [ ] **4. Integration.** Script into content data, quest flow from start to all three endings, title screen, settings, save slots.
 - [ ] **5. QA.** Automated playthrough of every ending, screenshot review of every area, performance check, bug fixes.
