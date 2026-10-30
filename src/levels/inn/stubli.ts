@@ -54,6 +54,12 @@ export function buildStubli(kit: LevelKit, dressing: InnDressing, props: StubliP
   kit.cylinder({ r: 0.045, h: 0.02, sides: 10 }).color(0x8a8070).at(PHONE.x + 0.03, PHONE.y - 0.04, PHONE.z + 0.04);
   kit.box({ w: 0.24, h: 0.32, d: 0.01 }).texture('tiles_white', { tile: 0.3 }).color(0xd0c8b0).at(PHONE.x + 0.32, PHONE.y - 0.3, z0 + 0.09);
 
+  // A framed print of the church in summer over the desk, and the brewery's calendar.
+  kit.box({ w: 0.04, h: 0.42, d: 0.56 }).color(0x3a2a1c).at(x0 + 0.1, 1.45, DESK.z);
+  kit.box({ w: 0.01, h: 0.34, d: 0.48 }).texture('church_stone', { tile: 0.5 }).color(0x9aa08a).at(x0 + 0.125, 1.49, DESK.z);
+  kit.box({ w: 0.01, h: 0.5, d: 0.34 }).texture('tiles_white', { tile: 0.4 }).color(0xd0c8b0).at(x0 + 0.09, 1.2, z1 - 0.6);
+  kit.box({ w: 0.012, h: 0.16, d: 0.34 }).color(0x8a2a24).at(x0 + 0.09, 1.56, z1 - 0.6);
+
   computerDesk(kit, dressing, props.useComputer);
   pendantLamp(kit, { x: x0 + 2.2, y: h, z: z0 + 1.2 }, { on: !night, intensity: 1.5, range: 5, drop: 0.45 });
 }

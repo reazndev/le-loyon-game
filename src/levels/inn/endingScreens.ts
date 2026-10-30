@@ -8,9 +8,6 @@ import type { SceneContext } from '../../game/scene';
  * plays `leave`.
  */
 
-/** Where "Return to the title" goes. There is no title scene yet, so the game starts again at home. */
-const TITLE_SCENE = 'home';
-
 const INK = '#1c1b18';
 
 function el<K extends keyof HTMLElementTagNameMap>(tag: K, css: string, text?: string): HTMLElementTagNameMap[K] {
@@ -49,7 +46,7 @@ const holds = (passage: Passage, ctx: SceneContext) => checkStory(passage.if, ct
 function newspaperPage(ctx: SceneContext, article: Article): HTMLElement {
   const page = el(
     'div',
-    `position:absolute;inset:0;background:#c9c4b6;color:${INK};padding:18px 26px;font-family:Georgia,'Times New Roman',serif;overflow:hidden`,
+    `position:absolute;inset:0;background:#c9c4b6;color:${INK};padding:18px 26px 34px;font-family:Georgia,'Times New Roman',serif;overflow:hidden;text-shadow:none;display:flex;flex-direction:column`,
   );
   page.append(
     el('div', 'font-size:34px;font-weight:bold;letter-spacing:2px;text-align:center;border-bottom:3px double #1c1b18;line-height:1.1', "L'ÉCHO"),
@@ -59,13 +56,18 @@ function newspaperPage(ctx: SceneContext, article: Article): HTMLElement {
   page.append(el('div', 'font-size:22px;font-weight:bold;line-height:1.1;margin:2px 0 4px', article.headline));
   if (article.subhead) page.append(el('div', 'font-size:12px;font-style:italic;margin-bottom:8px', article.subhead));
 
-  const body = el('div', 'column-count:3;column-gap:14px;font-size:10px;line-height:1.32;text-align:justify');
+  // The columns fill top to bottom, as a printed page does.
+  const body = el('div', 'flex:1;min-height:0;column-count:3;column-fill:auto;column-gap:14px;column-rule:1px solid #8a867c;font-size:11.5px;line-height:1.3;text-align:justify');
   const photo = article.photos?.find((p) => ctx.state.hasItem(p.item));
   if (photo) {
     const figure = el('div', 'break-inside:avoid;margin-bottom:6px');
     // A halftone: grey dots on newsprint, the Polaroid as the press made it.
+    // The reporter's own Polaroid when the save has it; the mask alone otherwise.
+    const print = ctx.state.photo(photo.item)?.image;
+    const mask = photo.item === 'photo_marc_masked' || photo.item === 'photo_marc_forced';
+    const subject = print ? `url(${print}) center/cover no-repeat,` : mask ? 'url(assets/textures/gas_mask.png) center/auto 92% no-repeat,' : '';
     figure.append(
-      el('div', 'height:96px;background:radial-gradient(circle,#2a2925 38%,transparent 42%) 0 0/4px 4px,#8a867c;filter:contrast(1.2)'),
+      el('div', `height:110px;background:radial-gradient(circle,#2a2925 38%,transparent 42%) 0 0/4px 4px,${subject}#8a867c;filter:grayscale(1) contrast(1.2)`),
       el('div', 'font-size:9px;font-style:italic;margin-top:2px', photo.caption),
     );
     body.append(figure);
@@ -91,13 +93,13 @@ function creditsScreen(): HTMLElement {
   return screen;
 }
 
-/** Plays the ending's pages, epilogue, and last screen, then starts the game again. */
+/** Plays the ending's pages, epilogue, and last screen, then returns to the title screen. */
 export async function playEnding(ctx: SceneContext, which: keyof typeof endings): Promise<void> {
   const ending: Ending = endings[which];
   const article = ending.articles.find((a) => checkStory(a.if, ctx.state));
   if (article) await showUntilConfirmed(ctx, newspaperPage(ctx, article), 4);
   for (const passage of ending.epilogue.filter((p) => holds(p, ctx))) await showUntilConfirmed(ctx, blackScreen(passage.text), 2.5);
   await showUntilConfirmed(ctx, creditsScreen(), 3, 'Return to the title');
-  ctx.state.restore({ scene: TITLE_SCENE, time: 'night', flags: [], inventory: [], counts: {}, player: { x: 0, y: 0, z: 0, yaw: 0 } });
-  ctx.goTo(TITLE_SCENE);
+  // The title is shown before any scene loads; starting the page again without `?scene=` brings it back.
+  location.assign(location.pathname);
 }

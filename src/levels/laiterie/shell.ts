@@ -30,8 +30,8 @@ export function buildShell(kit: LevelKit, night: boolean): void {
   skirting(kit, [DAIRY_EDGE, z0 + inner], [x1, z0 + inner]);
   skirting(kit, [x1 - inner, z0], [x1 - inner, z1]);
 
-  fogWindow(kit, { x: SHOP_WINDOW.x, z: z1, facing: 180, w: SHOP_WINDOW.w, h: SHOP_WINDOW.h, y: SHOP_WINDOW.y, night, lamp: true });
-  fogWindow(kit, { x: x0, z: SIDE_WINDOW.z, facing: 90, w: SIDE_WINDOW.w, h: SIDE_WINDOW.h, y: SIDE_WINDOW.y, night });
+  fogWindow(kit, { x: SHOP_WINDOW.x, z: z1, facing: 0, w: SHOP_WINDOW.w, h: SHOP_WINDOW.h, y: SHOP_WINDOW.y, night, lamp: true });
+  fogWindow(kit, { x: x0, z: SIDE_WINDOW.z, facing: -90, w: SIDE_WINDOW.w, h: SIDE_WINDOW.h, y: SIDE_WINDOW.y, night });
 
   // Shut at night: the bulbs hang dark.
   const lamp = (x: number, z: number, intensity: number) => pendantLamp(kit, { x, y: h, z }, { on: !night, intensity, range: 5, drop: 0.55, color: 0xffb860 });

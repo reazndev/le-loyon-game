@@ -28,7 +28,7 @@ export const garageScene = defineScene({
   },
   atmosphere: {
     day: {
-      fog: { color: 0x6c706e, near: 3, far: 17, density: 0.035, wisps: 0.15 },
+      fog: { color: 0x3c3e3c, near: 5, far: 20, density: 0.015, wisps: 0.05 },
       ambient: 0x4c4e4c,
       saturation: 0.5,
       flashlight: false,
