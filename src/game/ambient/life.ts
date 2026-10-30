@@ -48,16 +48,16 @@ export interface Perch {
 const SCARE_DISTANCE = 5;
 const FLIGHT_SECONDS = 3.5;
 
-/** A crow as a handful of boxes, for perches near the path. */
+/** A crow as a handful of boxes merged into one draw call, for perches near the path. */
 function crowModel(kit: LevelKit): Placed {
-  return kit.group((g) => {
+  return kit.group((outer) => outer.batch((g) => {
     g.box({ w: 0.16, h: 0.15, d: 0.3 }).color(0x111214).at(0, 0.06, 0);
     g.box({ w: 0.1, h: 0.1, d: 0.11 }).color(0x0e0f10).at(0, 0.16, -0.17);
     g.box({ w: 0.03, h: 0.03, d: 0.08 }).color(0x2a2a26).at(0, 0.17, -0.25);
     g.box({ w: 0.12, h: 0.03, d: 0.16 }).color(0x111214).at(0, 0.1, 0.2);
     g.box({ w: 0.02, h: 0.07, d: 0.02 }).color(0x2a2620).at(-0.04, 0, 0);
     g.box({ w: 0.02, h: 0.07, d: 0.02 }).color(0x2a2620).at(0.04, 0, 0);
-  });
+  }));
 }
 
 /**
@@ -118,23 +118,24 @@ function purr(ctx: SceneContext, at: Point3): void {
  * A grey cat sitting on a windowsill or a chair: it breathes, flicks its tail, and turns its head
  * to watch the reporter when they come near. It purrs if they stand close. `at` is where it sits.
  */
-export function cat(kit: LevelKit, ctx: SceneContext, at: Point3 & { yaw?: number }, fur = 0x5e5a56): void {
+export function cat(kit: LevelKit, ctx: SceneContext, at: Point3 & { yaw?: number }, fur = 0x3e3b38): void {
   const parts = {} as Record<'body' | 'head' | 'tail', Placed>;
   const root = kit
     .group((g) => {
-      parts.body = g.group((b) => {
-        b.box({ w: 0.16, h: 0.2, d: 0.26 }).color(fur).at(0, 0, 0.02);
-        b.box({ w: 0.13, h: 0.1, d: 0.12 }).color(fur).at(0, 0.18, -0.06);
-      });
-      parts.head = g.group((h) => {
+      // A loaf low on its haunches with a narrower chest, so it doesn't read as a block.
+      parts.body = g.group((outer) => outer.batch((b) => {
+        b.box({ w: 0.13, h: 0.13, d: 0.26 }).color(fur).at(0, 0, 0.03);
+        b.box({ w: 0.1, h: 0.12, d: 0.1 }).color(fur).at(0, 0.1, -0.07);
+      }));
+      parts.head = g.group((outer) => outer.batch((h) => {
         h.box({ w: 0.11, h: 0.09, d: 0.1 }).color(fur);
         h.box({ w: 0.03, h: 0.04, d: 0.02 }).color(fur).at(-0.035, 0.09, 0);
         h.box({ w: 0.03, h: 0.04, d: 0.02 }).color(fur).at(0.035, 0.09, 0);
         // Eyes catch the torch.
         h.box({ w: 0.018, h: 0.012, d: 0.01 }).color(0x8a8a40).emissive(0x1a1a08).at(-0.025, 0.045, -0.051);
         h.box({ w: 0.018, h: 0.012, d: 0.01 }).color(0x8a8a40).emissive(0x1a1a08).at(0.025, 0.045, -0.051);
-      }).at(0, 0.27, -0.08);
-      parts.tail = g.group((t) => t.box({ w: 0.03, h: 0.03, d: 0.24 }).color(fur).at(0, 0, 0.12)).at(0.05, 0.02, 0.14);
+      })).at(0, 0.22, -0.09);
+      parts.tail = g.group((t) => t.box({ w: 0.03, h: 0.03, d: 0.24 }).color(fur).at(0, 0, 0.12)).at(0.05, 0.02, 0.15);
     })
     .at(at.x, at.y, at.z)
     .rotY(at.yaw ?? 0)
