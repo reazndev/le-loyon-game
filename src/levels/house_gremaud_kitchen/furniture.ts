@@ -13,8 +13,8 @@ export function buildFurniture(kit: LevelKit, night: boolean): void {
   dresser(kit);
   fridge(kit);
   table(kit);
-  chair(kit, HER_CHAIR.x, HER_CHAIR.z, -98);
-  chair(kit, HIS_CHAIR.x, HIS_CHAIR.z, 90);
+  chair(kit, HER_CHAIR.x, HER_CHAIR.z, HER_CHAIR.yaw);
+  chair(kit, HIS_CHAIR.x, HIS_CHAIR.z, HIS_CHAIR.yaw);
   wallClock(kit);
   pendantLamp(kit, { x: PENDANT.x, y: ROOM.h, z: PENDANT.z }, { on: !night, intensity: 1.3, range: 5, drop: 0.28 });
   if (night) nightLamp(kit);

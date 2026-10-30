@@ -65,10 +65,10 @@ export const markers = {
   },
   marc_on_bed: {
     beat: 'marc_monologue',
-    x: 3.85,
-    z: BED.z,
-    yaw: -90,
-    note: 'After the monologue: he sits on the bed with his back to the door and does not move again. There is no sitting pose; he is a hunched shape on the blanket.',
+    x: 4,
+    z: BED.z - 0.2,
+    yaw: -55,
+    note: 'After the monologue: he sits on the south edge of the bed, turned away from the door, hands on his knees, and does not move again.',
   },
   marc_monologue_stand: {
     beat: 'marc_monologue',
@@ -81,9 +81,6 @@ export const markers = {
 
 type Update = (dt: number, ctx: SceneContext) => void;
 let updates: Update[] = [];
-
-/** How tall he is sitting, as a share of standing. */
-const SITTING = 0.62;
 
 export const bunkerHiddenScene = defineScene({
   id: 'bunker_hidden',
@@ -345,7 +342,7 @@ const roomBeats = (shutTheDoor: () => void): Beat[] => [
  */
 function stageMarc(kit: LevelKit, ctx: SceneContext, arrival: Arrival, seen: Set<string>, scares: ScareDirector): void {
   const marc = kit.npc('marc');
-  if (arrival === 'after') return sitOnTheBed(marc);
+  if (arrival === 'after') return sitOnTheBed(marc, { instantly: true });
   const talk = (id: NodeId) => playNode(ctx, id).then(() => walkToTheBed(marc));
 
   if (arrival === 'dark') {
@@ -390,13 +387,15 @@ function walkToTheBed(marc: NpcBuilder): void {
   void marc.character.walk([{ x: x - 1.2, z: z - 1.1 }, { x, z }]).then(() => sitOnTheBed(marc));
 }
 
-/** Hunched on the blanket, his back to the door. No sitting pose exists, so the cape folds down. */
-function sitOnTheBed(marc: NpcBuilder): void {
+/**
+ * On the edge of the blanket, his back to the door, hands on his knees (05-forest-bunker.md).
+ * He stands on the bed's walkable top, so the seat is where he stands.
+ */
+function sitOnTheBed(marc: NpcBuilder, { instantly = false } = {}): void {
   const { x, z, yaw } = markers.marc_on_bed;
-  marc.character.stop();
   marc.character.position.set(x, BED.top, z);
   marc.faceYaw(yaw);
-  marc.object.scale.y = SITTING;
+  marc.character.sit(0, { instantly });
 }
 
 const distance = (ctx: SceneContext, x: number, z: number) => Math.hypot(x - ctx.player.position.x, z - ctx.player.position.z);

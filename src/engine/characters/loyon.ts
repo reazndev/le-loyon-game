@@ -61,7 +61,8 @@ export function buildLoyon(textures: TextureLibrary): CharacterModel {
     pose: (input: PoseInput, look: Look) => {
       const pose = loyonPose(input);
       body.position.y = pose.bodyY;
-      body.rotation.set(pose.pitch, 0, pose.roll);
+      // Positive pitch leans forward; a positive X turn would tip him back.
+      body.rotation.set(-pose.pitch, 0, pose.roll);
       head.rotation.set(look.pitch, look.yaw, pose.headRoll, 'YXZ');
       feet[0].position.set(feet[0].position.x, pose.footL.lift, pose.footL.z);
       feet[1].position.set(feet[1].position.x, pose.footR.lift, pose.footR.z);

@@ -14,10 +14,12 @@ export const LIVING_DOOR = { z: 1.15, w: 0.85, h: 2.05 };
 export const WINDOW = { x: -0.35, w: 1.0, h: 1.0, y: 1.08 };
 
 export const TABLE = { x: 0.75, z: -0.35, w: 0.85, d: 1.1, h: 0.76 };
-/** Odile's chair, on the west side, pulled out a little. */
-export const HER_CHAIR = { x: TABLE.x - 0.7, z: TABLE.z + 0.08 };
+/** Odile's chair, on the west side, pulled out a little and turned toward the table. */
+export const HER_CHAIR = { x: TABLE.x - 0.7, z: TABLE.z + 0.08, yaw: -98 };
 /** His chair, on the east side, pushed in square. */
-export const HIS_CHAIR = { x: TABLE.x + 0.56, z: TABLE.z };
+export const HIS_CHAIR = { x: TABLE.x + 0.56, z: TABLE.z, yaw: 90 };
+/** The top of a chair's cushion. */
+export const SEAT = 0.48;
 
 export const STOVE = { z: -1.75 };
 export const DRESSER = { z: -0.15, length: 1.35 };

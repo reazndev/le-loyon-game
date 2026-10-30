@@ -76,6 +76,12 @@ export class NpcBuilder extends Placed {
     return this;
   }
 
+  /** Already seated when the scene opens, on a seat `height` meters up. See `Character.sit`. */
+  sit(height = 0): this {
+    this.character.sit(height, { instantly: true });
+    return this;
+  }
+
   /** The head follows the player while they are within `radius` meters. */
   watch(radius = 4): this {
     this.watchRadius = radius;

@@ -1,5 +1,5 @@
 import type { LevelKit } from '../../game/kit/levelKit';
-import { BENCH, CALENDAR, RADIO, ROOM } from './layout';
+import { BENCH, CALENDAR, RADIO, ROOM, STOOL } from './layout';
 
 /** The bench and its tools, the calendar, the radio shelf, oil drums, and tyres. */
 
@@ -25,6 +25,19 @@ export function buildBench(kit: LevelKit): void {
   kit.box({ w: 0.46, h: 0.03, d: 0.04 }).color(0x2a2a28).at(x + 1.2, h + 0.22, z - 0.08);
 
   pegboard(kit);
+  stool(kit);
+}
+
+/** A round workshop stool on three splayed legs. */
+function stool(kit: LevelKit): void {
+  kit.cylinder({ r: 0.17, h: 0.04, sides: 8 }).texture('wood_planks', { tile: 0.4 }).color(WOOD).at(STOOL.x, STOOL.h - 0.04, STOOL.z);
+  [0, 120, 240].forEach((yaw) =>
+    kit
+      .group((g) => g.box({ w: 0.035, h: STOOL.h - 0.03, d: 0.035 }).color(STEEL).at(0, 0, 0.13).object.rotation.set(0.12, 0, 0))
+      .at(STOOL.x, 0, STOOL.z)
+      .rotY(yaw),
+  );
+  kit.barrier({ r: 0.2 }).at(STOOL.x, 0, STOOL.z);
 }
 
 /** A pegboard over the bench with the tools hanging on it. */

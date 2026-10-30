@@ -28,6 +28,8 @@ export const LIFT = { x: 2.3, z: -1.7, posts: 1.22, rise: 1.75 };
 export const SUMP = { x: LIFT.x, y: LIFT.rise, z: LIFT.z - 1.1 };
 
 export const BENCH = { x: -2.6, z: ROOM.z0 + WALL / 2 + 0.35, w: 3.2, d: 0.7, h: 0.88 };
+/** Yannick's stool at the bench, in front of the brake disc, and the height of its seat. */
+export const STOOL = { x: BENCH.x - 0.6, z: BENCH.z + 0.8, h: 0.62 };
 /** On the wall over the bench, where the card from Calvi is pinned. */
 export const POSTCARD = { x: -2.05, y: 1.5, z: ROOM.z0 + WALL / 2 + 0.012 };
 export const CALENDAR = { x: -0.25, y: 1.2, z: ROOM.z0 + WALL / 2 + 0.01 };

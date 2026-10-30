@@ -6,9 +6,8 @@ import { everyFrame } from '../church/everyFrame';
 import { houseCreak } from '../inn/sounds';
 import type { GarageCast } from './cast';
 import { YANNICK_LEFT } from './cast';
-import { BENCH, DOOR, INSIDE_DOOR, LIFT, ROOM, SUMP } from './layout';
+import { BENCH, DOOR, INSIDE_DOOR, LIFT, ROOM, STOOL, SUMP } from './layout';
 
-const AT_BENCH = { x: BENCH.x - 0.6, z: BENCH.z + 0.72 };
 const BRAKE_DISC = new Vector3(BENCH.x - 0.6, BENCH.h, BENCH.z + 0.08);
 const UNDER_FIAT = { x: LIFT.x + 0.15, z: SUMP.z + 0.4 };
 const SUMP_POINT = new Vector3(SUMP.x, SUMP.y - 0.1, SUMP.z);
@@ -25,10 +24,13 @@ export function placeCast(kit: LevelKit, ctx: SceneContext, cast: GarageCast): v
   if (cast.gilles) kit.npc('gilles').at(-0.45, 0, BENCH.z + 0.75).faceYaw(165).watch(4).talk('gilles');
   if (!cast.yannick) return;
 
-  const spot = cast.yannick === 'bench' ? AT_BENCH : UNDER_FIAT;
+  // At the bench he sits on his stool; under the Fiat he stands.
+  const atBench = cast.yannick === 'bench';
+  const spot = atBench ? STOOL : UNDER_FIAT;
   const yannick = kit.npc('yannick').at(spot.x, 0, spot.z).faceYaw(0).talk('yannick');
+  if (atBench) yannick.sit(STOOL.h);
   // He keeps his eyes on his work, except while he answers.
-  const work = cast.yannick === 'bench' ? BRAKE_DISC : SUMP_POINT;
+  const work = atBench ? BRAKE_DISC : SUMP_POINT;
   const body = yannick.character;
   everyFrame(kit, () => {
     if (body.walking) body.lookAt = null;

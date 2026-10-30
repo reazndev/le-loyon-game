@@ -18,11 +18,13 @@ export interface HumanPose {
   bodyY: number;
   /** Sideways hip shift in meters. */
   bodyX: number;
+  /** Forward lean of the back. */
   torsoPitch: number;
   torsoRoll: number;
   torsoYaw: number;
   /** Vertical chest scale for breathing. */
   chest: number;
+  /** Up is positive. */
   headPitch: number;
   headYaw: number;
   armL: Limb;
@@ -38,11 +40,16 @@ export interface PoseInput {
   phase: number;
   /** 0 standing, 1 walking. */
   walk: number;
+  /** 0 standing, 1 seated. */
+  sit: number;
+  /** Meters from the ground under the character up to the seat it sits on. */
+  seat: number;
   /** Per-character offset so a crowd doesn't breathe in step. */
   seed: number;
 }
 
 const mix = (a: number, b: number, k: number) => a + (b - a) * k;
+const unit = (k: number) => Math.max(0, Math.min(1, k));
 const mixLimb = (a: Limb, b: Limb, k: number): Limb => ({ swing: mix(a.swing, b.swing, k), bend: mix(a.bend, b.bend, k) });
 
 /** Breathing, slow weight shifts from one leg to the other, and a wandering gaze. */
@@ -85,30 +92,60 @@ function humanWalk(phase: number): HumanPose {
   };
 }
 
-export function humanPose({ t, phase, walk, seed }: PoseInput): HumanPose {
-  const idle = humanIdle(t, seed);
-  const step = humanWalk(phase);
-  const k = Math.max(0, Math.min(1, walk));
+/**
+ * On a chair or the edge of a bed: thighs level, shins hanging, a slight slump, hands on the
+ * knees. Hip height is the model's to set, since only it knows how long the legs are.
+ */
+function humanSeated(t: number, seed: number): HumanPose {
+  const breath = Math.sin((TAU * t) / 4.6 + seed);
   return {
-    bodyY: mix(idle.bodyY, step.bodyY, k),
-    bodyX: mix(idle.bodyX, step.bodyX, k),
-    torsoPitch: mix(idle.torsoPitch, step.torsoPitch, k),
-    torsoRoll: mix(idle.torsoRoll, step.torsoRoll, k),
-    torsoYaw: mix(idle.torsoYaw, step.torsoYaw, k),
-    chest: mix(idle.chest, step.chest, k),
-    headPitch: mix(idle.headPitch, step.headPitch, k),
-    headYaw: mix(idle.headYaw, step.headYaw, k),
-    armL: mixLimb(idle.armL, step.armL, k),
-    armR: mixLimb(idle.armR, step.armR, k),
-    legL: mixLimb(idle.legL, step.legL, k),
-    legR: mixLimb(idle.legR, step.legR, k),
+    bodyY: 0,
+    bodyX: 0,
+    torsoPitch: 0.16 + 0.01 * breath,
+    torsoRoll: 0,
+    torsoYaw: 0,
+    chest: 1 + 0.015 * breath,
+    headPitch: 0.03 * Math.sin(t / 7.7 + seed),
+    headYaw: 0.06 * Math.sin(t / 6.1 + seed * 2),
+    armL: { swing: 0.55, bend: 0.75 },
+    armR: { swing: 0.55, bend: 0.75 },
+    legL: { swing: 1.5, bend: -1.45 },
+    legR: { swing: 1.5, bend: -1.45 },
   };
 }
+
+function mixHuman(a: HumanPose, b: HumanPose, k: number): HumanPose {
+  return {
+    bodyY: mix(a.bodyY, b.bodyY, k),
+    bodyX: mix(a.bodyX, b.bodyX, k),
+    torsoPitch: mix(a.torsoPitch, b.torsoPitch, k),
+    torsoRoll: mix(a.torsoRoll, b.torsoRoll, k),
+    torsoYaw: mix(a.torsoYaw, b.torsoYaw, k),
+    chest: mix(a.chest, b.chest, k),
+    headPitch: mix(a.headPitch, b.headPitch, k),
+    headYaw: mix(a.headYaw, b.headYaw, k),
+    armL: mixLimb(a.armL, b.armL, k),
+    armR: mixLimb(a.armR, b.armR, k),
+    legL: mixLimb(a.legL, b.legL, k),
+    legR: mixLimb(a.legR, b.legR, k),
+  };
+}
+
+export function humanPose({ t, phase, walk, sit, seed }: PoseInput): HumanPose {
+  const standing = mixHuman(humanIdle(t, seed), humanWalk(phase), unit(walk));
+  return mixHuman(standing, humanSeated(t, seed), unit(sit));
+}
+
+/** Hip height under the cape; seated the hips come down to the seat and the hem sinks through it. */
+const LOYON_HIP = 0.9;
+/** Knee to sole under the cape, so seated feet reach the floor below the seat. */
+const LOYON_SHIN = 0.45;
 
 export interface LoyonPose {
   bodyY: number;
   /** Lean to the side, positive toward +X. */
   roll: number;
+  /** Forward lean. */
   pitch: number;
   /** Feet offsets along Z (negative is forward) and lift in meters. */
   footL: { z: number; lift: number };
@@ -121,21 +158,23 @@ export interface LoyonPose {
  * of the head that stays. His walk limps on the left leg: the body sinks and leans onto it and
  * the step lingers there.
  */
-export function loyonPose({ t, phase, walk, seed }: PoseInput): LoyonPose {
-  const k = Math.max(0, Math.min(1, walk));
+export function loyonPose({ t, phase, walk, sit, seat, seed }: PoseInput): LoyonPose {
+  const k = unit(walk);
+  const s = unit(sit);
   // Uneven cycle: the warp makes the left stance last longer than the right.
   const a = TAU * phase + 0.55 * Math.sin(TAU * phase);
   const stride = Math.sin(a);
   const leftStance = Math.max(0, -Math.cos(a));
   const tiltCycle = (t + seed * 7) % 13;
   const tilt = tiltCycle > 9 ? Math.min(1, (tiltCycle - 9) / 2.5) : 0;
+  // Seated he folds forward over his knees, feet out in front, and the head goes still.
   return {
-    bodyY: k * (-0.05 * leftStance - 0.012 * stride * stride),
+    bodyY: mix(k * (-0.05 * leftStance - 0.012 * stride * stride), seat - LOYON_HIP, s),
     roll: k * (-0.07 * leftStance + 0.015),
-    pitch: k * 0.06,
-    footL: { z: -0.16 * stride * k, lift: 0.05 * Math.max(0, Math.cos(a)) * k },
-    footR: { z: 0.16 * stride * k, lift: 0.07 * leftStance * k },
-    headRoll: (1 - k) * 0.16 * tilt,
+    pitch: mix(k * 0.06, 0.32, s),
+    footL: { z: mix(-0.16 * stride * k, -0.42, s), lift: mix(0.05 * Math.max(0, Math.cos(a)) * k, seat - LOYON_SHIN, s) },
+    footR: { z: mix(0.16 * stride * k, -0.42, s), lift: mix(0.07 * leftStance * k, seat - LOYON_SHIN, s) },
+    headRoll: (1 - k) * (1 - s) * 0.16 * tilt,
   };
 }
 
@@ -159,7 +198,7 @@ export function quadrupedPose(
   gait: readonly [number, number, number, number],
   graze: number,
 ): QuadrupedPose {
-  const k = Math.max(0, Math.min(1, walk));
+  const k = unit(walk);
   const legs = gait.map((offset) => 0.42 * k * Math.sin(TAU * (phase + offset))) as QuadrupedPose['legs'];
   // Every so often the head goes down to sniff or graze, then comes back up.
   const lowered = Math.max(0, Math.sin(t / 3.7 + seed)) ** 3;

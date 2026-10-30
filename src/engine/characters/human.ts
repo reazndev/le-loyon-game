@@ -133,7 +133,7 @@ export function buildHuman(look: HumanLook, textures: TextureLibrary): Character
     neckLimit: 1.1,
     hand,
     holding: false,
-    pose: (input: PoseInput, lookAt: Look) => applyPose(joints, humanPose(input), lookAt, stoop, model.holding ?? false),
+    pose: (input: PoseInput, lookAt: Look) => applyPose(joints, humanPose(input), lookAt, { stoop, holding: model.holding ?? false, sit: input.sit, seatY: input.seat / scale }),
   };
   return model;
 }
@@ -202,12 +202,22 @@ function setLimb(upper: Object3D, lower: Object3D, limb: Limb): void {
   lower.rotation.x = limb.bend;
 }
 
-function applyPose(j: Joints, pose: ReturnType<typeof humanPose>, look: Look, stoop: number, holding: boolean): void {
-  j.body.position.set(pose.bodyX, HIP_Y + pose.bodyY - stoop * 0.04, 0);
-  j.torso.rotation.set(pose.torsoPitch + stoop, pose.torsoYaw, pose.torsoRoll);
+interface PoseContext {
+  stoop: number;
+  holding: boolean;
+  /** 0 standing, 1 seated, and the seat's height in model units. */
+  sit: number;
+  seatY: number;
+}
+
+function applyPose(j: Joints, pose: ReturnType<typeof humanPose>, look: Look, { stoop, holding, sit, seatY }: PoseContext): void {
+  const standingY = HIP_Y + pose.bodyY - stoop * 0.04;
+  j.body.position.set(pose.bodyX, standingY + (seatY - standingY) * sit, 0);
+  // A positive X turn tips an upright part back, toward +Z, so a forward lean is negative here.
+  j.torso.rotation.set(-(pose.torsoPitch + stoop), pose.torsoYaw, pose.torsoRoll);
   j.chest.scale.y = pose.chest;
   // The head stays level when the back bends, the way an old man looks ahead, not down.
-  j.head.rotation.set(pose.headPitch + look.pitch - stoop * 0.7, pose.headYaw + look.yaw, 0, 'YXZ');
+  j.head.rotation.set(pose.headPitch + look.pitch + stoop * 0.7, pose.headYaw + look.yaw, 0, 'YXZ');
   setLimb(j.arms[0], j.forearms[0], pose.armL);
   setLimb(j.arms[1], j.forearms[1], holding ? { swing: 0.75 + pose.armR.swing * 0.15, bend: 0.55 } : pose.armR);
   j.arms[0].rotation.z = -0.07;

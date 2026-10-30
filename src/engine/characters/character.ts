@@ -2,6 +2,7 @@ import { MathUtils, Vector3 } from 'three';
 import { Emitter } from '../events';
 import type { Vec2 } from '../physics/collision';
 import type { CharacterModel } from './model';
+import type { PoseInput } from './poses';
 import { angleDelta, headingOf, Route, type Waypoint } from './motion';
 
 /** How a body turns toward where it wants to face. */
@@ -26,6 +27,8 @@ export interface WalkOptions {
 }
 
 const SMOOTH_TURN = 3.2;
+/** How fast a body sits down or gets up: about a second either way. */
+const SIT_RATE = 4;
 const STIFF_TURN = 5.5;
 const STIFF_PAUSE = 0.7;
 /** Radians off target before a stiff body bothers to turn. */
@@ -50,6 +53,9 @@ export class Character {
   private time = 0;
   private phase = 0;
   private walkBlend = 0;
+  private seated = false;
+  private sitBlend = 0;
+  private seat = 0;
   private stiffWait = 0;
   private readonly head = { yaw: 0, pitch: 0 };
   private readonly seed: number;
@@ -61,7 +67,7 @@ export class Character {
   ) {
     this.seed = options.seed ?? Math.random() * 100;
     this.turnStyle = options.turn ?? 'smooth';
-    model.pose({ t: 0, phase: 0, walk: 0, seed: this.seed }, this.head);
+    model.pose(this.poseInput(), this.head);
   }
 
   get root() {
@@ -86,8 +92,29 @@ export class Character {
     return this.walkBlend > 0.5;
   }
 
+  get sitting(): boolean {
+    return this.seated;
+  }
+
+  /**
+   * Sits down where the character is, on a seat `height` meters above the ground under it: 0
+   * for a bed the character stands on, about 0.45 for a chair. `instantly` skips sitting down,
+   * for someone who is already seated when the scene opens. Walking stands up again.
+   */
+  sit(height = 0, { instantly = false } = {}): void {
+    this.stop();
+    this.seated = true;
+    this.seat = height;
+    if (instantly) this.sitBlend = 1;
+  }
+
+  stand(): void {
+    this.seated = false;
+  }
+
   /** Walks through the points. Resolves at the end, or when the walk is replaced or stopped. */
   walk(points: readonly Waypoint[], options: WalkOptions = {}): Promise<void> {
+    this.stand();
     this.finishWalk();
     this.leader = null;
     this.route = new Route(points, options.loop ?? false);
@@ -132,8 +159,9 @@ export class Character {
     // Two steps per stride cycle.
     if (Math.floor(before * 2) !== Math.floor(this.phase * 2)) this.events.emit('step', { x: p.x, z: p.z });
     this.walkBlend = MathUtils.damp(this.walkBlend, moved > 1e-4 ? 1 : 0, 7, dt);
+    this.sitBlend = MathUtils.damp(this.sitBlend, this.seated ? 1 : 0, SIT_RATE, dt);
     this.updateHead(dt);
-    this.model.pose({ t: this.time, phase: this.phase, walk: this.walkBlend, seed: this.seed }, this.head);
+    this.model.pose(this.poseInput(), this.head);
   }
 
   /** Moves along the route or after the leader. Returns meters moved. */
@@ -199,11 +227,16 @@ export class Character {
       const limit = this.model.neckLimit;
       yaw = MathUtils.clamp(wanted, -limit, limit);
       pitch = Math.atan2(this.lookAt.y - (p.y + this.model.eyeHeight), Math.hypot(dx, dz)) * 0.6;
-      if (this.turnToLook && Math.abs(wanted) > limit * 0.8 && !this.route && !this.leader) this.facing = headingOf(dx, dz);
+      // Someone seated turns only the head; they don't swivel on the chair.
+      if (this.turnToLook && Math.abs(wanted) > limit * 0.8 && !this.route && !this.leader && !this.seated) this.facing = headingOf(dx, dz);
     }
     const rate = this.turnStyle === 'stiff' ? 2 : 6;
     this.head.yaw = MathUtils.damp(this.head.yaw, yaw, rate, dt);
     this.head.pitch = MathUtils.damp(this.head.pitch, pitch, rate, dt);
+  }
+
+  private poseInput(): PoseInput {
+    return { t: this.time, phase: this.phase, walk: this.walkBlend, sit: this.sitBlend, seat: this.seat, seed: this.seed };
   }
 
   private finishWalk(): void {

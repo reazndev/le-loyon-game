@@ -22,7 +22,6 @@ import { buildShell } from './shell';
  */
 
 const INSIDE_DOOR = { x: HALL_DOOR.x, z: SOUTH - 0.75, yaw: 0 };
-const ODILE = { x: -0.35, z: -1.05, yaw: 165 };
 /** Seconds of no clock. */
 const CLOCK_STOP = 6;
 
@@ -57,7 +56,7 @@ export const kitchenScene = defineScene({
     placeLooks(kit, ctx, night, diaryThere);
 
     if (!night) {
-      const odile = placeOdile(kit, ODILE);
+      const odile = placeOdile(kit);
       if (check(INSIDE_FIRST_TIME, ctx.state)) greetOnArrival(kit, ctx, odile);
       loopSound(kit, (audio) => tvMurmur(audio, { x: ROOM.x0 - 1.4, y: 1, z: LIVING_DOOR.z - 0.4 }, 0.2));
     }

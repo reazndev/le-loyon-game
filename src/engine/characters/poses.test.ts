@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { gaits, humanPose, loyonPose, quadrupedPose } from './poses';
 
-const at = (t: number, phase: number, walk: number) => ({ t, phase, walk, seed: 1.3 });
+const at = (t: number, phase: number, walk: number, sit = 0, seat = 0) => ({ t, phase, walk, sit, seat, seed: 1.3 });
 
 describe('humanPose', () => {
   it('swings the legs against each other and the arms against the legs', () => {
@@ -24,6 +24,19 @@ describe('humanPose', () => {
     expect(new Set(chests.map((c) => c.toFixed(3))).size).toBeGreaterThan(1);
     chests.forEach((c) => expect(Math.abs(c - 1)).toBeLessThan(0.03));
   });
+
+  it('sits with the thighs level and the shins hanging', () => {
+    const pose = humanPose(at(2, 0, 0, 1));
+    expect(pose.legL.swing).toBeCloseTo(Math.PI / 2, 0);
+    expect(pose.legL.swing + pose.legL.bend).toBeCloseTo(0, 0);
+    expect(pose.armL.swing).toBeGreaterThan(0.3);
+  });
+
+  it('sits down smoothly from standing', () => {
+    const swings = [0, 0.5, 1].map((sit) => humanPose(at(2, 0, 0, sit)).legL.swing);
+    expect(swings[1]).toBeGreaterThan(swings[0]!);
+    expect(swings[2]).toBeGreaterThan(swings[1]!);
+  });
 });
 
 describe('loyonPose', () => {
@@ -39,6 +52,13 @@ describe('loyonPose', () => {
     const leanLeft = Math.min(...lows.map((p) => p.roll));
     expect(leftDip).toBeLessThan(-0.04);
     expect(leanLeft).toBeLessThan(-0.04);
+  });
+
+  it('brings the hips down to the seat and the feet to the floor below it', () => {
+    const pose = loyonPose(at(0, 0, 0, 1, 0.45));
+    expect(pose.bodyY).toBeCloseTo(0.45 - 0.9);
+    expect(pose.footL.lift).toBeCloseTo(0);
+    expect(pose.footL.z).toBeLessThan(-0.3);
   });
 });
 
