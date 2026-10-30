@@ -1,7 +1,9 @@
 import { dialogues, type NodeId } from '../../content';
 import type { LevelKit } from '../../game/kit/levelKit';
 import type { SceneContext } from '../../game/scene';
+import { animateLight } from '../../game/ambient';
 import { playNode } from '../forest_path/play';
+import { lanternLevel } from './lantern';
 import { bedOf, CHASSOT_BEDS, chassotGrave, GRAVE_FOOT, graves, type Bed, type Grave, type Rect } from './layout';
 
 const STONE_TEXTURE = { granite: 'gravestone_granite', sandstone: 'gravestone_sandstone' } as const;
@@ -126,12 +128,14 @@ function lantern(kit: LevelKit, grave: Grave, lit: boolean): void {
   const x = grave.x + (grave.doc === 'grave_menoud' ? -0.28 : 0.3);
   const z = grave.z + 1.75;
   const glass = grave.doc === 'grave_menoud' || grave.x > 0 ? 0x7a2420 : 0x8a8478;
-  kit.box({ w: 0.12, h: 0.2, d: 0.12 }).color(lit ? 0xd04a30 : glass).emissive(lit ? 0x6a1808 : 0x000000).at(x, 0.06, z);
+  const red = kit.box({ w: 0.12, h: 0.2, d: 0.12 }).color(lit ? 0xd04a30 : glass).emissive(lit ? 0x6a1808 : 0x000000).at(x, 0.06, z);
   kit.box({ w: 0.15, h: 0.04, d: 0.15 }).texture('rust_metal').color(0x8a7040).at(x, 0.26, z);
   if (!lit) return;
   kit.box({ w: 0.04, h: 0.06, d: 0.04 }).unlit().color(0xffc070).at(x, 0.12, z);
   kit.glow(0.9, 0xff6a3a).at(x, 0.17, z);
-  kit.light({ color: 0xff5a30, intensity: 1.7, range: 5.5 }).flicker(0.35).at(x, 0.35, z);
+  // The glass dims with the flame, so it stays out of the batch.
+  const light = kit.light({ color: 0xff5a30, intensity: 1.7, range: 5.5 }).at(x, 0.35, z);
+  animateLight(kit, light, red.dynamic(), (t) => lanternLevel(t, grave.x));
 }
 
 function curbedBed(kit: LevelKit, bed: Rect, fill: Bed, plants = true): void {

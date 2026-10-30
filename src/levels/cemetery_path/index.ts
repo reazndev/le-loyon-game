@@ -88,7 +88,8 @@ export const cemeteryPathScene = defineScene({
       { x: 30, z: 4, w: 1, d: 110 },
     ].forEach(({ x, z, w, d }) => kit.barrier({ w, d }).at(x, 0, z));
 
-    hillAmbience(kit, ctx.state.time);
+    // The church stands at the foot of the path.
+    hillAmbience(kit, ctx, { x: 0, z: 1 });
     if (!night)
       crows(kit, ctx, [
         { x: 12, z: 28.6, y: 1.2 },

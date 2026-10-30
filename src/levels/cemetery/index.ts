@@ -8,6 +8,7 @@ import { playNode } from '../forest_path/play';
 import { isNight, storyPhase, type StoryPhase } from '../forest_path/story';
 import { hillAmbience, hillAtmosphere } from './atmosphere';
 import { BackGate } from './backGate';
+import { cemeteryClutter } from './clutter';
 import { stageCemetery } from './beats';
 import { saveNightTwoStart } from './caught';
 import { DigSite } from './digSite';
@@ -47,6 +48,7 @@ export const cemeteryScene = defineScene({
       tapAndBin(still);
       oldStones(still, ctx);
       ossuary(still);
+      cemeteryClutter(still);
     });
 
     // On the night of the dig the back gate starts shut, so that it can be found open (cem2_back_gate).
@@ -84,7 +86,8 @@ export const cemeteryScene = defineScene({
     everyFrame(kit, windmill);
 
     exits(kit, ctx, phase, gate);
-    hillAmbience(kit, state.time);
+    // The village lies below the front gate.
+    hillAmbience(kit, ctx, { x: 0, z: 1 });
     if (!night) crows(kit, ctx, [
       { x: -6, z: FRONT_Z, y: WALL_HEIGHT + 0.06, yaw: 160 },
       { x: 12.5, z: BACK_Z, y: WALL_HEIGHT + 0.06, yaw: 20 },
