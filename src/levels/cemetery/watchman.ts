@@ -1,9 +1,10 @@
 import { Vector3 } from 'three';
 import { dialogues } from '../../content';
 import { headingOf } from '../../engine/characters/motion';
+import { growl } from '../../engine/characters/voices';
 import type { Vec2 } from '../../engine/physics/collision';
 import type { LevelKit } from '../../game/kit/levelKit';
-import { watchmanPatrol, type Patrol } from '../../game/patrol/patrol';
+import { watchmanPatrol, type Patrol, type PatrolStop } from '../../game/patrol/patrol';
 import { TorchBeam } from '../../game/patrol/torch';
 import type { ScareDirector } from '../../game/scares/director';
 import { playSound } from '../../game/scares/sounds';
@@ -104,29 +105,46 @@ export interface NightTwoRound {
 /** Seconds offstage between rounds; shorter after a warning or a loud noise. */
 const REST = 22;
 const REST_ALERT = 6;
+/** The round whose stop at the Chassot plot is closer and longer, so the second visit isn't a copy of the first. */
+const LINGERING_ROUND = 2;
+/** The index of the stop at the Chassot plot in `roundRoute`. */
+const PLOT_STOP = 3;
 
 /**
- * Night 2, puzzle P5. Raymond's round every minute and a half: bell, whistle, torch, gate, the back
- * row, Daniel's lantern, the gate again. The shed and the forest past the back gate are safe; the
- * open hole, a lit torch, or a second sighting end the night.
+ * One round: bell, whistle, torch, gate, the back row, Daniel's lantern, the gate again. On the
+ * lingering round he walks right up to Marc's grave and stands there with Bari sniffing the earth.
+ */
+function roundRoute(round: number): PatrolStop[] {
+  const plot = { x: CHASSOT_BEDS.marc.x, z: CHASSOT_BEDS.marc.z };
+  const atPlot: PatrolStop =
+    round === LINGERING_ROUND ? { x: plot.x + 2.3, z: chassotGrave.z + 3.4, wait: 10, aim: plot } : { x: -12, z: chassotGrave.z + 3.4, wait: 5, aim: plot };
+  return [
+    { x: BELOW.x, z: BELOW.z },
+    { x: FRONT_GATE.x, z: FRONT_Z + 1, gate: true },
+    { x: -0.2, z: chassotGrave.z + 3.4 },
+    atPlot,
+    { x: -0.2, z: chassotGrave.z + 3.4 },
+    { x: -0.3, z: DANIEL.z + 3.5, wait: 3, aim: { x: DANIEL.x - 0.3, z: DANIEL.z + 1.7 } },
+    { x: FRONT_GATE.x, z: FRONT_Z + 1, gate: true },
+    FAR_SIDE,
+  ];
+}
+
+/**
+ * Night 2, puzzle P5. Raymond's round every minute and a half. The shed and the forest past the
+ * back gate are safe; the open hole, a lit torch, or a second sighting end the night.
  */
 export function nightTwoRound(kit: LevelKit, ctx: SceneContext, site: DigSite, scares: ScareDirector): NightTwoRound {
   const { state } = ctx;
   const alert = () => state.hasFlag('raymond_warned') || state.hasFlag('dug_gremaud_stone');
   const plot = { x: CHASSOT_BEDS.marc.x, z: CHASSOT_BEDS.marc.z };
+  // The patrol walks this array each round, so each round's stops are copied into it as the round starts.
+  const route = roundRoute(1);
+  let round = 0;
   const patrol = kit
     .use(
       watchmanPatrol({
-        route: [
-          { x: BELOW.x, z: BELOW.z },
-          { x: FRONT_GATE.x, z: FRONT_Z + 1, gate: true },
-          { x: -0.2, z: chassotGrave.z + 3.4 },
-          { x: -12, z: chassotGrave.z + 3.4, wait: 5, aim: plot },
-          { x: -0.2, z: chassotGrave.z + 3.4 },
-          { x: -0.3, z: DANIEL.z + 3.5, wait: 3, aim: { x: DANIEL.x - 0.3, z: DANIEL.z + 1.7 } },
-          { x: FRONT_GATE.x, z: FRONT_Z + 1, gate: true },
-          FAR_SIDE,
-        ],
+        route,
         rest: alert() ? REST_ALERT : REST,
         firstIn: alert() ? 15 : 35,
         speed: 1,
@@ -135,7 +153,11 @@ export function nightTwoRound(kit: LevelKit, ctx: SceneContext, site: DigSite, s
         evidence: [{ at: plot, active: () => site.visible }],
       }),
     )
-    .onRound(() => scares.block(50))
+    .onRound(() => {
+      round += 1;
+      route.splice(0, route.length, ...roundRoute(round));
+      scares.block(50);
+    })
     .onCaught(() => void caughtByRaymond(ctx))
     .onSeen(async () => {
       // A second sighting, the reporter in or at the open hole, or caught with the shovel.
@@ -143,6 +165,11 @@ export function nightTwoRound(kit: LevelKit, ctx: SceneContext, site: DigSite, s
       await ctx.dialogue(dialogues.raymond_night2_warn);
       ctx.goTo('cemetery_path', 'from_cemetery');
     });
+  patrol.raymond.character.events.on('arrive', (index) => {
+    if (round !== LINGERING_ROUND || index !== PLOT_STOP || patrol.caught) return;
+    const dog = patrol.bari.character.position;
+    growl(ctx.audio, { at: { x: dog.x, y: 0.4, z: dog.z } });
+  });
   const walking = () => patrol.raymond.object.visible && !patrol.caught;
   return {
     patrol,

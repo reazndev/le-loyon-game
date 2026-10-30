@@ -6,8 +6,8 @@ import type { StateView } from '../../game/conditions';
  * refilling takes, how deep the hole is, and what the reporter can do at the grave right now.
  */
 
-export const DIG_SECONDS = 25;
-export const REFILL_SECONDS = 20;
+export const DIG_SECONDS = 15;
+export const REFILL_SECONDS = 12;
 export const DIG_STAGES = 5;
 export const REFILL_STAGES = 3;
 /** From this stage on the hole is waist deep: the reporter digs from inside and climbing out takes a while. */
