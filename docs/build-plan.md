@@ -34,11 +34,11 @@ Debug hooks: `?scene=<id>&time=<day|night>&flags=a,b` loads any scene directly, 
 - [x] **1a. Engine core.** Vite, TypeScript, Three.js, Electron. 640x480 render with PS1 effects and fog. Tank controls on keyboard and gamepad. Collision, interaction prompts, dialogue box, inventory, flags, save, scene transitions, audio manager. A test room. Screenshot script. API notes in `docs/engine.md`.
 - [x] **1b. Script.** Full story script in `docs/script/`, with fact-checked background on the Foreign Legion, Bosnia, Swiss law, Fribourg, and 1998 technology.
 - [x] **1c. Texture pipeline.** Filter script, texture list, first FLORA batch. See `docs/textures.md`.
-- [ ] **2. Areas.** Built in parallel by subagents, following `docs/agent-brief.md`.
+- [x] **2. Areas.** Built in parallel by subagents, following `docs/agent-brief.md`.
   - Wave 1, started 2026-10-30 01:05 UTC: content data (`src/content`), desktop and prologue (`src/desktop`, `home`), characters, scares and patrol, forest and bunker.
   - Wave 1 done 01:50 local: content, characters/scares/patrol, forest/bunker. Desktop still running.
   - Wave 2: church and cemetery done 01:52 UTC. Started 02:52 UTC after the reset: village outdoors (square, Chassot and Yerly farms, Gremaud house outside), village interiors (inn, laiterie, garage, Gremaud kitchen), and an engine UI agent (document view, italics, subtitles, Polaroid camera, notebook, title screen, engine.md update).
-- [ ] **3. Systems.** Le Loyon sightings and scare director, procedural sound and ambience, night watchman and grave digging, the dial-up forum during the game.
+- [x] **3. Systems.** Done inside wave 1 and 2 (characters, scares, patrol, desktop forum, camera). Leftovers are listed under step 4. Le Loyon sightings and scare director, procedural sound and ambience, night watchman and grave digging, the dial-up forum during the game.
 - [ ] **4. Integration.** Known gaps from wave 1 to close here:
   - Done by the engine UI agent (`aad4ddc`): document view, italics, subtitles, Polaroid camera, notebook, title screen, engine.md.
   - Levels: switch dialogue-page documents to `ctx.readDocument(id)` (helper in `src/levels/forest_path/play.ts`), and add `photo:` targets from the item table.
@@ -50,6 +50,11 @@ Debug hooks: `?scene=<id>&time=<day|night>&flags=a,b` loads any scene directly, 
   - Sleep save: write save slot `sleep` when the reporter wakes in room 3; the cemetery's caught screen loads it.
   - Forest: swap distant cone trees for the `tree_spruce`/`tree_beech_bare` sprites where it helps; fill the forest and bunker `stageBeats` hooks with the scare director.
   - Missing beats: two old women after morning mass (day 2), barn roofline from the fork when `skipped_follow`, gravel footsteps on the cemetery path, `fort_phone_crank` flag.
+  - Leave ending: nothing shows the ending screen after `driver_departure` (hook: `timetable()` in `src/levels/village_square/index.ts`).
+  - Odile's kitchen must start at `odile_talk_2` or her entry table after the doorstep's "Come in. Wipe your feet."
+  - Debug URL needs `day=` and `night=` counts.
+  - Engine: spawning inside a building footprint gives a NaN position and stalls; check collision push-out.
+  - Integration agents, started 03:35 UTC: story flow and playthrough (all levels except forest/bunker), forest and bunker polish, engine robustness and packaging.
 - Step 4 scope: Script into content data, quest flow from start to all three endings, title screen, settings, save slots.
 - [ ] **5. QA.** Automated playthrough of every ending, screenshot review of every area, performance check, bug fixes.
 - [ ] **6. Packaging.** Linux AppImage and Windows build with electron-builder.
