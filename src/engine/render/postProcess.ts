@@ -1,4 +1,4 @@
-import { Mesh, OrthographicCamera, PlaneGeometry, Scene, ShaderMaterial, type Texture } from 'three';
+import { Mesh, OrthographicCamera, PlaneGeometry, Scene, ShaderMaterial, Vector3, type Texture } from 'three';
 
 const vertexShader = /* glsl */ `
 varying vec2 vUv;
@@ -15,6 +15,7 @@ uniform float uGrain;
 uniform float uSaturation;
 uniform float uVignette;
 uniform float uFlicker;
+uniform vec3 uTint;
 varying vec2 vUv;
 
 float bayer4(vec2 p) {
@@ -33,6 +34,7 @@ void main() {
   vec3 color = texture2D(tScene, vUv).rgb;
   float luma = dot(color, vec3(0.299, 0.587, 0.114));
   color = mix(vec3(luma), color, uSaturation);
+  color *= uTint;
   // Darker toward the edges and corners, where the torch never reaches.
   float edge = length((vUv - 0.5) * vec2(1.333, 1.0));
   color *= 1.0 - uVignette * smoothstep(0.2, 0.8, edge);
@@ -45,8 +47,9 @@ void main() {
 }
 `;
 
-const DAY = { grain: 0.035, vignette: 0.15, flicker: 0 };
-const NIGHT = { grain: 0.09, vignette: 0.6, flicker: 0.04 };
+const DAY = { grain: 0.035, vignette: 0.15, flicker: 0, tint: new Vector3(1, 1, 1) };
+/** Night leans cold blue: the reds pulled down, the blues lifted. */
+const NIGHT = { grain: 0.09, vignette: 0.6, flicker: 0.04, tint: new Vector3(0.82, 0.92, 1.18) };
 
 /** Full-screen pass that reduces the rendered frame to 15-bit dithered color with film grain. */
 export class PostProcess {
@@ -63,6 +66,7 @@ export class PostProcess {
         uSaturation: { value: 0.75 },
         uVignette: { value: DAY.vignette },
         uFlicker: { value: DAY.flicker },
+        uTint: { value: DAY.tint.clone() },
       },
       vertexShader,
       fragmentShader,
@@ -80,11 +84,12 @@ export class PostProcess {
     this.material.uniforms.uSaturation!.value = value;
   }
 
-  /** Night has heavier grain, a dark vignette, and a faint flicker; day keeps them light. */
+  /** Night has heavier grain, a dark vignette, a faint flicker, and a cold blue tint; day keeps them light. */
   set night(on: boolean) {
     const look = on ? NIGHT : DAY;
     this.material.uniforms.uGrain!.value = look.grain;
     this.material.uniforms.uVignette!.value = look.vignette;
     this.material.uniforms.uFlicker!.value = look.flicker;
+    (this.material.uniforms.uTint!.value as Vector3).copy(look.tint);
   }
 }
