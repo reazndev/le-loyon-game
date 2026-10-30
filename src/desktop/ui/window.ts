@@ -1,6 +1,8 @@
 import { h } from '../dom';
 import { icon, type IconName } from '../gfx/icons';
 import { gridCanvas } from '../gfx/pixels';
+import type { FocusScope } from './focus';
+import { paneAt } from './scrollPane';
 
 const minimizeGlyph = ['......', '......', '......', '......', '......', 'kkkkkk', 'kkkkkk'];
 export const closeGlyph = ['kk....kk', '.kk..kk.', '..kkkk..', '...kk...', '..kkkk..', '.kk..kk.', 'kk....kk'];
@@ -15,16 +17,16 @@ export function titleButton(glyph: string[], onClick: () => void): HTMLElement {
 export interface WindowOptions {
   title: string;
   icon: IconName;
-  x: number;
-  y: number;
-  w: number;
-  h: number;
+  /** Position and size, or 'max' to fill the desktop above the taskbar. */
+  at: { x: number; y: number; w: number; h: number } | 'max';
   /** Menu bar labels. Period set dressing; they open nothing. */
   menu?: string[];
   /** Runs when the window closes, from its close button or from Back. */
   onClose?: () => void;
   /** Handles the Back button before it closes the window. Returns true when it did something. */
   back?: () => boolean;
+  /** What the focus can reach in the window. Default: its buttons and icons, and its first scroll pane. */
+  focus?: () => FocusScope;
 }
 
 /** A window frame: title bar with minimize and close, an optional menu bar, and a body. */
@@ -43,9 +45,10 @@ export class AppWindow {
     this.titleValue = options.title;
     this.titleText = h('span', 'win-title-text', options.title);
     this.body = h('div', 'win-body');
+    const { at } = options;
     this.element = h(
       'div',
-      { class: 'win raised', style: `left:${options.x}px;top:${options.y}px;width:${options.w}px;height:${options.h}px` },
+      at === 'max' ? 'win raised max' : { class: 'win raised', style: `left:${at.x}px;top:${at.y}px;width:${at.w}px;height:${at.h}px` },
       h(
         'div',
         'win-title',
@@ -74,6 +77,15 @@ export class AppWindow {
 
   back(): boolean {
     return this.options.back?.() ?? false;
+  }
+
+  focusScope(): FocusScope {
+    return (
+      this.options.focus?.() ?? {
+        items: [...this.body.querySelectorAll('.btn:not(.off):not(.scroll-arrow), .pc-icon')],
+        pane: paneAt(this.body.querySelector('.scroll')),
+      }
+    );
   }
 }
 

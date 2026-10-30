@@ -8,11 +8,11 @@ export class PopupMenu {
   readonly element = h('div', 'pc-menu raised');
   /** The button that opens this menu; pressing it again shouldn't count as clicking outside. */
   owner: Element | null = null;
-  private readonly items = h('div', 'pc-menu-items');
+  private readonly list = h('div', 'pc-menu-items');
 
   constructor(band: boolean) {
     if (band) this.element.append(h('div', 'pc-menu-band'));
-    this.element.append(this.items);
+    this.element.append(this.list);
     this.element.style.display = 'none';
   }
 
@@ -21,13 +21,18 @@ export class PopupMenu {
   }
 
   open(entries: MenuEntry[], at: { left?: number; top?: number; bottom?: number }): void {
-    this.items.replaceChildren(...entries.map((entry) => this.item(entry)));
+    this.list.replaceChildren(...entries.map((entry) => this.item(entry)));
     Object.assign(this.element.style, {
       display: 'flex',
       left: `${at.left ?? 0}px`,
       top: at.top === undefined ? '' : `${at.top}px`,
       bottom: at.bottom === undefined ? '' : `${at.bottom}px`,
     });
+  }
+
+  /** The entries that can be picked, top to bottom. */
+  entries(): Element[] {
+    return [...this.list.querySelectorAll('.pc-menu-item:not(.off)')];
   }
 
   close(): void {

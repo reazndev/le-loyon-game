@@ -58,7 +58,21 @@
   top: 0;
   width: 640px;
   height: 452px;
+  display: flex;
+  flex-direction: column;
   background: var(--desk) center no-repeat;
+}
+
+/* Fills the desktop above the notes strip, but lets clicks through to the icons between windows. */
+.pc-windows {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  pointer-events: none;
+}
+
+.pc-windows > .win {
+  pointer-events: auto;
 }
 
 .pc-icons {
@@ -85,12 +99,12 @@
   padding: 0 2px;
 }
 
-.pc-icon.hover span {
+.pc-icon.focus span {
   background: var(--select);
   outline: 1px dotted #fff;
 }
 
-.pc-icon.hover canvas {
+.pc-icon.focus canvas {
   filter: brightness(0.7) sepia(1) hue-rotate(190deg) saturate(3);
 }
 
@@ -139,7 +153,7 @@
   white-space: nowrap;
 }
 
-.btn.hover {
+.btn.focus {
   outline: 1px dotted var(--dark);
   outline-offset: -5px;
 }
@@ -218,7 +232,73 @@
   display: none;
 }
 
-/* Scroll panes with their own bar, so the virtual cursor can click the arrows. */
+/* A maximized window fills the desktop, with a thinner frame and title bar so the page gets the room. */
+.win.max {
+  inset: 0;
+  padding: 3px;
+}
+
+.win.max .win-title {
+  height: 18px;
+}
+
+/* Navigator's one toolbar row and its status bar */
+.nav-bar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: 24px;
+  flex: none;
+}
+
+.nav-tool {
+  min-width: 0;
+  height: 22px;
+  padding: 0 4px;
+}
+
+.nav-tool.down {
+  padding: 2px 2px 0 6px;
+}
+
+.nav-location {
+  flex: 1;
+  min-width: 0;
+  height: 18px;
+  padding: 0 4px;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.nav-throbber {
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #000;
+}
+
+.nav-status {
+  display: flex;
+  gap: 4px;
+  height: 18px;
+  flex: none;
+}
+
+/* Rows of a list, such as the inbox */
+.pc-row {
+  display: flex;
+  align-items: center;
+  height: 20px;
+}
+
+.pc-row.focus {
+  outline: 1px dotted currentColor;
+  outline-offset: -1px;
+}
+
+/* Scroll panes with their own drawn bar, in the 1998 style. */
 .scroll {
   flex: 1;
   min-height: 0;
@@ -300,8 +380,8 @@
 
 .pc-task {
   justify-content: flex-start;
-  width: 132px;
-  min-width: 0;
+  flex: 0 1 132px;
+  min-width: 28px;
   overflow: hidden;
 }
 
@@ -313,6 +393,13 @@
 .pc-task.active {
   background:
     repeating-conic-gradient(var(--face) 0 25%, var(--light) 0 50%) 0 0 / 2px 2px;
+}
+
+.pc-hint {
+  flex: none;
+  padding: 0 6px;
+  color: #3a372f;
+  white-space: pre;
 }
 
 .pc-tray {
@@ -353,7 +440,7 @@
   white-space: nowrap;
 }
 
-.pc-menu-item.hover {
+.pc-menu-item.focus {
   background: var(--select);
   color: #fff;
 }
@@ -363,7 +450,7 @@
   text-shadow: 1px 1px var(--light);
 }
 
-.pc-menu-item.off.hover {
+.pc-menu-item.off.focus {
   background: transparent;
   color: var(--shadow);
 }
@@ -407,6 +494,10 @@
   top: 0;
   pointer-events: none;
   z-index: 10;
+}
+
+.pc-cursor.hidden {
+  display: none;
 }
 
 .pc-crt {

@@ -6,13 +6,14 @@ import { ScrollPane } from '../ui/scrollPane';
 import type { AppWindow } from '../ui/window';
 import { mails, type Mail } from './mailData';
 
-/** Courrier: folders on the left, the inbox list on top, the open message below. */
+/** Courrier: folders on the left, the inbox list on top, the open message below. It opens on the newest message. */
 export class MailApp {
   private win: AppWindow | null = null;
   private readonly unread = new Set(mails);
   private selected: Mail | null = null;
   private thoughtShown = false;
   private readonly list = h('div', { style: 'height:84px;background:#fff;overflow:hidden' });
+  private rows = new Map<Mail, HTMLElement>();
   private readonly reader = new ScrollPane();
   private readonly status = h('div', { class: 'sunken', style: 'padding:2px 6px;margin-top:2px' });
 
@@ -23,18 +24,17 @@ export class MailApp {
   open(): void {
     this.win ??= this.build();
     this.pc.windows.open(this.win);
+    if (!this.selected) this.show(mails[0]!);
   }
 
   private build(): AppWindow {
     const win = this.pc.windows.create({
       title: 'Courrier - Inbox',
       icon: 'mail',
-      x: 4,
-      y: 4,
-      w: 632,
-      h: 444,
+      at: 'max',
       menu: ['File', 'Edit', 'View', 'Message', 'Help'],
       onClose: () => (this.win = null),
+      focus: () => ({ items: [...this.rows.values()], pane: this.reader, initial: this.selected ? (this.rows.get(this.selected) ?? null) : null }),
     });
     const tool = (label: string, run?: () => void) => h('div', { class: `btn${run ? '' : ' off'}`, onClick: run }, label);
     const folder = (label: string, active = false) =>
@@ -73,22 +73,25 @@ export class MailApp {
 
   private renderList(): void {
     const clip = 'overflow:hidden;white-space:nowrap;text-overflow:ellipsis;padding:0 4px';
-    this.list.replaceChildren(
-      ...mails.map((mail) => {
+    this.rows = new Map(
+      mails.map((mail) => {
         const selected = mail === this.selected;
         const weight = this.unread.has(mail) ? 'font-weight:bold;' : '';
-        return h(
+        const row = h(
           'div',
           {
-            style: `display:flex;height:20px;align-items:center;${weight}${selected ? 'background:#22356f;color:#fff' : ''}`,
+            class: 'pc-row',
+            style: `${weight}${selected ? 'background:#22356f;color:#fff' : ''}`,
             onClick: () => this.show(mail),
           },
           h('div', { style: `width:136px;${clip}` }, mail.from),
           h('div', { style: `flex:1;${clip}` }, mail.subject),
           h('div', { style: `width:124px;${clip}` }, mail.received),
         );
+        return [mail, row];
       }),
     );
+    this.list.replaceChildren(...this.rows.values());
     this.status.textContent = `Total messages: ${mails.length}   Unread: ${this.unread.size}`;
   }
 

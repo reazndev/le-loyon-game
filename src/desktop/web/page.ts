@@ -34,6 +34,11 @@ export interface Page {
   /** Default text and link colors, like the BODY tag's TEXT, LINK, and VLINK. */
   colors?: { text?: string; link?: string; visited?: string };
   onLoad?(env: LoadEnv): void;
+  /**
+   * Runs once per visit for each element marked `data-seen="<key>"` when it scrolls into view,
+   * such as a post in a thread that counts as read only when the player reaches it.
+   */
+  onSeen?(key: string, env: LoadEnv): void;
 }
 
 export type Pages = Record<string, Page>;

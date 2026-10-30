@@ -1,7 +1,7 @@
 import { page, type Pages } from '../page';
 import { HELVENET_HOME as HOME } from '../urls';
 
-export const SEARCH_URL = 'http://www.helvenet.ch/cgi-bin/search';
+const SEARCH_URL = 'http://www.helvenet.ch/cgi-bin/search';
 
 const headlines = [
   ['Swisscom: first weeks on the stock market', 'news/swisscom.html'],

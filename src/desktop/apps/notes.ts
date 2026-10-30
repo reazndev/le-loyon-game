@@ -24,12 +24,10 @@ export class NotesApp {
       this.win = this.pc.windows.create({
         title: 'notes.txt - Editor',
         icon: 'text',
-        x: 96,
-        y: 40,
-        w: 536,
-        h: 320,
+        at: { x: 96, y: 40, w: 536, h: 320 },
         menu: ['File', 'Edit', 'Search', 'Help'],
         onClose: () => (this.win = null),
+        focus: () => ({ items: [], pane: this.pane }),
       });
       this.win.body.append(h('div', { class: 'sunken', style: 'flex:1;display:flex;padding:2px' }, this.pane.element));
     }

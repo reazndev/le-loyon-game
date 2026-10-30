@@ -22,10 +22,7 @@ export class DialUpApp {
     this.win ??= this.pc.windows.create({
       title: 'Connect to Helvenet',
       icon: 'dialUp',
-      x: 150,
-      y: 130,
-      w: 360,
-      h: 172,
+      at: { x: 150, y: 130, w: 360, h: 172 },
       onClose: () => {
         this.cancel();
         this.win = null;

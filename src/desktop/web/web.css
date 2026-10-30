@@ -19,6 +19,15 @@
   color: var(--vlink, #551a8b);
 }
 
+/* The keyboard focus, as a selection highlight that reads on light and dark pages. */
+.web a.focus,
+.web .w-button.focus {
+  color: #fff;
+  background: #22356f;
+  outline: 1px dotted #fff;
+  outline-offset: 1px;
+}
+
 .web p {
   margin: 0 0 18px;
 }

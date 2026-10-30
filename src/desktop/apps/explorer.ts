@@ -24,7 +24,7 @@ export function openDrives(pc: Computer): void {
   const notReady = (drive: string) => () => void pc.message(drive, `${drive}\\ is not accessible.\n\nThe device is not ready.`);
   const drive = (label: string, kind: IconName, onClick: () => void) =>
     h('div', { class: 'pc-icon', style: 'color:#111', onClick }, icon(kind, 32), h('span', null, label));
-  single(pc, { title: 'My Computer', icon: 'computer', x: 130, y: 60, w: 340, h: 200, menu: ['File', 'Edit', 'View', 'Help'] }, (win) =>
+  single(pc, { title: 'My Computer', icon: 'computer', at: { x: 130, y: 60, w: 340, h: 200 }, menu: ['File', 'Edit', 'View', 'Help'] }, (win) =>
     win.body.append(
       h(
         'div',
@@ -39,7 +39,7 @@ export function openDrives(pc: Computer): void {
 }
 
 export function openRecycleBin(pc: Computer): void {
-  single(pc, { title: 'Recycle Bin', icon: 'trash', x: 160, y: 90, w: 320, h: 180, menu: ['File', 'Edit', 'View', 'Help'] }, (win) =>
+  single(pc, { title: 'Recycle Bin', icon: 'trash', at: { x: 160, y: 90, w: 320, h: 180 }, menu: ['File', 'Edit', 'View', 'Help'] }, (win) =>
     win.body.append(
       h('div', { class: 'sunken', style: 'flex:1;background:#fff' }),
       h('div', { class: 'sunken', style: 'padding:2px 6px;margin-top:2px' }, '0 object(s)'),

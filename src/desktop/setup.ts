@@ -12,6 +12,8 @@ export interface Setup {
   speed: string;
   phone: string;
   homeUrl: string;
+  /** Where Navigator opens the first time. Navigator 4 could start on the last page visited. */
+  startUrl: string;
   bookmarks: Bookmark[];
   /** What My Computer says about drive C:. */
   disk: string;
@@ -26,6 +28,7 @@ export const homeSetup: Setup = {
   speed: '33,600',
   phone: HELVENET_PHONE,
   homeUrl: HELVENET_HOME,
+  startUrl: BOARD_INDEX,
   bookmarks: [
     { label: 'Helvenet - Home', url: HELVENET_HOME },
     { label: 'Alpine Anomalies Board', url: BOARD_INDEX },
@@ -42,6 +45,7 @@ export function innSetup(clock: string): Setup {
     speed: '28,800',
     phone: HELVENET_PHONE,
     homeUrl: HELVENET_HOME,
+    startUrl: BOARD_INDEX,
     bookmarks: [
       { label: 'Alpine Anomalies Board', url: BOARD_INDEX },
       { label: 'MotoNet Romandie', url: 'http://www.motonet-romandie.ch/' },

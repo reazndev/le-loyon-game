@@ -5,12 +5,13 @@ import { h, wait } from '../dom';
 import { globe } from '../gfx/icons';
 import { gridCanvas } from '../gfx/pixels';
 import type { Bookmark } from '../setup';
+import type { FocusScope } from '../ui/focus';
+import { LINE } from '../ui/focusStep';
 import { ScrollPane } from '../ui/scrollPane';
 import { PopupMenu, type MenuEntry } from '../ui/startMenu';
 import type { AppWindow } from '../ui/window';
 import type { LoadEnv, Page, PageEnv } from '../web/page';
 import { normalize, Web } from '../web/router';
-import { SEARCH_URL } from '../web/sites/helvenet';
 import { mountWidgets, type Widget } from '../web/widgets';
 import '../web/web.css';
 
@@ -19,8 +20,6 @@ const toolIcons: Record<string, string[]> = {
   Forward: ['.....k....', '.....kk...', '.....kek..', 'kkkkkkeek.', 'keeeeeeeek', 'kkkkkkeek.', '.....kek..', '.....kk...', '.....k....'],
   Reload: ['...kkkk...', '..k....kkk', '.k......kk', 'k.......kk', 'k.........', 'k.........', 'k........k', '.k......k.', '..k....k..', '...kkkk...'],
   Home: ['....kk....', '...krrk...', '..krrrrk..', '.krrrrrrk.', 'kkkkkkkkkk', '.kbbbbbbk.', '.kbkkbbbk.', '.kbkkbbbk.', '.kbkkbbbk.', '.kkkkkkkk.'],
-  Search: ['.kkkk.....', 'kLLLLk....', 'kLwLLk....', 'kLLLLk....', 'kLLLLk....', '.kkkkk....', '.....kk...', '......kk..', '.......kk.', '........kk'],
-  Print: ['..kkkkkk..', '..kwwwwk..', '..kwwwwk..', 'kkkkkkkkkk', 'kggggggggk', 'kggggggegk', 'kGGGGGGGGk', 'kkkwwwwkkk', '..kwwwwk..', '..kkkkkk..'],
   Stop: ['..kkkkkk..', '.krrrrrrk.', 'krrrrrrrrk', 'krwwwwwwrk', 'krwwwwwwrk', 'krrrrrrrrk', 'krrrrrrrrk', '.krrrrrrk.', '..kkkkkk..'],
 };
 
@@ -28,23 +27,30 @@ const DEFAULT_BACKGROUND = '#c0c0c0';
 
 const clamp = (value: number, low: number, high: number) => Math.min(high, Math.max(low, value));
 
-/** Navigator 4.0. Pages arrive the way they did over a modem: text first, then each picture. */
+/**
+ * Navigator 4.0, maximized, with one slim toolbar so the page gets most of the screen. Pages
+ * arrive the way they did over a modem: text first, then each picture.
+ */
 export class BrowserApp {
   readonly bookmarks = new PopupMenu(false);
   loading = false;
   private win: AppWindow | null = null;
   private readonly web: Web;
   private readonly pane = new ScrollPane();
-  private readonly location = h('span', { class: 'field', style: 'flex:1;overflow:hidden;white-space:nowrap' });
+  private readonly location = h('span', 'field nav-location');
   private readonly status = h('span', { style: 'flex:1;overflow:hidden;white-space:nowrap' }, 'Document: Done.');
   private readonly progress = h('span', { style: 'display:block;height:100%;width:0;background:#22356f' });
-  private readonly throbber = h('span', { class: 'sunken', style: 'width:34px;height:34px;display:flex;align-items:center;justify-content:center;background:#000' });
+  private readonly throbber = h('span', 'sunken nav-throbber');
+  private readonly toolbar = h('div', 'nav-bar');
   private readonly buttons: Record<string, HTMLElement> = {};
   private readonly history: string[] = [];
   private index = -1;
   private readonly visited = new Set<string>();
   private readonly cached = new Set<string>();
   private widgets: Widget[] = [];
+  private page: Page | null = null;
+  /** Keys of the page's `data-seen` elements that have been on screen this visit. */
+  private readonly seen = new Set<string>();
   private abort: AbortController | null = null;
   private music: SoundHandle | null = null;
   private spin = 0;
@@ -52,20 +58,16 @@ export class BrowserApp {
   constructor(private readonly pc: Computer) {
     this.web = new Web(pc.stage);
     this.pane.content.addEventListener('click', (event) => this.onPageClick(event));
+    this.pane.onScroll = () => this.checkSeen();
     this.drawThrobber();
   }
 
-  /** Opens Navigator, at `url` the first time or at the home page. */
+  /** Opens Navigator, at `url` or, the first time, at the start page. */
   open(url?: string): void {
     const first = !this.win;
     this.win ??= this.build();
     this.pc.windows.open(this.win);
-    if (first || url) void this.navigate(url ?? this.pc.setup.homeUrl);
-  }
-
-  /** The page's scroll pane while Navigator is the front window, for Page Up and Page Down. */
-  paneIfActive(): ScrollPane | null {
-    return this.win && this.pc.windows.active === this.win ? this.pane : null;
+    if (first || url) void this.navigate(url ?? this.pc.setup.startUrl);
   }
 
   update(dt: number): void {
@@ -86,12 +88,9 @@ export class BrowserApp {
     const win = this.pc.windows.create({
       title: 'Navigator',
       icon: 'browser',
-      x: 0,
-      y: 0,
-      w: 640,
-      h: 452,
-      menu: ['File', 'Edit', 'View', 'Go', 'Window', 'Help'],
+      at: 'max',
       back: () => this.goBack(),
+      focus: () => this.focusScope(),
       onClose: () => {
         this.stopAll();
         this.win = null;
@@ -101,37 +100,41 @@ export class BrowserApp {
       const icon = gridCanvas(toolIcons[label]!);
       icon.className = 'px';
       icon.style.cssText = 'width:20px;height:18px';
-      const button = h('div', { class: 'btn', style: 'min-width:0;height:26px;padding:0 6px', onClick: run }, icon, label);
+      const button = h('div', { class: 'btn nav-tool', attrs: { title: label }, onClick: run }, icon);
       this.buttons[label] = button;
       return button;
     };
-    const bookmarksButton = h('div', { class: 'btn', style: 'min-width:0;height:22px', onClick: () => this.toggleBookmarks(bookmarksButton) }, 'Bookmarks');
+    const bookmarksButton = h('div', { class: 'btn nav-tool', onClick: () => this.toggleBookmarks(bookmarksButton) }, 'Bookmarks');
     this.bookmarks.owner = bookmarksButton;
+    this.toolbar.append(
+      tool('Back', () => this.goBack()),
+      tool('Forward', () => this.goForward()),
+      tool('Reload', () => this.reload()),
+      tool('Home', () => void this.navigate(this.pc.setup.homeUrl)),
+      tool('Stop', () => this.stop()),
+      bookmarksButton,
+      this.location,
+      this.throbber,
+    );
     win.body.append(
-      h(
-        'div',
-        { style: 'display:flex;align-items:center;gap:2px;padding:2px 0' },
-        tool('Back', () => this.goBack()),
-        tool('Forward', () => this.goForward()),
-        tool('Reload', () => this.reload()),
-        tool('Home', () => void this.navigate(this.pc.setup.homeUrl)),
-        tool('Search', () => void this.navigate(SEARCH_URL)),
-        tool('Print', () => void this.pc.message('Print', 'No printer is installed.')),
-        tool('Stop', () => this.stop()),
-        h('span', { style: 'flex:1' }),
-        this.throbber,
-      ),
-      h('div', { style: 'display:flex;align-items:center;gap:6px;padding:2px 0 4px' }, bookmarksButton, 'Location:', this.location),
+      this.toolbar,
       h('div', { class: 'sunken', style: 'flex:1;min-height:0;display:flex;padding:2px' }, this.pane.element),
       h(
         'div',
-        { style: 'display:flex;gap:4px;margin-top:2px;height:20px' },
-        h('div', { class: 'sunken', style: 'flex:1;display:flex;padding:1px 6px;min-width:0' }, this.status),
+        'nav-status',
+        h('div', { class: 'sunken', style: 'flex:1;display:flex;padding:0 6px;min-width:0' }, this.status),
         h('div', { class: 'sunken', style: 'width:110px;padding:3px' }, this.progress),
       ),
     );
     this.refreshButtons();
     return win;
+  }
+
+  /** The toolbar, then the page's links once its text has arrived. */
+  private focusScope(): FocusScope {
+    const arrived = !this.pane.content.style.clipPath;
+    const links = arrived ? [...this.pane.content.querySelectorAll('a[href], input[type="submit"]')] : [];
+    return { items: [...this.toolbar.querySelectorAll('.btn:not(.off)'), ...links], pane: this.pane, initial: null };
   }
 
   private toggleBookmarks(button: HTMLElement): void {
@@ -237,6 +240,8 @@ export class BrowserApp {
       this.visited.add(target);
       this.location.textContent = target;
       this.show(lookup.page);
+      const anchor = URL.canParse(url) ? new URL(url).hash.slice(1) : '';
+      if (anchor) this.scrollToAnchor(anchor);
       await this.arrive(lookup.page, cached ? 0 : slow, signal);
       this.cached.add(target);
       this.finish('Document: Done.');
@@ -259,6 +264,8 @@ export class BrowserApp {
       if (!href.startsWith('#') && !href.startsWith('mailto:') && this.visited.has(normalize(new URL(href, this.history[this.index]).href))) link.classList.add('visited');
     });
     this.widgets = mountWidgets(content);
+    this.page = page;
+    this.seen.clear();
     this.pane.content.replaceChildren(content);
     this.pane.content.style.clipPath = 'inset(0 0 100% 0)';
     this.pane.view.style.background = DEFAULT_BACKGROUND;
@@ -284,6 +291,7 @@ export class BrowserApp {
     this.pane.view.style.background = background ?? DEFAULT_BACKGROUND;
     this.pane.view.style.backgroundAttachment = 'local';
     page.onLoad?.(this.loadEnv());
+    this.checkSeen();
 
     const pictures = this.widgets.filter((widget) => widget.arrive);
     for (const [i, widget] of pictures.entries()) {
@@ -294,6 +302,22 @@ export class BrowserApp {
       const area = (box.width / scale) * (box.height / scale);
       await widget.arrive!(slow ? clamp(0.5 + area / 30000, 0.6, 3) * slow : 0, signal);
     }
+  }
+
+  /** Tells the page which of its `data-seen` elements have come on screen. */
+  private checkSeen(): void {
+    const page = this.page;
+    if (!page?.onSeen || this.pane.content.style.clipPath) return;
+    const view = this.pane.view.getBoundingClientRect();
+    const scale = view.height / (this.pane.view.clientHeight || 1);
+    this.pane.content.querySelectorAll<HTMLElement>('[data-seen]').forEach((element) => {
+      const key = element.dataset.seen!;
+      const rect = element.getBoundingClientRect();
+      const shown = Math.min(rect.bottom, view.bottom) - Math.max(rect.top, view.top);
+      if (this.seen.has(key) || shown < Math.min(rect.height, 2 * LINE * scale) - 1) return;
+      this.seen.add(key);
+      page.onSeen!(key, this.loadEnv());
+    });
   }
 
   private env(): PageEnv {

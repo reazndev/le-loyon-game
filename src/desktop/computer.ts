@@ -1,7 +1,8 @@
 import './desktop.css';
 import { dialogues } from '../content';
 import { click } from '../engine/audio/generators';
-import type { Input } from '../engine/input/input';
+import { cancelLabel, interactLabel } from '../engine/input/bindings';
+import type { Input, InputDevice } from '../engine/input/input';
 import type { ScreenHandle } from '../game/gameUi';
 import type { SceneContext } from '../game/scene';
 import { BrowserApp } from './apps/browser';
@@ -17,8 +18,9 @@ import { icon, type IconName } from './gfx/icons';
 import { recordRead, villageClues } from './progress';
 import type { Setup } from './setup';
 import { Cursor, type CursorShape } from './ui/cursor';
+import { Focus, type FocusScope } from './ui/focus';
 import { messageBox } from './ui/messageBox';
-import { paneAt } from './ui/scrollPane';
+import { paneAt, type ScrollPane } from './ui/scrollPane';
 import { PopupMenu, type MenuEntry } from './ui/startMenu';
 import { Taskbar } from './ui/taskbar';
 import { WindowManager } from './ui/window';
@@ -30,11 +32,8 @@ declare global {
   }
 }
 
-const CURSOR_SPEED = 90;
-const CURSOR_TOP_SPEED = 360;
-/** Seconds of holding a direction until the cursor reaches top speed. */
-const CURSOR_RAMP = 0.9;
 const STICK_SCROLL = 520;
+const startLabel: Record<InputDevice, string> = { keyboard: 'Tab', gamepad: 'Y' };
 
 interface DesktopIcon {
   label: string;
@@ -43,14 +42,16 @@ interface DesktopIcon {
 }
 
 /**
- * The computer: its screen, cursor, windows, and programs. The player drives the cursor with
- * the arrow keys, the d-pad, the left stick, or the mouse; interact clicks and Back closes.
+ * The computer: its screen, windows, and programs. The arrow keys, the d-pad, or the left stick
+ * move a focus between links, icons, and menu entries; interact opens the focused one and Back
+ * closes. The inventory button opens the Start menu. The mouse works too, with its own pointer.
  */
 export class Computer {
   readonly root: HTMLDivElement;
   readonly windows = new WindowManager();
   readonly clock: Clock;
   readonly cursor = new Cursor();
+  readonly focus = new Focus();
   readonly dialUp: DialUpApp;
   readonly browser: BrowserApp;
   readonly mail: MailApp | null;
@@ -68,9 +69,11 @@ export class Computer {
   private screen: ScreenHandle | null = null;
   private standUp: (() => void) | null = null;
   private busyCount = 0;
-  private holdTime = 0;
-  private pressTarget: Element | null = null;
-  private hovered: Element | null = null;
+  private readonly desktopIcons: HTMLElement[];
+  /** The desktop icon opened last, focused again when the desktop comes back. */
+  private lastIcon: HTMLElement | null = null;
+  /** The pointer shows once the real mouse moves, and hides again when the keys or pad are used. */
+  private mouseInUse = false;
   private lightTimer = 0;
   private lightPhase: 0 | 1 = 0;
   private poweredOff = false;
@@ -90,11 +93,12 @@ export class Computer {
     this.taskbar = new Taskbar(this.windows, () => this.toggleStart());
     this.windows.onChange = () => this.taskbar.refresh();
     this.menus.push(this.browser.bookmarks);
+    this.desktopIcons = this.icons().map((item) => this.desktopIcon(item));
 
     const desktop = h(
       'div',
       { class: 'pc-desktop', style: setup.wallpaper ? `background-image:url(${setup.wallpaper()})` : '' },
-      h('div', 'pc-icons', this.icons().map((item) => this.desktopIcon(item))),
+      h('div', 'pc-icons', this.desktopIcons),
       this.windows.element,
       this.browser.bookmarks.element,
     );
@@ -212,11 +216,44 @@ export class Computer {
     if (this.poweredOff) return;
 
     if (input.pressed('cancel')) this.back();
-    this.moveCursor(dt, input);
-    if (input.pressed('interact')) this.press();
-    else if (this.pressTarget && !input.isDown('interact')) this.release();
-    this.scrollWithStick(dt);
-    this.updateHover();
+    if (input.pressed('inventory')) this.toggleStart();
+    const scope = this.scope();
+    const moved = this.focus.update(dt, input, scope);
+    const pressed = input.pressed('interact');
+    if (moved || pressed) this.mouseInUse = false;
+    if (pressed && this.focus.current) this.activate(this.focus.current);
+    this.scrollWithStick(dt, scope.pane);
+    this.taskbar.setHint(this.hint(input.lastDevice, scope));
+    this.updateCursor();
+  }
+
+  /** What the focus can reach: the top message box, menu, or window, else the desktop. */
+  private scope(): FocusScope {
+    const message = this.modal.lastElementChild;
+    if (message) return { items: [...message.querySelectorAll('.pc-msg-buttons .btn')] };
+    const menu = this.menus.find((m) => m.isOpen);
+    if (menu) return { items: menu.entries() };
+    const active = this.windows.active;
+    if (active) return active.focusScope();
+    // The first thing to open: Ruth's mail at home, else the browser.
+    const first = this.setup.mode === 'home' && !this.state.hasFlag('pro_read_mail') ? 'Courrier' : 'Navigator';
+    const opener = this.desktopIcons.find((item) => item.textContent === first) ?? null;
+    return { items: [...this.desktopIcons, this.taskbar.startButton], initial: this.lastIcon ?? opener };
+  }
+
+  /** The one-line control hint in the taskbar, for the device in use. */
+  private hint(device: InputDevice, scope: FocusScope): string {
+    const onPage = scope.items.some((item) => scope.pane?.content.contains(item));
+    const move = `${device === 'keyboard' ? '\u2191\u2193' : 'D-pad'} ${onPage ? 'Links' : 'Move'}`;
+    const back = this.windows.active || this.closeMessage || this.menus.some((m) => m.isOpen) ? 'Back' : 'Stand up';
+    return `${move}  ${interactLabel[device]} Open  ${cancelLabel[device]} ${back}  ${startLabel[device]} Start`;
+  }
+
+  /** Presses an element the way a mouse click would. */
+  private activate(target: Element): void {
+    const rect = target.getBoundingClientRect();
+    const at = { bubbles: true, cancelable: true, clientX: rect.left + rect.width / 2, clientY: rect.top + rect.height / 2 };
+    ['mousedown', 'mouseup', 'click'].forEach((type) => target.dispatchEvent(new MouseEvent(type, at)));
   }
 
   private icons(): DesktopIcon[] {
@@ -232,7 +269,19 @@ export class Computer {
   }
 
   private desktopIcon(item: DesktopIcon): HTMLElement {
-    return h('div', { class: 'pc-icon', onClick: item.open }, icon(item.icon, 32), h('span', null, item.label));
+    const element = h(
+      'div',
+      {
+        class: 'pc-icon',
+        onClick: () => {
+          this.lastIcon = element;
+          item.open();
+        },
+      },
+      icon(item.icon, 32),
+      h('span', null, item.label),
+    );
+    return element;
   }
 
   private startEntries(): MenuEntry[] {
@@ -278,67 +327,26 @@ export class Computer {
     else this.stand();
   }
 
-  private moveCursor(dt: number, input: Input): void {
-    const { forward, turn } = input.movement();
-    const amount = Math.min(1, Math.hypot(turn, forward));
-    this.holdTime = amount > 0.05 ? this.holdTime + dt : 0;
-    if (!this.holdTime) return;
-    const ramp = Math.min(this.holdTime / CURSOR_RAMP, 1);
-    const speed = (CURSOR_SPEED + (CURSOR_TOP_SPEED - CURSOR_SPEED) * ramp * ramp) * (input.isDown('fast') ? 1.8 : 1);
-    this.cursor.moveTo(this.cursor.x + turn * speed * dt, this.cursor.y - forward * speed * dt);
-  }
-
-  /** The element under the cursor, the way a real pointer would hit it. */
+  /** The element under the mouse pointer. */
   private target(): Element | null {
     const rect = this.root.getBoundingClientRect();
     const scale = rect.width / 640;
     return document.elementFromPoint(rect.left + (this.cursor.x + 0.5) * scale, rect.top + (this.cursor.y + 0.5) * scale);
   }
 
-  private mouseEvent(type: string, target: Element): void {
-    const rect = this.root.getBoundingClientRect();
-    const scale = rect.width / 640;
-    target.dispatchEvent(
-      new MouseEvent(type, { bubbles: true, cancelable: true, clientX: rect.left + this.cursor.x * scale, clientY: rect.top + this.cursor.y * scale }),
-    );
-  }
-
-  private press(): void {
+  private updateCursor(): void {
+    this.cursor.element.classList.toggle('hidden', !this.mouseInUse);
+    if (!this.mouseInUse) return;
     const target = this.target();
-    if (!target || !this.root.contains(target)) return;
-    this.pressTarget = target;
-    this.mouseEvent('mousedown', target);
-  }
-
-  private release(): void {
-    const pressed = this.pressTarget!;
-    this.pressTarget = null;
-    const target = this.target() ?? pressed;
-    this.mouseEvent('mouseup', target);
-    if (pressed.contains(target) || target.contains(pressed)) this.mouseEvent('click', pressed);
-  }
-
-  private updateHover(): void {
-    const target = this.target();
-    const hovered = target?.closest('.btn, .pc-menu-item, .pc-icon') ?? null;
-    if (hovered !== this.hovered) {
-      this.hovered?.classList.remove('hover');
-      hovered?.classList.add('hover');
-      this.hovered = hovered;
-    }
     const shape: CursorShape = this.busyCount > 0 ? 'busy' : target?.closest('a[href]') ? 'hand' : 'arrow';
     this.cursor.render(shape);
   }
 
-  private scrollWithStick(dt: number): void {
+  /** The right stick scrolls the page smoothly. */
+  private scrollWithStick(dt: number, pane: ScrollPane | null | undefined): void {
     const pad = navigator.getGamepads?.().find((p) => p?.connected);
     const y = pad?.axes[3] ?? 0;
-    if (Math.abs(y) > 0.25) this.scrollUnderCursor(y * STICK_SCROLL * dt);
-  }
-
-  private scrollUnderCursor(dy: number): void {
-    const pane = paneAt(this.target()) ?? this.browser.paneIfActive();
-    pane?.scrollBy(dy);
+    if (Math.abs(y) > 0.25) pane?.scrollBy(y * STICK_SCROLL * dt);
   }
 
   private updateModemLight(dt: number): void {
@@ -352,9 +360,9 @@ export class Computer {
   }
 
   private readonly onKey = (event: KeyboardEvent) => {
-    const pane = () => paneAt(this.target()) ?? this.browser.paneIfActive();
-    if (event.code === 'PageDown') pane()?.scrollBy(260);
-    if (event.code === 'PageUp') pane()?.scrollBy(-260);
+    const pane = this.scope().pane;
+    if (event.code === 'PageDown') pane?.glideTo(pane.destination + 260);
+    if (event.code === 'PageUp') pane?.glideTo(pane.destination - 260);
   };
 
   private listen(): void {
@@ -379,6 +387,9 @@ export class Computer {
       if (!event.isTrusted) return;
       const { x, y } = toScreen(event);
       this.cursor.moveTo(x, y);
+      this.mouseInUse = true;
+      const hovered = this.scope().items.find((item) => item.contains(event.target as Node));
+      if (hovered) this.focus.set(hovered);
     });
     this.root.addEventListener(
       'mousedown',

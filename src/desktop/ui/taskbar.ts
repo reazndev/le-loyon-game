@@ -2,13 +2,14 @@ import { h } from '../dom';
 import { icon, modemLight } from '../gfx/icons';
 import type { WindowManager } from './window';
 
-/** The bar at the bottom: Start, a button per window, the modem light, and the clock. */
+/** The bar at the bottom: Start, a button per window, the control hint, the modem light, and the clock. */
 export class Taskbar {
   readonly element: HTMLDivElement;
   readonly startButton: HTMLDivElement;
   private readonly tasks = h('div', 'pc-tasks');
   private readonly light = h('span');
   private readonly clock = h('span');
+  private readonly hint = h('div', 'pc-hint');
   private lightPhase = -1;
 
   constructor(
@@ -16,7 +17,7 @@ export class Taskbar {
     onStart: () => void,
   ) {
     this.startButton = h('div', { class: 'btn pc-start', onClick: onStart }, icon('start'), 'Start');
-    this.element = h('div', 'pc-taskbar', this.startButton, this.tasks, h('div', 'pc-tray', this.light, this.clock));
+    this.element = h('div', 'pc-taskbar', this.startButton, this.tasks, this.hint, h('div', 'pc-tray', this.light, this.clock));
   }
 
   refresh(): void {
@@ -34,6 +35,10 @@ export class Taskbar {
         ),
       ),
     );
+  }
+
+  setHint(text: string): void {
+    if (this.hint.textContent !== text) this.hint.textContent = text;
   }
 
   setClock(text: string): void {
