@@ -14,6 +14,7 @@ if (params.scene) {
     ...(params.pose ? { at: params.pose } : {}),
     ...(params.time ? { time: params.time } : {}),
     flags: params.flags,
+    counts: params.counts,
   });
 } else {
   await showTitle(game);

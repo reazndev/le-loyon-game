@@ -27,6 +27,7 @@ export interface StartOptions {
   at?: string | PlayerPose;
   time?: TimeOfDay;
   flags?: string[];
+  counts?: Record<string, number>;
 }
 
 /** The slot the pause menu saves to and loads from. */
@@ -104,6 +105,7 @@ export class Game {
     await this.boot();
     this.state.time = options.time ?? 'day';
     options.flags?.forEach((flag) => this.state.setFlag(flag));
+    Object.entries(options.counts ?? {}).forEach(([name, value]) => this.state.setCount(name, value));
     await this.scenes.load(options.scene, options.at ?? 'default');
   }
 

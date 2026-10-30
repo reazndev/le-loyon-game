@@ -6,12 +6,17 @@ export interface DebugParams {
   scene?: string;
   time?: TimeOfDay;
   flags: string[];
+  /** Story counts such as `day` and `night`. */
+  counts: Record<string, number>;
   pose?: PlayerPose;
 }
 
+/** The story counts the URL can set. */
+const COUNT_PARAMS = ['day', 'night'] as const;
+
 /**
- * Reads `?scene=<id>&time=<day|night>&flags=a,b&pos=x,y,z&yaw=deg` from a query string.
- * `yaw` without `pos` is ignored, because a spawn point brings its own facing.
+ * Reads `?scene=<id>&time=<day|night>&day=n&night=n&flags=a,b&pos=x,y,z&yaw=deg` from a query
+ * string. `yaw` without `pos` is ignored, because a spawn point brings its own facing.
  */
 export function parseDebugParams(search: string): DebugParams {
   const params = new URLSearchParams(search);
@@ -19,6 +24,7 @@ export function parseDebugParams(search: string): DebugParams {
   const pos = params.get('pos')?.split(',').map(Number);
   const result: DebugParams = {
     flags: (params.get('flags') ?? '').split(',').filter(Boolean),
+    counts: Object.fromEntries(COUNT_PARAMS.filter((name) => /^\d+$/.test(params.get(name) ?? '')).map((name) => [name, Number(params.get(name))])),
   };
   const scene = params.get('scene');
   if (scene) result.scene = scene;
