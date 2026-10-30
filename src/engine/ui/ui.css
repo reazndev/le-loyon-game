@@ -275,16 +275,16 @@ body {
   filter: drop-shadow(2px 2px 0 rgba(0, 0, 0, 0.6));
 }
 
-/* The needle sprite pivots on its brass pin, which sits a little above the dial's center. */
+/* The needle sprite pivots on its pin in the middle, over the dial's center (below the case's middle, under the ring). */
 .ui-compass-needle {
   position: absolute;
-  left: 7%;
-  top: 13.6%;
-  width: 86%;
-  height: 86%;
+  left: 15%;
+  top: 22%;
+  width: 70%;
+  height: 70%;
   background-size: 100% 100%;
   image-rendering: pixelated;
-  transform-origin: 50% 47.8%;
+  transform-origin: 50% 50%;
 }
 
 .ui-nav-compass.lost .ui-compass-needle {
