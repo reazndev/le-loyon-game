@@ -9,6 +9,7 @@ import { shopBell } from './bell';
 import { laiterieAmbient } from './ambient';
 import { buildClutter } from './clutter';
 import { buildDairy } from './dairy';
+import { hints } from './hints';
 import { BELL, CHRISTINE, CLOCK, DOOR, RADIO, ROOM, TANK } from './layout';
 import { buildShell } from './shell';
 import { buildShop } from './shop';
@@ -72,6 +73,7 @@ export const laiterieScene = defineScene({
     });
 
     stageBeats(kit, ctx, storyPhase(ctx.state));
+    hints(kit, ctx);
   },
 
   // The scene buses are already faded out by now, so the bell going out rings on the ui bus.

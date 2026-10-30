@@ -3,7 +3,7 @@ import { ivyCover, thicket, VERGE_PLANTS, WILD_PLANTS, yew } from '../../game/ki
 import type { LevelKit } from '../../game/kit/levelKit';
 import { crows } from '../../game/ambient';
 import { scatter, spotsAlong } from '../../game/kit/scatter';
-import { watchmanPatrol } from '../../game/patrol/patrol';
+import { watchmanPatrol, type Patrol } from '../../game/patrol/patrol';
 import { scareDirector } from '../../game/scares/director';
 import { defineScene, type SceneContext } from '../../game/scene';
 import { hillAmbience, hillAtmosphere } from '../cemetery/atmosphere';
@@ -15,6 +15,7 @@ import { isNight, storyPhase, type StoryPhase } from '../forest_path/story';
 import { distanceToTrails, pointAlong, yawToward, type Trail } from '../forest_path/trail';
 import { barbedWire, gravelPath } from './hillside';
 import { bench } from '../cemetery/clutter';
+import { hints } from './hints';
 import { crossOfferings, fenceSign } from './props';
 import { billboards } from '../forest_path/woods';
 import { screamer } from '../../game/scares/screamers';
@@ -109,7 +110,7 @@ export const cemeteryPathScene = defineScene({
         { x: CHURCH.x - 3.5, z: EAVES.z, y: EAVES.y, yaw: 170 },
         { x: CHURCH.x + 2.2, z: EAVES.z, y: EAVES.y, yaw: 200 },
       ]);
-    stagePath(kit, phase);
+    hints(kit, phase, stagePath(kit, phase));
   },
 });
 
@@ -228,11 +229,11 @@ function cemeteryWall(kit: LevelKit): void {
   ].forEach(([x, z, w, h]) => kit.box({ w: w!, h: h!, d: 0.17 }).texture('gravestone_granite', { tile: 0.9 }).color(0x8a8a88).at(x!, -0.05, z!).onGround());
 }
 
-/** path_light_above on night 2: halfway up, a torch beam moving up toward the cemetery, and the bell. */
-function stagePath(kit: LevelKit, phase: StoryPhase): void {
-  if (!isNight(phase)) return;
+/** path_light_above on night 2: halfway up, a torch beam moving up toward the cemetery, and the bell. Returns his round. */
+function stagePath(kit: LevelKit, phase: StoryPhase): Patrol | null {
+  if (!isNight(phase)) return null;
   kit.use(scareDirector([screamer('cemetery_path', 14)], { random: { surface: 'gravel' } }));
-  if (phase !== 'night2') return;
+  if (phase !== 'night2') return null;
   const ahead = (meters: number) => {
     const p = pointAlong(path, meters);
     return { x: p.x, z: p.z };
@@ -246,6 +247,7 @@ function stagePath(kit: LevelKit, phase: StoryPhase): void {
     }),
   );
   kit.trigger({ r: 4 }).at(-11, 0, 7).once().onEnter(() => patrol.hurry(Number.POSITIVE_INFINITY));
+  return patrol;
 }
 
 export const scenes = [cemeteryPathScene];

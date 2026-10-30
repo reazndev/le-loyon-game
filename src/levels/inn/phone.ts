@@ -35,6 +35,10 @@ export class InnPhone {
     kit.use((k) => k.later('register', () => k.world.sounds.track({ stop: () => this.ringing?.stop(0) })));
   }
 
+  get isRinging(): boolean {
+    return this.ringing !== null;
+  }
+
   /** The editor's call at noon on day 3. Monique calls through if she's at the counter. */
   ring(moniqueHere: boolean): void {
     if (this.ringing) return;

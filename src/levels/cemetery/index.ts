@@ -15,6 +15,7 @@ import { DigSite } from './digSite';
 import { floor, hill, oldStones, tapAndBin, walls } from './grounds';
 import { graveStones, readGrave } from './graves';
 import { BACK_GATE, BACK_Z, chassotGrave, FRONT_Z, GRAVE_FOOT, graveByDoc, refusalFor, WALL_HEIGHT, type Grave } from './layout';
+import { hints } from './hints';
 import { ossuary } from './shed';
 import { nightTwoRound } from './watchman';
 
@@ -87,6 +88,7 @@ export const cemeteryScene = defineScene({
 
     exits(kit, ctx, phase, gate);
     dayHint(kit, ctx, phase);
+    hints(kit, ctx, phase, { figure: () => staging.figure(), site, round });
     shimmerUnreadGraves(kit, ctx);
     // The village lies below the front gate. On night 1 the silence before the dog has no bell in it.
     hillAmbience(kit, ctx, { x: 0, z: 1 }, !(phase === 'night1' && !state.hasFlag('met_raymond')));

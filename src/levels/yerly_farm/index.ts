@@ -12,6 +12,7 @@ import { fountainWater } from '../village_square/sounds';
 import { henhouse, toolShed, yard, type Hen } from './farmyard';
 import { fences, forestEdge, land } from './field';
 import { greenery } from './greenery';
+import { hints } from './hints';
 import { BERNARD, BOUNDS, FOREST_EDGE, HENHOUSE, spawns, STALL } from './layout';
 import { marquise } from './marquise';
 import { cluck, moo } from './sounds';
@@ -44,7 +45,7 @@ export const yerlyFarmScene = defineScene({
     yerlyAmbient(kit, ctx, cows);
 
     if (!night) kit.npc('bernard').at(BERNARD.x, 0, BERNARD.z).faceYaw(BERNARD.yaw).watch(6).talk('bernard');
-    marquise(kit, ctx, phase);
+    hints(kit, marquise(kit, ctx, phase));
     if (night) kit.use(scareDirector([], { random: { surface: 'gravel' } }));
 
     kit.exit({ w: 1, d: 8, to: 'village_square', spawn: 'from_yerly' }).at(BOUNDS.x1 - 1, 0, 12);

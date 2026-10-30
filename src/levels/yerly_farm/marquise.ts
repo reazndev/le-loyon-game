@@ -15,6 +15,7 @@ import { fieldHeight, HOME_SPOT, MARQUISE, SHAPE, STUMP } from './layout';
  * home, looking back over her shoulder at the forest the whole way (for2_led_home). Twelve meters
  * in, a dark upright shape is gone when the reporter looks again, and there is a stump in a
  * different place (for2_stump). Bernard's dialogue sets `heifer_returned`; then she goes to the stall.
+ * Returns the meters between her and the reporter, 0 when she isn't out.
  */
 
 const FIND_DISTANCE = 3.5;
@@ -22,11 +23,11 @@ const FOLLOW_DISTANCE = 2.6;
 /** A point in the trees at a cow's head height, where she stares. */
 const STARE = new Vector3(SHAPE.x, fieldHeight(SHAPE.x, SHAPE.z) + 1.2, SHAPE.z);
 
-export function marquise(kit: LevelKit, ctx: SceneContext, phase: StoryPhase): void {
+export function marquise(kit: LevelKit, ctx: SceneContext, phase: StoryPhase): () => number {
   const { state, player } = ctx;
   const place = heiferPlace(state, phase);
   forestEdgeShape(kit, ctx, place === 'at_the_edge');
-  if (place === 'missing') return;
+  if (place === 'missing') return () => 0;
 
   const spot = place === 'home' ? HOME_SPOT : MARQUISE;
   const cow = kit.npc('marquise').at(spot.x, fieldHeight(spot.x, spot.z), spot.z).faceYaw(place === 'home' ? 200 : MARQUISE.yaw);
@@ -64,6 +65,7 @@ export function marquise(kit: LevelKit, ctx: SceneContext, phase: StoryPhase): v
       glance = cow.character.lookAt ? 2.2 : 7 + Math.random() * 6;
     }
   });
+  return () => Math.hypot(cow.character.position.x - player.position.x, cow.character.position.z - player.position.z);
 }
 
 function startFollowing(cow: NpcBuilder, delay: number): void {

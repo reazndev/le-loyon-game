@@ -14,6 +14,7 @@ import { tvMurmur } from '../inn/sounds';
 import { squareAmbient } from './ambient';
 import { streetClutter } from './clutter';
 import { greenery } from './greenery';
+import { hints } from './hints';
 import { exits, ground, streetFurniture } from './streets';
 
 /**
@@ -79,6 +80,7 @@ export const villageSquareScene = defineScene({
     squareAmbient(kit, ctx, { lamp: street.lamp, sign: innFront.sign });
     if (arriving) arrival(kit, ctx, ambience);
     timetable(kit, ctx);
+    hints(kit, ctx);
   },
 });
 

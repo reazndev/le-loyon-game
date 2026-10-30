@@ -10,6 +10,7 @@ import { handText, paintedTexture } from '../forest_path/scrawl';
 import { unspent } from '../forest_path/spent';
 import { distanceToTrails, pointAlong, yawToward, type Trail } from '../forest_path/trail';
 import { dressTrack, keepClear } from './dressing';
+import { hints } from './hints';
 import { larch } from './larch';
 import { scatter } from '../../game/kit/scatter';
 import {
@@ -177,6 +178,7 @@ export const forestDeepScene = defineScene({
     const scares = stageLarch(kit, ctx);
     larch(kit, LARCH);
     grave(kit, ctx, scares);
+    hints(kit, ctx, { larch: LARCH, grave: GRAVE, offTrack: (x, z) => calm(x, z) > 6 });
 
     enclose(kit, area);
     kit.exit({ w: 6, d: 1, to: 'bunker_exterior', spawn: 'from_track' }).at(0, 0, 34.2);

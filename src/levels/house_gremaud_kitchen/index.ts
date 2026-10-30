@@ -14,6 +14,7 @@ import { buildClutter } from './clutter';
 import { buildFurniture } from './furniture';
 import { CLOCK, FRIDGE, HALL_DOOR, HIS_HEAD, LIVING_DOOR, NORTH, ROOM, SOUTH } from './layout';
 import { placeLooks } from './lookSpots';
+import { hints } from './hints';
 import { greetOnArrival, INSIDE_FIRST_TIME, placeOdile } from './odile';
 import { buildShell } from './shell';
 
@@ -73,6 +74,7 @@ export const kitchenScene = defineScene({
     kitchenAmbient(kit, ctx, night, clock);
 
     stageBeats(kit, ctx, phase, clock);
+    hints(kit);
   },
 });
 

@@ -7,6 +7,7 @@ import { stageBeats } from './beats';
 import { buildCafe } from './cafe';
 import { placeCafeCast } from './cast';
 import { innClutter } from './clutter';
+import { hints } from './hints';
 import { veilleur } from './veilleur';
 import { cafeLit, dressInn, type InnDressing } from './dressing';
 import { loopSound } from './interior';
@@ -78,6 +79,7 @@ export const innScene = defineScene({
     sounds(kit, dressing);
     innAmbient(kit, ctx, dressing, { tvScreen, curtain });
     turnTheDay(kit, ctx, dressing, (moniqueHere) => phone.ring(moniqueHere), arrivingAtDawn);
+    hints(kit, ctx, dressing, () => phone.isRinging);
   },
 });
 

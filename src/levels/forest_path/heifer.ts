@@ -13,20 +13,26 @@ const { for2_heifer_fork: FORK_SPOT, for2_roofline: ROOF, for2_stump_shape: SHAP
 const FIND_DISTANCE = 3.5;
 const FOLLOW_DISTANCE = 2.6;
 
+export interface ForestHeifer {
+  /** Beats for the scene's director. */
+  beats: Beat[];
+  /** Meters between her and the reporter, 0 when she isn't in the scene. */
+  gap: () => number;
+}
+
 /**
  * Day 2 in the forest, puzzle P3 when the reporter skipped the follow on night 1: Marquise stands
  * at the fork staring up the right branch (for2_heifer). Up there, a dark upright shape is gone
  * once looked away from, and a branch breaks deeper in (for2_stump). Looking up the branch from
  * the fork, the fog thins once and shows a barn roof in the trees (for2_roofline). Found, she
- * follows the reporter home, looking back over her shoulder (for2_led_home). Returns the beats
- * for the scene's director.
+ * follows the reporter home, looking back over her shoulder (for2_led_home).
  */
-export function heiferInTheForest(kit: LevelKit, ctx: SceneContext, phase: StoryPhase): Beat[] {
+export function heiferInTheForest(kit: LevelKit, ctx: SceneContext, phase: StoryPhase): ForestHeifer {
   const { state, player } = ctx;
   const atTheFork = heiferAtTheFork(state, phase);
   // Brought into the forest after she was found, she is already behind the reporter.
   const following = phase === 'day2' && state.hasFlag('heifer_found') && !state.hasFlag('heifer_returned');
-  if (!atTheFork && !following) return [];
+  if (!atTheFork && !following) return { beats: [], gap: () => 0 };
 
   const stare = new Vector3(ROOF.x, height(ROOF.x, ROOF.z) + 2.5, ROOF.z);
   const cow = kit.npc('marquise').at(FORK_SPOT.x, height(FORK_SPOT.x, FORK_SPOT.z), FORK_SPOT.z).faceYaw(FORK_SPOT.yaw);
@@ -54,7 +60,8 @@ export function heiferInTheForest(kit: LevelKit, ctx: SceneContext, phase: Story
     cow.character.lookAt = cow.character.lookAt ? null : stare;
     glance = cow.character.lookAt ? 2.2 : 7 + Math.random() * 6;
   });
-  if (!atTheFork) return [];
+  const gap = () => cow.character.position.distanceTo(player.position);
+  if (!atTheFork) return { beats: [], gap };
 
   let finding = false;
   everyFrame(kit, () => {
@@ -66,7 +73,7 @@ export function heiferInTheForest(kit: LevelKit, ctx: SceneContext, phase: Story
       .then(() => ctx.dialogue(dialogues.heifer_lead))
       .then(follow);
   });
-  return stageTheFork(kit, ctx);
+  return { beats: stageTheFork(kit, ctx), gap };
 }
 
 /** The barn roof in the fog, the shape that isn't there, and the branch. */

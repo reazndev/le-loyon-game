@@ -25,6 +25,7 @@ import { isFriendlyKnock } from './knock';
 import { floorMask, heapPoses, maskPile, uprightMask, type HeapOptions, type MaskPose } from './masks';
 import { beerCans, bench, bunkStack, ceilingRuns, chair, graffiti, locker, stencil, stubs, table, wires } from './props';
 import { neighbors, roomAt, type Opening, type Room } from './rooms';
+import { hints } from './hints';
 import { fortBeats } from './scares';
 import { screamer } from '../../game/scares/screamers';
 
@@ -77,6 +78,7 @@ const atmosphere: Record<TimeOfDay, Atmosphere> = {
 
 const CUPBOARD = { x: 11.75, z: -31, w: 1, d: 0.5, h: 2 };
 const CUPBOARD_ASIDE = -32.15;
+const BATTERY = { x: 10.8, z: -20.25 };
 const KP3 = { x: 12.15, z: -31, hinge: -31.45 };
 const HEAP: Omit<HeapOptions, 'count' | 'seed'> = { x: 6.4, z: -24.75, rx: 2.7, rz: 1.45, height: 1, lookAt: { x: 10.6, y: 1.6, z: -27.4 } };
 const TENT_SHEET = { x: -7.6, z: -17.85 };
@@ -195,6 +197,7 @@ export const bunkerInteriorScene = defineScene({
     machineRoom(kit, ctx, phase, kp3);
     casemate(kit, ctx, phase);
     fortClutter(kit);
+    hints(kit, ctx, phase, { cupboard: CUPBOARD, door: KP3, battery: BATTERY, kp3 });
 
     kit.ambience('drone', { volume: 0.16 });
     vents(kit, ctx);
@@ -472,11 +475,13 @@ function dormitory(kit: LevelKit, ctx: SceneContext, phase: StoryPhase): Kp3Door
   return kp3;
 }
 
-interface Kp3Door {
+export interface Kp3Door {
   /** True once the cupboard has rolled clear of it. */
   revealed: boolean;
   /** How the player knocked tonight. Marc is in once anyone has knocked. */
   readonly knock: 'none' | 'right' | 'wrong';
+  /** How many times the player has knocked tonight. */
+  readonly knocks: number;
   /** Marc's voice through the steel, the right knock's last beat. */
   voice(): void;
 }
@@ -601,6 +606,9 @@ function kp3Door(kit: LevelKit, ctx: SceneContext, phase: StoryPhase): Kp3Door {
     revealed: false,
     get knock() {
       return knock;
+    },
+    get knocks() {
+      return knocks.length;
     },
     voice,
   };
@@ -822,7 +830,7 @@ function machineRoom(kit: LevelKit, ctx: SceneContext, phase: StoryPhase, kp3: K
       radius: 0.3,
       onInteract: () => playNode(ctx, ctx.state.hasFlag('found_hidden_door') ? 'fort_battery_after' : 'fort_battery'),
     })
-    .at(10.8, 0, -20.25);
+    .at(BATTERY.x, 0, BATTERY.z);
 }
 
 /** The fighting room: an empty gun mount and the embrasure, a strip of grey fog. */

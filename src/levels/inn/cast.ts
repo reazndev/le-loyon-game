@@ -5,7 +5,7 @@ import { everyFrame } from '../church/everyFrame';
 import { cafeLit, type InnDressing } from './dressing';
 import { placeSetting } from './furniture';
 import { loopSound } from './interior';
-import { CORNER_TABLE, COUNTER, TABLES } from './layout';
+import { CORNER_TABLE, COUNTER, GILLES_AT_COUNTER, TABLES } from './layout';
 import { tvMurmur } from './sounds';
 
 /** Who is in the café, by the table in 02-village.md. */
@@ -16,8 +16,8 @@ export function placeCafeCast(kit: LevelKit, ctx: SceneContext, dressing: InnDre
 
   if (dressing.day === 1 && !dressing.endingMorning) {
     // Gilles at the counter with a glass of white.
-    kit.npc('gilles').at(1.45, 0, COUNTER.z + 0.62).faceYaw(0).watch(3).talk('gilles');
-    placeSetting(kit, 1.45, COUNTER.z + 0.12, 'wine', COUNTER.h);
+    kit.npc('gilles').at(GILLES_AT_COUNTER.x, 0, GILLES_AT_COUNTER.z).faceYaw(0).watch(3).talk('gilles');
+    placeSetting(kit, GILLES_AT_COUNTER.x, COUNTER.z + 0.12, 'wine', COUNTER.h);
     return;
   }
   if (dressing.day === 2 && !dressing.eveningTwo && !state.hasFlag('heifer_found')) {

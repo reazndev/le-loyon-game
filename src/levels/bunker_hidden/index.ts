@@ -20,6 +20,7 @@ import { yawToward } from '../forest_path/trail';
 import { roomAmbience } from './ambience';
 import { takeArrival, type Arrival } from './arrival';
 import { clutter } from './clutter';
+import { hints } from './hints';
 
 /**
  * Fort, command room "K.P. 3". Marc's room behind the steel door: candle, notebook, the photo
@@ -42,6 +43,8 @@ const TUNNEL = { x0: 7.4, x1: 51, r: 0.74 };
 const CANDLE = { x: 2.55, y: 0.78, z: -0.95 };
 const DOOR = { x: 0.15, z: 0 };
 const BED = { x: 4.35, z: 1.55, top: 0.42 };
+const TUNNEL_DOOR = { x: 5.85, z: 0 };
+const RUNGS = { x: TUNNEL.x1 - 0.5, z: 0 };
 
 const atmosphere: Atmosphere = {
   fog: { color: 0x080605, near: 1, far: 12, density: 0.06, wisps: 0.1 },
@@ -116,6 +119,7 @@ export const bunkerHiddenScene = defineScene({
     const tableCandle = candle(kit, ctx, arrival);
     const scares = kit.use(scareDirector(unspent(ctx.state, roomBeats(tunnel(kit, ctx)))));
     leaveByTheDoor(kit, ctx);
+    hints(kit, ctx, arrival, { threshold: { x: -0.8, z: 0 }, tunnelDoor: TUNNEL_DOOR, rungs: RUNGS, tunnelStart: TUNNEL.x0 });
     stageMarc(kit, ctx, arrival, seen, scares, () => {
       if (tableCandle?.light) tableCandle.light.intensity *= 0.35;
     });
@@ -257,7 +261,7 @@ function tunnel(kit: LevelKit, ctx: SceneContext): () => void {
         open = true;
       },
     })
-    .at(5.85, 0, 0);
+    .at(TUNNEL_DOOR.x, 0, TUNNEL_DOOR.z);
   updates.push((dt) => {
     swing = closing ? Math.max(0, swing - dt / 0.6) : open ? Math.min(1, swing + dt / 1.5) : swing;
     (leaf.object as Group).rotation.y = (-85 * swing * Math.PI) / 180;
@@ -285,7 +289,7 @@ function tunnel(kit: LevelKit, ctx: SceneContext): () => void {
         ctx.state.time = 'day';
       },
     })
-    .at(TUNNEL.x1 - 0.5, 0, 0);
+    .at(RUNGS.x, 0, RUNGS.z);
 
   // Low enough that the player has to crouch; the pipe forces it.
   updates.push((_dt, c) => {

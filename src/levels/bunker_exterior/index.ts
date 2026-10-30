@@ -12,6 +12,7 @@ import { isNight, storyPhase, type StoryPhase } from '../forest_path/story';
 import { distanceToTrails, type Trail } from '../forest_path/trail';
 import { scatter } from '../../game/kit/scatter';
 import { dressClearing, keepClear } from './debris';
+import { hints } from './hints';
 import {
   enclose,
   fallenLog,
@@ -64,6 +65,7 @@ const slope = (_x: number, z: number) => (z < -6 ? 0.1 * (-6 - z) : 0) + 0.025 *
 const calm = (x: number, z: number) => Math.min(distanceToTrails(trails, x, z), inClearing(x, z));
 const height = woodsHeight(slope, calm);
 const FLOOR = slope(FORT.x, FRONT);
+const DOOR = { x: 0.2, z: FRONT - 0.3 };
 
 export const markers = {
   for1_cup: {
@@ -158,6 +160,7 @@ export const bunkerExteriorScene = defineScene({
     hatch(kit, ctx, phase);
     thicket(kit, ctx, phase);
     dressClearing(kit, ctx, { height, floor: FLOOR, approach, track });
+    hints(kit, ctx, phase, { door: DOOR, hatch: HATCH, thicket: THICKET, offPath: (x, z) => calm(x, z) > 6 });
 
     enclose(kit, area);
     kit.exit({ w: 6, d: 1, to: 'forest_path', spawn: 'from_bunker' }).at(0, 0, 27.8);
@@ -246,7 +249,6 @@ function fort(kit: LevelKit, ctx: SceneContext, phase: StoryPhase, scares: Scare
     .at(FORT.x, FLOOR, FORT.z);
 
   const wedged = phase === 'day1' || phase === 'night1';
-  const doorZ = FRONT - 0.3;
   kit
     .hotspot({
       prompt: wedged ? 'Turn the wheel' : 'Go inside',
@@ -260,9 +262,9 @@ function fort(kit: LevelKit, ctx: SceneContext, phase: StoryPhase, scares: Scare
         ctx.goTo('bunker_interior', 'from_entrance');
       },
     })
-    .at(0.2, 0, doorZ)
+    .at(DOOR.x, 0, DOOR.z)
     .leadsTo('bunker_interior');
-  kit.hotspot({ prompt: 'Read the plate', radius: 0.25, onInteract: () => playNode(ctx, 'fort_plate') }).at(-0.45, 0, doorZ);
+  kit.hotspot({ prompt: 'Read the plate', radius: 0.25, onInteract: () => playNode(ctx, 'fort_plate') }).at(-0.45, 0, DOOR.z);
   kit.hotspot({ prompt: 'Look at the graffiti', radius: 0.6, onInteract: () => playNode(ctx, 'fort_graffiti') }).at(2.2, 0, FRONT + 0.4);
 }
 

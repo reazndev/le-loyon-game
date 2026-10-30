@@ -3,6 +3,7 @@ import { defineScene, type SceneContext } from '../../game/scene';
 import { cupOnTheStump } from './cup';
 import { dressPath, keepClear } from './dressing';
 import { heiferInTheForest } from './heifer';
+import { hints } from './hints';
 import { area, BRIDGE, FORK, height, main, markers, SHRINE, slope, stream, toFort, trails } from './layout';
 import { lostInTheFog } from './lost';
 import { playNode } from './play';
@@ -104,7 +105,9 @@ export const forestPathScene = defineScene({
     kit.exit({ w: 1, d: 5, to: 'yerly_farm', spawn: 'from_forest' }).at(-50.4, 0, -14);
 
     forestAmbience(kit, ctx);
-    stageForestPath(kit, ctx, phase, [...heiferInTheForest(kit, ctx, phase), ...cupOnTheStump(kit, ctx, phase)]);
+    const heifer = heiferInTheForest(kit, ctx, phase);
+    stageForestPath(kit, ctx, phase, [...heifer.beats, ...cupOnTheStump(kit, ctx, phase)]);
+    hints(kit, ctx, phase, heifer.gap);
   },
 
   update: lostInTheFog(trails),

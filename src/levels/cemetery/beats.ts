@@ -16,6 +16,8 @@ const MANUAL = { after: Number.POSITIVE_INFINITY };
 
 /** Where Le Loyon stands on night 1: against the back wall beside the Chassot plot. */
 export const SIGHTING = { x: chassotGrave.x + 2.7, z: BACK_Z + 0.7 };
+/** The figure only appears to a reporter at least this far from where it stands, so it is seen from a distance. */
+export const SIGHTING_FROM = 11;
 /** How long the cemetery must be silent before the dog, and how long before it comes anyway. */
 const BUILD_SECONDS = 45;
 const LATEST_SECONDS = 110;
@@ -58,10 +60,14 @@ const beats: Beat[] = [
   },
 ];
 
+export type Figure = 'absent' | 'standing' | 'leaving';
+
 export interface Staging {
   scares: ScareDirector;
   /** After any grave is read. */
   read(grave: Grave): void;
+  /** Night 1: whether the figure stands at the back wall, has turned for the back gate, or isn't there. */
+  figure(): Figure;
   /** What the dig site tells the beats. Night 2 only; the scene adds the patrol's part. */
   dig: Pick<DigHooks, 'stageDone' | 'letterRead' | 'outAfterBox'>;
 }
@@ -79,6 +85,7 @@ export function stageCemetery(kit: LevelKit, ctx: SceneContext, phase: StoryPhas
   const staging: Staging = {
     scares,
     read: () => undefined,
+    figure: () => 'absent',
     dig: {
       stageDone: (stage) => {
         if (stage === 4) scares.fire('cem2_gravel_step');
@@ -121,6 +128,7 @@ function nightOne(kit: LevelKit, ctx: SceneContext, staging: Staging, gate: Back
   let dogStarted = false;
   const builtUp = () => silenceSince !== null && ctx.time - silenceSince >= BUILD_SECONDS;
 
+  staging.figure = () => (sightingAt === null || state.hasFlag('first_sighting') ? 'absent' : creaked ? 'leaving' : 'standing');
   staging.read = (grave) => {
     startSilence();
     if (builtUp() && grave.row >= 2 && grave.row <= 4 && facingAwayFromGate()) bark();
@@ -146,7 +154,7 @@ function nightOne(kit: LevelKit, ctx: SceneContext, staging: Staging, gate: Back
     // The notebook tells the reporter to wait once all three are read, so he comes whichever way they face.
     if ((allRead && builtUp()) || (silenceSince !== null && ctx.time - silenceSince > LATEST_SECONDS)) bark();
     if (raymondGoneAt === null || sightingAt !== null || state.hasFlag('first_sighting')) return;
-    if (allRead && ctx.time - raymondGoneAt > 12 && fromSighting > 11) {
+    if (allRead && ctx.time - raymondGoneAt > 12 && fromSighting > SIGHTING_FROM) {
       staging.scares.fire('cem1_back_wall');
       sightingAt = ctx.time;
     } else if (!restored && ctx.time - raymondGoneAt > 35) {

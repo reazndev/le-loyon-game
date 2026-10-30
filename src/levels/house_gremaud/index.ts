@@ -15,6 +15,7 @@ import { doorBell, lockTwice } from '../village_square/sounds';
 import { doorstepAmbient } from './ambient';
 import { doorstepClutter } from './clutter';
 import { doorstep } from './doorstep';
+import { hints } from './hints';
 import { DOOR, gremaudHouse, type GremaudHouse } from './house';
 
 /**
@@ -35,7 +36,7 @@ export const houseGremaudScene = defineScene({
   spawns: {
     default: { x: GATE.x, z: GATE.z + 1.4, yaw: 0 },
     from_square: { x: GATE.x, z: GATE.z + 1.4, yaw: 0 },
-    from_gremaud: { x: DOOR.x + 0.1, z: DOOR.z + 1.1, yaw: 180 },
+    from_kitchen: { x: DOOR.x + 0.1, z: DOOR.z + 1.1, yaw: 180 },
   },
   atmosphere: villageAtmosphere,
 
@@ -61,6 +62,7 @@ export const houseGremaudScene = defineScene({
 
     villageAmbience(kit, ctx, { bell: { x: -30, y: 14, z: 40 } });
     doorstepAmbient(kit, ctx, APPLE, GATE);
+    hints(kit, night);
   },
 });
 

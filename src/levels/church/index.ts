@@ -7,6 +7,7 @@ import { everyFrame } from './everyFrame';
 import { CHANCEL, CONFESSIONAL, MAIN_DOOR, NAVE, RAISED, SIDE_DOOR, TOWER, WALL } from './layout';
 import { churchAmbient } from './ambient';
 import { furnish } from './furnishings';
+import { hints } from './hints';
 import { buildNave, SAT_IN_CONFESSIONAL } from './nave';
 import { placeAbbe } from './overney';
 import { buildSacristy } from './sacristy';
@@ -59,6 +60,7 @@ export const churchScene = defineScene({
     kit.batch((still) => buildSacristy(still, ctx, night));
     churchAmbient(kit, ctx, night);
     placeAbbe(kit, ctx);
+    hints(kit, ctx);
     if (overneySpot(ctx.state) === 'nave' && !ctx.state.hasFlag('chu_after_mass')) lastOutOfMass(kit, ctx);
 
     kit.door({ to: 'village_square', spawn: 'church_door', w: MAIN_DOOR.w, h: MAIN_DOOR.h, prompt: 'Go out' }).at(MAIN_DOOR.x, 0, NAVE.z1 - WALL / 2 - 0.05);

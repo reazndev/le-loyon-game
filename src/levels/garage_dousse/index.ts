@@ -7,6 +7,7 @@ import { stageBeats } from './beats';
 import { garageCast } from './cast';
 import { buildClutter } from './clutter';
 import { buildFiatOnLift } from './fiat';
+import { hints } from './hints';
 import { DOOR, INSIDE_DOOR, LIFT, PIT, RADIO, ROOM, SUMP } from './layout';
 import { buildLights } from './lights';
 import { narration } from './narration';
@@ -60,6 +61,7 @@ export const garageScene = defineScene({
     });
     garageAmbient(kit, ctx, open);
     placeCast(kit, ctx, garageCast(phase, ctx.state));
+    hints(kit, ctx);
 
     kit.door({ to: 'village_square', spawn: 'from_garage', w: DOOR.w, h: DOOR.h, prompt: 'Go out' }).at(DOOR.x, 0, ROOM.z1 - WALL / 2 - 0.05);
 
