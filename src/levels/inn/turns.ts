@@ -80,7 +80,8 @@ export async function endingMorning(ctx: SceneContext, deskPose: { x: number; y:
   card.close();
   await wait(1.2);
   await ctx.say([
-    'I sit at the little table under the roof and write it all down. Names. Dates. The coffin. The larch. His voice through the steel.',
+    'I sit at the little table under the roof and write it all down.',
+    'Names. Dates. The coffin. The larch. His voice through the steel.',
     'By eight the notebook is full. The phone is downstairs, in the back room.',
   ]);
   wakeUp(ctx);

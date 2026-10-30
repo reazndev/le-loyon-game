@@ -91,7 +91,7 @@ function turnTheDay(kit: LevelKit, ctx: SceneContext, dressing: InnDressing, rin
       started = true;
       const fromOutside = Math.hypot(ctx.player.position.x - FROM_SQUARE.x, ctx.player.position.z - FROM_SQUARE.z) < 0.3;
       callDue = fromOutside && dressing.day === 3 && !dressing.night && !state.hasFlag('editor_called');
-      if (arrivingAtDawn) void endingMorning(ctx, { x: ROOM3_DESK.x + 0.1, y: UPPER, z: ROOM3_DESK.z + 1.05, yaw: 10 });
+      if (arrivingAtDawn) void endingMorning(ctx, { x: ROOM3_DESK.x + 0.2, y: UPPER, z: ROOM3_DESK.z + 0.95, yaw: -75 });
     }
     if (callDue && ctx.time > 3 && !ctx.paused) {
       callDue = false;
