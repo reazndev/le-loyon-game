@@ -9,7 +9,7 @@ import { DialogueRunner, type DialogueScript, type DialogueStep } from './dialog
 import { choiceText, displayLine } from './displayLine';
 import { documentLook, documentPages, type ReadableDocument } from './documentPages';
 import { inventoryEntry, itemUse } from './inventory';
-import { notebookDocument } from './notebook';
+import { hintsDocument, notebookDocument } from './notebook';
 import { changeSetting, settingRows, type Settings } from './settings';
 import type { GameState } from './state';
 
@@ -115,6 +115,11 @@ export class GameUi {
   /** The quest log, opened at the first page, where the next step sits above the notes. */
   openNotebook(): Promise<void> {
     return this.read(notebookDocument(this.state), 'notebook');
+  }
+
+  /** The next step and the controls. */
+  openHints(): Promise<void> {
+    return this.read(hintsDocument(this.state), 'notebook');
   }
 
   /** Holds up a Polaroid. Photo 7 makes the reporter look again once it has developed. */

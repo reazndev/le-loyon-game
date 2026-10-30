@@ -152,6 +152,25 @@ body {
   color: #6f6b63;
 }
 
+.ui-hud {
+  position: absolute;
+  left: 16px;
+  top: 12px;
+  display: flex;
+  gap: 12px;
+  font-size: 12px;
+}
+
+.ui-hud-button {
+  pointer-events: auto;
+  cursor: pointer;
+  color: rgba(214, 206, 190, 0.8);
+}
+
+.ui-hud-button:hover {
+  color: #fff;
+}
+
 .ui-goal {
   position: absolute;
   right: 16px;
@@ -178,7 +197,7 @@ body {
 }
 
 /* Hard text edges at fractional scales. Only on text, since the filter would harden translucent backgrounds too. */
-.ui-crisp :is(.ui-prompt, .ui-speaker, .ui-text, .ui-translation, .ui-list, .ui-title, .ui-detail, .ui-empty, .ui-notice, .ui-goal,
+.ui-crisp :is(.ui-prompt, .ui-speaker, .ui-text, .ui-translation, .ui-list, .ui-title, .ui-detail, .ui-empty, .ui-notice, .ui-goal, .ui-hud,
     .ui-sheet-title, .ui-sheet-text, .ui-sheet-page, .ui-sheet-translation, .ui-polaroid-caption, .ui-vf-counter, .ui-vf-hint) {
   filter: url(#ui-crisp);
 }

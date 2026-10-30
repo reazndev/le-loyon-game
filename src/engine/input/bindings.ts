@@ -14,6 +14,8 @@ export type Action =
   | 'flashlight'
   | 'crouch'
   | 'camera'
+  | 'notebook'
+  | 'hints'
   | 'pause';
 
 /** Keyboard bindings by `KeyboardEvent.code`, so they follow key position on any layout. */
@@ -37,6 +39,8 @@ export const keyBindings: Record<string, Action[]> = {
   KeyC: ['crouch'],
   ControlLeft: ['crouch'],
   KeyQ: ['camera'],
+  KeyN: ['notebook'],
+  KeyH: ['hints'],
   Escape: ['pause', 'cancel'],
   Backspace: ['cancel'],
 };
@@ -51,7 +55,9 @@ export const gamepadBindings: Record<number, Action[]> = {
   5: ['fast'],
   6: ['camera'],
   7: ['fast'],
+  8: ['notebook'],
   9: ['pause'],
+  10: ['hints'],
   12: ['up'],
   13: ['down'],
   14: ['left', 'turnLeft'],
@@ -65,6 +71,10 @@ export const mouseBindings: Record<number, Action[]> = {
 
 /** Prompt labels for the interact button on each device. */
 export const interactLabel = { keyboard: 'E', gamepad: 'A' } as const;
+
+/** Labels for the notebook and hints buttons in the top-left corner. */
+export const notebookLabel = { keyboard: 'N', gamepad: 'Back' } as const;
+export const hintsLabel = { keyboard: 'H', gamepad: 'L3' } as const;
 
 /** Prompt labels for the cancel button on each device. */
 export const cancelLabel = { keyboard: 'Esc', gamepad: 'B' } as const;

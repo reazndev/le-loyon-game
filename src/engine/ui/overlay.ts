@@ -7,6 +7,12 @@ import { MenuScreen } from './menuScreen';
 import { PhotoView } from './photoView';
 import { Prompt } from './prompt';
 
+export interface HudButton {
+  key: string;
+  label: string;
+  run: () => void;
+}
+
 /** The UI layer over the 3D frame, in 640x480 frame pixels. */
 export class Overlay {
   readonly root: HTMLElement;
@@ -19,6 +25,8 @@ export class Overlay {
   readonly dialogue: DialogueBox;
   private readonly notice: HTMLElement;
   private readonly goal: HTMLElement;
+  private readonly hud: HTMLElement;
+  private hudShown = '';
   private readonly flashLayer: HTMLElement;
   private readonly fader: HTMLElement;
   private noticeTimer: ReturnType<typeof setTimeout> | null = null;
@@ -33,6 +41,7 @@ export class Overlay {
     this.document = new DocumentView(this.root);
     this.dialogue = new DialogueBox(this.root);
     this.goal = el('div', 'ui-goal', this.root);
+    this.hud = el('div', 'ui-hud', this.root);
     this.notice = el('div', 'ui-notice', this.root);
     this.flashLayer = el('div', 'ui-flash', this.root);
     // Last, so the fade covers everything else.
@@ -61,6 +70,20 @@ export class Overlay {
   showGoal(text: string | null): void {
     if (this.goal.textContent !== (text ?? '')) this.goal.textContent = text ?? '';
     this.goal.hidden = text === null;
+  }
+
+  /** Buttons in the top-left corner, each with its key, that work with a click too. Null hides them. */
+  showHud(buttons: HudButton[] | null): void {
+    const shown = buttons?.map((button) => `${button.key} ${button.label}`).join('|') ?? '';
+    if (shown === this.hudShown) return;
+    this.hudShown = shown;
+    this.hud.replaceChildren();
+    buttons?.forEach((button) => {
+      const item = el('div', 'ui-hud-button', this.hud);
+      el('span', 'ui-key', item).textContent = button.key;
+      item.append(button.label);
+      item.addEventListener('click', button.run);
+    });
   }
 
   /** Shows a short line in the corner, such as "Got: Brass key". */

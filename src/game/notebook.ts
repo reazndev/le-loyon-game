@@ -15,6 +15,18 @@ export function currentGoal(state: StateView): string | null {
   return notebookGoals.find((goal) => checkStory(goal.if, state))?.text ?? null;
 }
 
+const controls = [
+  'Move: arrows or WASD. Run: Shift.',
+  'Use: E. Torch: F. Crouch: C. Camera: Q.',
+  'Inventory: Tab. Notebook: N. Hints: H. Pause and save: Esc.',
+].join('\n');
+
+/** The hints page: the next step, then the controls. */
+export function hintsDocument(state: StateView): ReadableDocument {
+  const goal = currentGoal(state);
+  return { title: 'Hints', pages: paginate([goal ? `Next: ${goal}` : 'Nothing left to do but finish it.', controls].join('\n\n')) };
+}
+
 /** The notebook as a document for the quest log view: the next step first, then one paragraph per note. */
 export function notebookDocument(state: StateView): ReadableDocument {
   const goal = currentGoal(state);

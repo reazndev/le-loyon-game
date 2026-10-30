@@ -2,14 +2,14 @@ import { Vector3 } from 'three';
 import { AudioManager } from '../engine/audio/audioManager';
 import { playFootstep } from '../engine/audio/footsteps';
 import { click } from '../engine/audio/generators';
-import { interactLabel } from '../engine/input/bindings';
+import { hintsLabel, interactLabel, notebookLabel } from '../engine/input/bindings';
 import { Input, type Movement } from '../engine/input/input';
 import { promptText } from '../engine/interactions';
 import { Player } from '../engine/player';
 import { keepFrameFitted } from '../engine/render/frame';
 import { GameRenderer } from '../engine/render/renderer';
 import { loadUiFont } from '../engine/ui/font';
-import { Overlay } from '../engine/ui/overlay';
+import { Overlay, type HudButton } from '../engine/ui/overlay';
 import { PolaroidCamera } from './camera/camera';
 import { GameUi, type PauseAction } from './gameUi';
 import { itemInfo } from './items';
@@ -191,7 +191,9 @@ export class Game {
     if (this.ui.open) this.ui.update(dt, this.input);
     else if (!this.scenes.busy) this.updatePlay(dt);
     if (this.ui.open || this.scenes.busy) this.overlay.prompt.hide();
-    this.overlay.showGoal(this.ui.open || this.scenes.busy || this.state.scene === 'home' ? null : currentGoal(this.state));
+    const playing = !this.ui.open && !this.scenes.busy && this.state.scene !== 'home';
+    this.overlay.showGoal(playing ? currentGoal(this.state) : null);
+    this.overlay.showHud(playing ? this.hudButtons() : null);
     this.scenes.update(dt);
 
     this.updateSenses();
@@ -219,7 +221,17 @@ export class Game {
     } else if (input.pressed('crouch')) player.crouched = !player.crouched;
     else if (input.pressed('camera')) this.camera.raise();
     else if (input.pressed('inventory')) this.ui.openInventory();
+    else if (input.pressed('notebook') && this.state.hasItem('notebook')) void this.ui.openNotebook();
+    else if (input.pressed('hints')) void this.ui.openHints();
     else if (input.pressed('pause')) this.ui.openPause(this.pauseActions());
+  }
+
+  private hudButtons(): HudButton[] {
+    const device = this.input.lastDevice;
+    return [
+      ...(this.state.hasItem('notebook') ? [{ key: notebookLabel[device], label: 'Notebook', run: () => void this.ui.openNotebook() }] : []),
+      { key: hintsLabel[device], label: 'Hints', run: () => void this.ui.openHints() },
+    ];
   }
 
   /** Moves the flashlight and the audio listener with the camera. */
