@@ -1,9 +1,10 @@
-import { MathUtils } from 'three';
+import { CylinderGeometry, MathUtils, Mesh, PlaneGeometry, Vector3 } from 'three';
 import { castModel, type CharacterId } from '../../engine/characters/cast';
 import { Character, type WalkOptions } from '../../engine/characters/character';
 import type { Waypoint } from '../../engine/characters/motion';
 import { collarBell, cowbell } from '../../engine/characters/voices';
 import { playerTuning } from '../../engine/player';
+import { createPs1Material } from '../../engine/render/ps1Material';
 import { hashString } from '../../engine/random';
 import { dialogues, type EntryId, type NodeId } from '../../content';
 import type { DialogueScript } from '../dialogue';
@@ -102,6 +103,28 @@ export class NpcBuilder extends Placed {
       if (time >= 1) this.ctx.world.updates.delete(ease);
     };
     if (Math.hypot(span.x, span.z) > 0.02) this.ctx.world.updates.add(ease);
+  }
+
+  /**
+   * A lit candle in the character's hand, Le Loyon's only light in the bunker. Its light moves
+   * with the hand, lights the mask from below, and is out while the character is hidden.
+   */
+  holdCandle(): this {
+    const hand = this.character.model.hand;
+    if (!hand) return this;
+    const wax = new Mesh(new CylinderGeometry(0.02, 0.02, 0.11, 6).translate(0, 0.02, 0), createPs1Material({ color: 0xc8c0a8 }));
+    const flame = new Mesh(new PlaneGeometry(0.014, 0.03).translate(0, 0.09, 0), createPs1Material({ color: 0xffd070, unlit: true, billboard: true }));
+    const glow = new Mesh(new PlaneGeometry(0.22, 0.22).translate(0, 0.09, 0), createPs1Material({ glow: true, billboard: true, map: this.ctx.world.textures.get('glow'), color: 0xffb860 }));
+    hand.add(wax, flame, glow);
+    this.ctx.later('register', () => {
+      const light = this.ctx.world.lights.addPoint(new Vector3(), { color: 0xffa858, intensity: 1.3, range: 3.2, flicker: 0.3 });
+      this.ctx.world.updates.add(() => {
+        // Just above the flame, so the light falls up onto the mask.
+        hand.getWorldPosition(light.position).y += 0.12;
+        light.intensity = this.object.visible ? 1.3 : 0;
+      });
+    });
+    return this;
   }
 
   /** Already seated when the scene opens, on a seat `height` meters up. See `Character.sit`. */

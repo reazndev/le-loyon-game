@@ -1,6 +1,7 @@
 import { CylinderGeometry, type Group } from 'three';
 import type { NodeId } from '../../content';
 import type { Atmosphere } from '../../engine/render/atmosphere';
+import type { LightBuilder } from '../../game/kit/builders';
 import type { LevelKit } from '../../game/kit/levelKit';
 import type { NpcBuilder } from '../../game/kit/npc';
 import type { Beat } from '../../game/scares/beats';
@@ -51,10 +52,10 @@ const atmospheres: Record<TimeOfDay, Atmosphere> = { day: atmosphere, night: atm
 export const markers = {
   bun3_doorway: {
     beat: 'bun3_doorway',
-    x: 0.2,
-    z: 0,
-    yaw: -90,
-    note: 'Jumpscare 3, `room_empty` only: Marc in the doorway, full height, masked, the cape, lit by the candle. He steps in while the player looks away; when they turn back, one loud breath, and marc_doorway 1 s later.',
+    x: 0.6,
+    z: -0.3,
+    yaw: yawToward(3 - 0.6, 0.3),
+    note: 'Jumpscare 3, `room_empty` only: Marc just inside the doorway, at one side of the frame, so he stands off-center and closer than the doorway itself. He holds a candle low; it lights the mask from below and his hand, and the rest of him is in shadow. The table candle gutters when he comes in. He steps in while the player looks away; when they turn back, one loud breath, and marc_doorway 1 s later.',
   },
   marc_dark_corner: {
     beat: 'bun3_knock',
@@ -108,10 +109,12 @@ export const bunkerHiddenScene = defineScene({
       await then?.();
     };
     furnish(kit, ctx, arrival, look);
-    candle(kit, ctx, arrival);
+    const tableCandle = candle(kit, ctx, arrival);
     const scares = kit.use(scareDirector(unspent(ctx.state, roomBeats(tunnel(kit, ctx)))));
     leaveByTheDoor(kit, ctx);
-    stageMarc(kit, ctx, arrival, seen, scares);
+    stageMarc(kit, ctx, arrival, seen, scares, () => {
+      if (tableCandle?.light) tableCandle.light.intensity *= 0.35;
+    });
   },
 
   update(dt, ctx) {
@@ -213,14 +216,17 @@ function valleyMap(kit: LevelKit) {
   });
 }
 
-/** One candle on the table, and its flutter, the only sound. It is out in the dark branch: the wrong knock put it out. */
-function candle(kit: LevelKit, ctx: SceneContext, arrival: Arrival): void {
+/**
+ * One candle on the table, and its flutter, the only sound. It is out in the dark branch: the
+ * wrong knock put it out. Returns its light, or null when it is out.
+ */
+function candle(kit: LevelKit, ctx: SceneContext, arrival: Arrival): LightBuilder | null {
   kit.cylinder({ r: 0.022, h: 0.09, sides: 6 }).color(0xd8d0b8).at(CANDLE.x, CANDLE.y, CANDLE.z);
-  if (arrival === 'dark') return;
+  if (arrival === 'dark') return null;
   kit.use((k) => k.world.sounds.track(candleFlutter(ctx.audio, { x: CANDLE.x, y: CANDLE.y + 0.1, z: CANDLE.z })));
   kit.box({ w: 0.012, h: 0.03, d: 0.012 }).unlit().color(0xffd070).at(CANDLE.x, CANDLE.y + 0.09, CANDLE.z);
   kit.glow(0.35, 0xffb860).at(CANDLE.x, CANDLE.y + 0.11, CANDLE.z);
-  kit.light({ color: 0xffa858, intensity: 1.7, range: 6.5 }).flicker(0.35).at(CANDLE.x, CANDLE.y + 0.25, CANDLE.z);
+  return kit.light({ color: 0xffa858, intensity: 1.7, range: 6.5 }).flicker(0.35).at(CANDLE.x, CANDLE.y + 0.25, CANDLE.z);
 }
 
 /**
@@ -324,7 +330,7 @@ const roomBeats = (shutTheDoor: () => void): Beat[] => [
   {
     id: 'bun3_doorway',
     when: { after: Number.POSITIVE_INFINITY },
-    do: [{ stinger: 'sfx_breath_mask', at: { x: DOOR.x, z: DOOR.z } }],
+    do: [{ stinger: 'sfx_breath_mask', at: { x: markers.bun3_doorway.x, z: markers.bun3_doorway.z } }],
   },
   {
     id: 'dawn_tunnel_door',
@@ -336,11 +342,12 @@ const roomBeats = (shutTheDoor: () => void): Beat[] => [
 
 /**
  * Marc, masked, wherever the night has put him. Empty room: he steps into the doorway while the
- * reporter's back is turned and is there when they turn (jumpscare 3). Dark room: he stands in the
- * far corner from the start until the torch finds him. After the monologue, and on any later
- * visit, he sits on the bed with his back to the door.
+ * reporter's back is turned, a candle in his hand, and is there when they turn (jumpscare 3); the
+ * table candle gutters in the air he lets in (`gutter`). Dark room: he stands in the far corner
+ * from the start until the torch finds him. After the monologue, and on any later visit, he sits
+ * on the bed with his back to the door.
  */
-function stageMarc(kit: LevelKit, ctx: SceneContext, arrival: Arrival, seen: Set<string>, scares: ScareDirector): void {
+function stageMarc(kit: LevelKit, ctx: SceneContext, arrival: Arrival, seen: Set<string>, scares: ScareDirector, gutter: () => void): void {
   const marc = kit.npc('marc');
   if (arrival === 'after') return sitOnTheBed(marc, { instantly: true });
   const talk = (id: NodeId) => playNode(ctx, id).then(() => walkToTheBed(marc));
@@ -357,10 +364,10 @@ function stageMarc(kit: LevelKit, ctx: SceneContext, arrival: Arrival, seen: Set
     return;
   }
 
-  // After three objects or 90 seconds he comes back. He steps in only while the door is behind
-  // the reporter, and the hit comes when they turn and see him.
+  // After three objects or 90 seconds he comes back. He steps in only while he is behind the
+  // reporter, and the hit comes when they turn and see him.
   const { x, z, yaw } = markers.bun3_doorway;
-  marc.at(x, 0, z).faceYaw(yaw);
+  marc.at(x, 0, z).faceYaw(yaw).holdCandle();
   marc.object.visible = false;
   let elapsed = 0;
   let stage: 'waiting' | 'there' | 'met' = 'waiting';
@@ -369,12 +376,13 @@ function stageMarc(kit: LevelKit, ctx: SceneContext, arrival: Arrival, seen: Set
     elapsed += dt;
     if (seen.size < 3 && elapsed < 90) return;
     if (stage === 'waiting') {
-      if (facing(c, DOOR.x, DOOR.z, 70)) return;
+      if (facing(c, x, z, 70)) return;
       stage = 'there';
       marc.object.visible = true;
+      gutter();
       return;
     }
-    if (!facing(c, DOOR.x, DOOR.z, 30) || distance(c, DOOR.x, DOOR.z) < 2) return;
+    if (!facing(c, x, z, 30) || distance(c, x, z) < 1.6) return;
     stage = 'met';
     scares.fire('bun3_doorway');
     setTimeout(() => void talk('marc_doorway'), 1000);
