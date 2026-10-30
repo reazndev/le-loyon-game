@@ -5,8 +5,8 @@ import { scatter } from '../../game/kit/scatter';
 import type { SceneContext } from '../../game/scene';
 import { distanceToTrails } from '../forest_path/trail';
 import { billboards } from '../forest_path/woods';
-import { BOUNDS, BUS_STOP, churchLane, FOUNTAIN, gremaudLane, LAMP, mainRoad, MEMORIAL, PHONE_BOX, ROAD_WIDTH, SQUARE } from './layout';
-import { bench, busStop, fountain, fribourgFlag, hikingSign, memorial, noticeCase, phoneBox, streetLamp } from './props';
+import { BOUNDS, BUS_STOP, churchLane, FOUNTAIN, gremaudLane, INN, INN_DOOR, LAMP, mainRoad, MEMORIAL, PHONE_BOX, ROAD_WIDTH, SQUARE } from './layout';
+import { bench, busStop, fountain, fribourgFlag, hikingSign, memorial, noticeCase, phoneBox, signpost, streetLamp, telegraphPole, waysideCross } from './props';
 import { road } from './road';
 
 /** The ground of the village: wet grass, the paved square, the road, the lanes, and the things on them. */
@@ -92,7 +92,23 @@ export function streetFurniture(kit: LevelKit, ctx: SceneContext, night: boolean
   hikingSign(kit, [100, -10]).at(-8.2, 0, -9.4);
   noticeCase(kit).at(-11.8, 0, 2).rotY(90);
   bench(kit).at(3.4, 0, -6.4).rotY(200);
+  landmarks(kit);
   return { phoneLamp: parts.phoneLamp ?? null };
+}
+
+/**
+ * What tells the player which way is which in the fog: the signpost by the fountain, and one
+ * tall shape on each way out. The church tower stands over the lane to the cemetery and the inn
+ * has its sign; the road south has a wayside cross and the road west its telegraph poles.
+ */
+function landmarks(kit: LevelKit): void {
+  signpost(kit, { x: FOUNTAIN.x + 2.7, z: FOUNTAIN.z + 2.1 }, [
+    { label: 'Cimetière', toward: { x: churchLane[0]![0], z: churchLane[0]![1] } },
+    { label: 'Bois-Noir', toward: { x: 4.4, z: 18 } },
+    { label: 'Croix-Blanche', toward: { x: INN.x - INN.d / 2, z: INN_DOOR.z } },
+  ]);
+  waysideCross(kit).at(8.4, 0, 18.5).rotY(-90);
+  [-17, -29, -41].forEach((x) => telegraphPole(kit).at(x, 0, 12.4));
 }
 
 /** The reporter's way out of the village in each direction, and the invisible edges. */

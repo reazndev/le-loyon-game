@@ -1,6 +1,8 @@
-import { ConeGeometry } from 'three';
+import { BoxGeometry, ConeGeometry } from 'three';
 import { cylinderGeometry } from '../../engine/render/geometry';
 import type { LevelKit } from '../../game/kit/levelKit';
+import { handText, paintedTexture } from '../forest_path/scrawl';
+import { yawToward } from '../forest_path/trail';
 
 /**
  * The things that make Leurs Swiss and lived in: the fountain, the phone box, the PostBus stop,
@@ -35,29 +37,28 @@ export function fountain(kit: LevelKit) {
     g.cylinder({ r: 0.17, h: 1.6, sides: 8 }).texture('church_stone', { tile: 0.6 }).color(0xa4a29a).at(-1.95, 0, 0).collider();
     g.cylinder({ r: 0.22, h: 0.1, sides: 8 }).texture('church_stone', { tile: 0.6 }).color(0xa8a69e).at(-1.95, 1.6, 0);
     g.mesh(new ConeGeometry(0.12, 0.3, 8).translate(0, 0.15, 0)).color(0x9a988f).at(-1.95, 1.7, 0);
-    g.box({ w: 0.42, h: 0.05, d: 0.05 }).color(0x8a7040).at(-1.55, 1.18, 0);
-    g.box({ w: 0.035, h: 0.5, d: 0.035 }).color(0xa8b4b8).emissive(0x222a2c).at(-1.36, 0.68, 0);
+    g.box({ w: 0.42, h: 0.05, d: 0.05 }).texture('rust_metal', { tile: 0.3 }).color(0x6a5434).at(-1.55, 1.18, 0);
+    g.box({ w: 0.035, h: 0.5, d: 0.035 }).color(0x4e5658).at(-1.36, 0.68, 0);
   });
 }
 
-/** A red phone box with a hood and glass on three sides. */
+/** A red phone box with a hood and glass on three sides, faded and streaked by twenty winters. */
 export function phoneBox(kit: LevelKit) {
-  const red = 0x8e3a30;
   return kit.group((g) => {
+    const red = (size: { w: number; h: number; d: number }) => g.box(size).texture('rust_metal', { tile: 1.2 }).color(0xa8483c);
     g.box({ w: 1.05, h: 0.1, d: 1.05 }).texture('stone_wall', { tile: 1 }).color(0x8c8a84).walkable('stone');
-    [
-      [-0.48, 0, 0.1, 1.05],
-      [0.48, 0, 0.1, 1.05],
-    ].forEach(([x, z, w, d]) => g.box({ w: w!, h: 2.3, d: d! }).color(red).at(x!, 0.1, z!).collider());
-    g.box({ w: 1.05, h: 2.3, d: 0.1 }).color(red).at(0, 0.1, -0.48).collider();
+    [-0.48, 0.48].forEach((x) => red({ w: 0.1, h: 2.3, d: 1.05 }).at(x, 0.1, 0).collider());
+    red({ w: 1.05, h: 2.3, d: 0.1 }).at(0, 0.1, -0.48).collider();
     // Glass panes in the sides, dark with the inside.
     [-0.535, 0.535].forEach((x) => g.box({ w: 0.02, h: 1.3, d: 0.75 }).color(0x2c3236).at(x, 0.9, 0));
     g.box({ w: 0.75, h: 1.3, d: 0.02 }).color(0x2c3236).at(0, 0.9, -0.535);
     // The door, mostly glass in a red frame, on the front.
-    g.box({ w: 0.86, h: 2.2, d: 0.05 }).color(red).at(0, 0.12, 0.5);
+    red({ w: 0.86, h: 2.2, d: 0.05 }).at(0, 0.12, 0.5);
     g.box({ w: 0.66, h: 1.6, d: 0.02 }).color(0x353b3e).at(0, 0.5, 0.53);
-    g.box({ w: 1.2, h: 0.2, d: 1.2 }).color(0x7a3028).at(0, 2.4, 0);
-    g.box({ w: 0.8, h: 0.13, d: 0.02 }).color(0xd8d0b8).unlit().at(0, 2.43, 0.61);
+    red({ w: 1.2, h: 0.2, d: 1.2 }).at(0, 2.4, 0);
+    g.box({ w: 0.8, h: 0.13, d: 0.02 }).texture('plaster_wall', { tile: 0.8 }).color(0x8e8a7c).at(0, 2.43, 0.61);
+    // Road dirt splashed up the foot of the box.
+    g.box({ w: 1.08, h: 0.32, d: 1.08 }).texture('mud', { tile: 0.8 }).color(0x4a3c32).at(0, 0.1, 0);
     // The telephone on the back wall.
     g.box({ w: 0.26, h: 0.34, d: 0.12 }).color(0x4a4a48).at(0, 1.2, -0.38);
     g.box({ w: 0.06, h: 0.2, d: 0.06 }).color(0x1a1a1a).at(-0.1, 1.34, -0.3);
@@ -119,7 +120,8 @@ export function fribourgFlag(kit: LevelKit) {
     g.box({ w: 0.12, h: 0.12, d: 0.12 }).color(0xa08a50).at(0, 7, 0);
     // A limp flag hangs as a long banner: the black half on the hoist side, the white half out.
     g.box({ w: 0.5, h: 1.9, d: 0.02 }).color(0x161616).at(0.3, 4.95, 0).doubleSided();
-    g.box({ w: 0.5, h: 1.75, d: 0.02 }).color(0xcac8c0).at(0.8, 5.1, 0.03).rotY(-12).doubleSided();
+    // Grey with rain, not white, so at night it doesn't hang in the dark like a sign.
+    g.box({ w: 0.5, h: 1.75, d: 0.02 }).texture('plaster_wall', { tile: 1 }).color(0x7c7a72).at(0.8, 5.1, 0.03).rotY(-12).doubleSided();
   });
 }
 
@@ -225,5 +227,63 @@ export function noticeCase(kit: LevelKit) {
 export function tyres(kit: LevelKit, count: number) {
   return kit.group((g) => {
     for (let i = 0; i < count; i++) g.cylinder({ r: 0.32, h: 0.2, sides: 8 }).color(0x1c1c1c).at(i % 2 ? 0.04 : 0, i * 0.2, 0).collider();
+  });
+}
+
+/**
+ * The commune's own signpost, older than the yellow hiking signs: a wooden post with arms
+ * hand-lettered in white. Each arm points toward a spot; its board runs along local -Z.
+ */
+export function signpost(kit: LevelKit, at: { x: number; z: number }, arms: { label: string; toward: { x: number; z: number } }[]) {
+  return kit.group((g) => {
+    g.box({ w: 0.11, h: 2.6, d: 0.11 }).texture('wood_planks', { tile: 0.8 }).color(0x5e5244).collider();
+    g.mesh(new ConeGeometry(0.1, 0.14, 4).rotateY(Math.PI / 4).translate(0, 2.67, 0)).texture('wood_planks', { tile: 0.5 }).color(0x4a4036);
+    arms.forEach(({ label, toward }, i) => {
+      const board = { length: 0.95, h: 0.17 };
+      g.group((a) => {
+        a.box({ w: 0.03, h: board.h, d: board.length }).map(paintedBoard(label), { tile: [board.length, board.h] }).at(0, 0, -board.length / 2 - 0.04);
+        a.mesh(new BoxGeometry(0.03, board.h / Math.SQRT2, board.h / Math.SQRT2).rotateX(Math.PI / 4).translate(0, board.h / 2, -board.length - 0.04))
+          .texture('wood_planks', { tile: 0.5 })
+          .color(0x6a5c4c);
+      })
+        .at(0, 2.25 - i * 0.24, 0)
+        .rotY(yawToward(toward.x - at.x, toward.z - at.z));
+    });
+  }).at(at.x, 0, at.z);
+}
+
+/** Weathered boards with the place name brushed on in off-white, the tip end on the right. */
+function paintedBoard(label: string) {
+  return paintedTexture([96, 17], (c) => {
+    c.fillStyle = '#5c4e3e';
+    c.fillRect(0, 0, 96, 17);
+    c.fillStyle = '#4c4034';
+    [3, 9, 14].forEach((y) => c.fillRect(0, y, 96, 1));
+    handText(c, label, 6, 9, { size: 12, color: '#c4bca6', font: 'serif' });
+  });
+}
+
+/**
+ * A wayside cross under a little roof, the kind every road out of a Fribourg village has. Tall
+ * and dark, it marks the road south from the square at the edge of the fog.
+ */
+export function waysideCross(kit: LevelKit) {
+  return kit.group((g) => {
+    g.box({ w: 0.7, h: 0.4, d: 0.7 }).texture('stone_wall', { tile: 1 }).color(0x7e7c76).collider();
+    g.box({ w: 0.16, h: 3.4, d: 0.14 }).texture('wood_planks', { tile: 0.8 }).color(0x4a3e34).at(0, 0.4, 0);
+    g.box({ w: 1.3, h: 0.14, d: 0.12 }).texture('wood_planks', { tile: 0.8 }).color(0x4a3e34).at(0, 2.9, 0);
+    g.gable({ w: 1.6, d: 0.5, h: 0.3 }).texture('roof_shingles', { tile: 0.6 }).color(0x4a4642).doubleSided().at(0, 3.7, 0);
+    // The figure, a small pale shape on the dark wood, worn smooth.
+    g.box({ w: 0.12, h: 0.5, d: 0.05 }).color(0x8a8478).at(0, 2.5, 0.09);
+    g.box({ w: 0.6, h: 0.06, d: 0.04 }).color(0x8a8478).at(0, 2.94, 0.09);
+  });
+}
+
+/** A creosoted telegraph pole with its crossarm and two insulators. */
+export function telegraphPole(kit: LevelKit) {
+  return kit.group((g) => {
+    g.cylinder({ r: 0.1, h: 7.5, sides: 6 }).texture('bark_spruce', { tile: [0.6, 2] }).color(0x3e3630).collider();
+    g.box({ w: 1.4, h: 0.1, d: 0.1 }).color(0x3a322c).at(0, 6.9, 0);
+    [-0.55, 0.55].forEach((x) => g.cylinder({ r: 0.04, h: 0.12, sides: 5 }).color(0x8a8c88).at(x, 7.0, 0));
   });
 }

@@ -155,6 +155,13 @@ export function inn(kit: LevelKit, night: boolean): void {
     sign.box({ w: 0.14, h: 0.5, d: 0.05 }).color(0xd8d4c8).at(0, 0.17, 0);
     sign.box({ w: 0.5, h: 0.14, d: 0.05 }).color(0xd8d4c8).at(0, 0.35, 0);
   }).at(front - 0.8, 2.95, INN_DOOR.z + 1.6);
+  // A lamp on the arm over the sign, left on all night: the one warm light on the square's east side.
+  kit.box({ w: 0.2, h: 0.12, d: 0.2 }).color(0x2a2826).at(front - 0.8, 3.9, INN_DOOR.z + 1.6);
+  if (night) {
+    kit.box({ w: 0.14, h: 0.04, d: 0.14 }).color(0xffc070).unlit().at(front - 0.8, 3.86, INN_DOOR.z + 1.6);
+    kit.glow(1.6, 0xff9a40).at(front - 0.8, 3.8, INN_DOOR.z + 1.6);
+    kit.light({ color: 0xff9a48, intensity: 1.8, range: 6 }).at(front - 1.1, 3.6, INN_DOOR.z + 1.6);
+  }
   // The terrace: two tables and their chairs stacked for winter, and a woodpile at the side.
   [1.2, 3.4].forEach((z) => {
     kit.cylinder({ r: 0.4, h: 0.72, sides: 8 }).color(0x5a5a56).at(front - 1.6, 0, z).collider();
