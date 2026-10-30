@@ -1,6 +1,6 @@
 // Renders one frame of a scene in headless Chromium and saves it as a PNG.
-// Usage: npm run shot -- --scene <id> --out <file.png> [--time day|night] [--pos x,y,z] [--yaw deg]
-//        [--flags a,b] [--frames 90] [--size 640x480]
+// Usage: npm run shot -- --scene <id> --out <file.png> [--time day|night] [--day n] [--night n]
+//        [--pos x,y,z] [--yaw deg] [--flags a,b] [--frames 90] [--size 640x480]
 import { mkdirSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { parseArgs } from 'node:util';
@@ -21,6 +21,8 @@ const { values } = parseArgs({
     scene: { type: 'string', default: 'test' },
     out: { type: 'string' },
     time: { type: 'string' },
+    day: { type: 'string' },
+    night: { type: 'string' },
     pos: { type: 'string' },
     yaw: { type: 'string' },
     flags: { type: 'string' },
@@ -35,7 +37,7 @@ if (!values.out) {
 }
 
 const query = new URLSearchParams({ scene: values.scene });
-for (const key of ['time', 'pos', 'yaw', 'flags']) if (values[key]) query.set(key, values[key]);
+for (const key of ['time', 'day', 'night', 'pos', 'yaw', 'flags']) if (values[key]) query.set(key, values[key]);
 const [width, height] = values.size.split('x').map(Number);
 
 const { server, url } = await startDevServer();

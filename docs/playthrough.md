@@ -48,7 +48,7 @@ The runner in `tools/playthrough/index.mjs` starts the Vite dev server and Chrom
 | `teleport()`, `pose()` | Moves between places on the path; doors and exits are still walked through. |
 | `setSpeed(n)` | Runs the game clock faster through the dig and the long silences on night 1. |
 
-`npm run shot`'s debug URL also takes `day=` and `night=` counts, as the `caught` run does: `?scene=inn&time=night&day=2&night=2&flags=...`.
+`npm run shot` also takes `--day` and `--night` counts and passes them to the debug URL, as the `caught` run does with `?scene=inn&time=night&day=2&night=2&flags=...`. For example, `npm run shot -- --scene cemetery --time night --night 2 --out /tmp/dig.png`.
 
 ## Writing a stage
 
