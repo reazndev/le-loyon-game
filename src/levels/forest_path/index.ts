@@ -6,6 +6,7 @@ import { lostInTheFog } from './lost';
 import { playNode } from './play';
 import { stageForestPath } from './scares';
 import { streamHiss } from './sounds';
+import { edgeStones } from './stones';
 import { storyPhase } from './story';
 import { distanceToTrails, nearestOnTrails, yawToward } from './trail';
 import { enclose, fallenLog, forestAmbience, forestAtmosphere, forestFloor, rock, trailStrip, undergrowth, woodland } from './woods';
@@ -34,7 +35,11 @@ export const forestPathScene = defineScene({
     const phase = storyPhase(ctx.state);
     kit.ground('grass', 0);
     forestFloor(kit, area, height);
-    trails.forEach((trail) => trailStrip(kit, trail, trail === main ? 1.7 : 1.3, height));
+    trails.forEach((trail, i) => {
+      const width = trail === main ? 1.7 : 1.3;
+      trailStrip(kit, trail, width, height);
+      edgeStones(kit, trail, width, height, `forest-path-${i}`);
+    });
     streamBed(kit);
 
     const nearWater = (x: number, z: number) => distanceToTrails([stream], x, z) < 2.4;

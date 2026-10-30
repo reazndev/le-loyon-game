@@ -96,7 +96,8 @@ export function trailStrip(kit: LevelKit, trail: Trail, width: number, height: H
   geometry.setAttribute('uv', new Float32BufferAttribute(uvs, 2));
   geometry.setIndex(indices);
   geometry.computeVertexNormals();
-  kit.mesh(geometry).texture('mud', { tile: 2.2 }).color(0x6e675e).doubleSided();
+  // A step lighter than the forest floor, so the torch finds the trail's edge at night.
+  kit.mesh(geometry).texture('mud', { tile: 2.2 }).color(0x867e72).doubleSided();
 }
 
 export interface WoodlandOptions {
