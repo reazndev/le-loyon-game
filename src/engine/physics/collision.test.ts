@@ -42,6 +42,26 @@ describe('pushOut', () => {
     expect(push.z).toBeCloseTo(0);
   });
 
+  it('pushes a circle whose center sits exactly on a box face back out through that face', () => {
+    const push = pushOut(box(0, 0, 1, 1), 1, 0.4, 0.3)!;
+    expect(push.x).toBeCloseTo(0.3);
+    expect(push.z).toBeCloseTo(0);
+  });
+
+  it('pushes a circle whose center sits exactly on a rotated box face out through that face', () => {
+    // Turned 90 degrees, the wall's local Z faces run along world X = 0.1 and -0.1.
+    const push = pushOut(box(0, 0, 2, 0.1, 90), 0.1, 0.5, 0.3)!;
+    expect(push.x).toBeCloseTo(0.3);
+    expect(push.z).toBeCloseTo(0);
+  });
+
+  it('still catches the far corner of a box turned 45 degrees', () => {
+    // The corner sits at x = sqrt(2), past both half sizes.
+    const push = pushOut(box(0, 0, 1, 1, 45), 1.6, 0, 0.3)!;
+    expect(push.x).toBeCloseTo(Math.SQRT2 + 0.3 - 1.6);
+    expect(push.z).toBeCloseTo(0);
+  });
+
   it('pushes out of circles', () => {
     const push = pushOut({ kind: 'circle', x: 0, z: 0, r: 0.5 }, 0, 0.6, 0.3)!;
     expect(push.x).toBeCloseTo(0);
@@ -78,6 +98,24 @@ describe('CollisionWorld.move', () => {
     const end = world.move({ x: 0, z: 0 }, { x: -2, z: -2 }, 0.3);
     expect(end.x).toBeCloseTo(-1 + 0.1 + 0.3, 5);
     expect(end.z).toBeCloseTo(-1 + 0.1 + 0.3, 5);
+  });
+
+  it('places a player spawned inside a building footprint outside it, at a finite position', () => {
+    const world = new CollisionWorld();
+    // A house body and its porch, sharing the face at x = 3.
+    world.add(box(0, 0, 3, 2));
+    world.add(box(3.6, 0, 0.6, 1));
+    for (const [x, z] of [
+      [0, 0],
+      [3, 0.5],
+      [2.9, 1.9],
+      [3.6, 0],
+      [-3, 2],
+    ] as const) {
+      const end = world.move({ x, z }, { x: 0, z: 0 }, 0.3);
+      expect(Number.isFinite(end.x) && Number.isFinite(end.z), `spawn at ${x}, ${z}`).toBe(true);
+      expect(world.move(end, { x: 0, z: 0 }, 0.3)).toEqual(end);
+    }
   });
 
   it('forgets removed shapes', () => {

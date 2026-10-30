@@ -51,18 +51,25 @@ export function containsPoint(shape: Shape, x: number, z: number): boolean {
 
 /** The offset that moves a circle at (x, z) with radius `r` out of `shape`, or null if they don't touch. */
 export function pushOut(shape: Shape, x: number, z: number, r: number): Vec2 | null {
+  const offsetX = x - shape.x;
+  const offsetZ = z - shape.z;
+  // Every move tests every shape in the scene, hundreds in the forest, so reject far shapes
+  // before computing or allocating anything.
+  const reach = shape.kind === 'circle' ? shape.r + r : shape.hw + shape.hd + r;
+  if (Math.abs(offsetX) >= reach || Math.abs(offsetZ) >= reach) return null;
+
   if (shape.kind === 'circle') {
-    const dx = x - shape.x;
-    const dz = z - shape.z;
-    const dist = Math.hypot(dx, dz);
-    const overlap = shape.r + r - dist;
+    const dist = Math.sqrt(offsetX * offsetX + offsetZ * offsetZ);
+    const overlap = reach - dist;
     if (overlap <= 0) return null;
     if (dist < 1e-9) return { x: overlap, z: 0 };
-    return { x: (dx / dist) * overlap, z: (dz / dist) * overlap };
+    return { x: (offsetX / dist) * overlap, z: (offsetZ / dist) * overlap };
   }
 
   const local = toLocal(shape, x, z);
-  const inside = Math.abs(local.x) < shape.hw && Math.abs(local.z) < shape.hd;
+  // A center exactly on a face counts as inside. The closest-point branch below would divide
+  // by a zero distance there, and a NaN position never collides with anything again.
+  const inside = Math.abs(local.x) <= shape.hw && Math.abs(local.z) <= shape.hd;
   if (inside) {
     // Leave through the nearest side.
     const exitX = shape.hw - Math.abs(local.x) + r;
